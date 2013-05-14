@@ -1,4 +1,4 @@
-create or replace view v_bi_contract_open_position as          
+create or replace view v_bi_contract_open_position as
 select pci.internal_contract_item_ref_no as internal_contract_item_ref_no,
        pcm.internal_contract_ref_no as internal_contract_ref_no,
        pcm.contract_ref_no as contract_ref_no,
@@ -70,6 +70,8 @@ select pci.internal_contract_item_ref_no as internal_contract_item_ref_no,
    and pcm.contract_type = 'BASEMETAL'
    and pci.is_active = 'Y'
    and pcm.contract_status = 'In Position'
+   and pcm.approval_status <> 'Rejected' --added for 78648
+
 union all
 select pci.internal_contract_item_ref_no as internal_contract_item_ref_no,
        pcm.internal_contract_ref_no as internal_contract_ref_no,
@@ -148,3 +150,4 @@ select pci.internal_contract_item_ref_no as internal_contract_item_ref_no,
    and pcpq.assay_header_id = vsh.ash_id(+)
    and pci.is_active = 'Y'
    and pcm.contract_status = 'In Position'
+   and pcm.approval_status <> 'Rejected'; --added for 78648

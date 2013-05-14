@@ -22,7 +22,8 @@ select 'Actual' section,
        pcm.contract_ref_no || '-' || pci.del_distribution_item_no cont_itm_ref_no,
        gmr.gmr_ref_no,
        round(round(gmr.qty, 4) * ucm_con.multiplication_factor, 4) gmr_wet_qty, -- req
-       sum(round(round(grd.qty, 4) * ucm_con.multiplication_factor, 4)) grd_wet_qty, -- req -- this column used qty used in report not the gme.qty
+       sum(round(round(grd.qty, 4) * ucm_con.multiplication_factor, 4)) grd_wet_qty,
+       -- req -- this column used qty used in report not the gme.qty
        sum(round((round(grd.qty, 4) -
                  (round(grd.qty, 4) * nvl(sded.deductibile_ratio, 0))) *
                  ucm_con.multiplication_factor,
@@ -38,7 +39,8 @@ select 'Actual' section,
        round(sum(round((round(grd.qty, 4) -
                        (round(grd.qty, 4) * nvl(sded.deductibile_ratio, 0))) *
                        ucm_con.multiplication_factor,
-                       4) * nvl(pav.typical_ratio, 0)) /
+                       4) * nvl(pav.typical, 0) ---for 78661
+                 ) /
              sum(round((round(grd.qty, 4) -
                        (round(grd.qty, 4) * nvl(sded.deductibile_ratio, 0))) *
                        ucm_con.multiplication_factor,
@@ -176,7 +178,8 @@ select 'Actual' section,
        gmr.gmr_ref_no,
        round(round(gmr.qty, 4) * ucm_con.multiplication_factor, 4) gmr_wet_qty, -- req
        sum(round(round(dgrd.net_weight, 4) * ucm_con.multiplication_factor,
-                 4)) grd_wet_qty, -- req -- this column used qty used in report not the gme.qty
+                 4)) grd_wet_qty,
+       -- req -- this column used qty used in report not the gme.qty
        sum(round((round(dgrd.net_weight, 4) -
                  (round(dgrd.net_weight, 4) *
                  nvl(sded.deductibile_ratio, 0))) *
@@ -194,12 +197,12 @@ select 'Actual' section,
                        (round(dgrd.net_weight, 4) *
                        nvl(sded.deductibile_ratio, 0))) *
                        ucm_con.multiplication_factor,
-                       4) * nvl(pav.typical_ratio, 0)) /
-             sum(round((round(dgrd.net_weight, 4) -
-                       (round(dgrd.net_weight, 4) *
-                       nvl(sded.deductibile_ratio, 0))) *
-                       ucm_con.multiplication_factor,
-                       4)),
+                       4) * nvl(pav.typical, 0) -------for 78661
+                 ) / sum(round((round(dgrd.net_weight, 4) -
+                               (round(dgrd.net_weight, 4) *
+                               nvl(sded.deductibile_ratio, 0))) *
+                               ucm_con.multiplication_factor,
+                               4)),
              8) typical,
        rm.ratio_name,
        round(sum(round((round(dgrd.net_weight, 4) -
@@ -331,7 +334,8 @@ select 'Expected' section,
        pcm.contract_ref_no || '-' || pci.del_distribution_item_no cont_itm_ref_no,
        gmr.gmr_ref_no,
        round(round(gmr.qty, 4) * ucm_con.multiplication_factor, 4) gmr_wet_qty, -- req
-       sum(round(round(grd.qty, 4) * ucm_con.multiplication_factor, 4)) grd_wet_qty, -- req -- this column used qty used in report not the gme.qty
+       sum(round(round(grd.qty, 4) * ucm_con.multiplication_factor, 4)) grd_wet_qty,
+       -- req -- this column used qty used in report not the gme.qty
        sum(round((round(grd.qty, 4) -
                  (round(grd.qty, 4) * nvl(sded.deductibile_ratio, 0))) *
                  ucm_con.multiplication_factor,
@@ -496,7 +500,8 @@ select 'Expected' section,
        gmr.gmr_ref_no,
        round(round(gmr.qty, 4) * ucm_con.multiplication_factor, 4) gmr_wet_qty, -- req
        sum(round(round(dgrd.net_weight, 4) * ucm_con.multiplication_factor,
-                 4)) grd_wet_qty, -- req -- this column used qty used in report not the gme.qty
+                 4)) grd_wet_qty,
+       -- req -- this column used qty used in report not the gme.qty
        sum(round((round(dgrd.net_weight, 4) -
                  (round(dgrd.net_weight, 4) *
                  nvl(sded.deductibile_ratio, 0))) *
