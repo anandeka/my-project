@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_1577
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar Reddy B
+ 
+Created on*        		:  15-May-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  74531
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  Assay
+
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+====================================================================================================================================
+Revision: 126808
+Author: rajeshwar.reddy
+Date: 12:25:50, 15 May 2013
+Message:
+bug fix:74531 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_48.sql
+
+
+
