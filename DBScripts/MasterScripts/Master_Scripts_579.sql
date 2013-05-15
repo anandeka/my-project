@@ -1,0 +1,1 @@
+update GMC_GRID_MENU_CONFIGURATION set LINK_CALLED = 'function(){cancelContract();}' where menu_id='MIN_1_4' and grid_id='MIN_LOC';
