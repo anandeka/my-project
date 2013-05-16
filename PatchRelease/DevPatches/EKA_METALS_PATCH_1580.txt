@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_1580
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Kumar Pagada
+ 
+Created on*        		:  16-May-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  79022 
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physicals
+
+Sub-Module  			 :  Physicals O/P Doc
+
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+====================================================================================================================================
+
+Revision: 127101
+Author: sishir.pagada
+Date: 7:42:30 PM, Thursday, May 16, 2013
+Message:
+Bug #79022 
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETCCDETAILS.sql
+
+====================================================================================================================================
