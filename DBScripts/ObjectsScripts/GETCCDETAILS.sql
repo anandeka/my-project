@@ -13,7 +13,7 @@ IS
 
    CURSOR cr_cc_data
    IS
-      SELECT (   'Containe Size'
+      SELECT (   'Container Size'
               || ' : '
               || pcmac.container_size
               || ' , '
