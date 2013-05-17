@@ -1368,6 +1368,7 @@ create or replace package body pkg_phy_physical_process is
              where trim(agh_prev.realized_status) = 'Realized'
                and agh_prev.process_id = gvc_previous_process_id
                and agh_prev.is_deleted = 'N');
+commit;               
     --
     -- 2. AGH was present in previous eod and became inventory out in this eod
     --
@@ -1382,6 +1383,7 @@ create or replace package body pkg_phy_physical_process is
              where trim(agh_prev.realized_status) <> 'Realized'
                and agh_prev.process_id = gvc_previous_process_id
                and agh_prev.is_deleted = 'N');
+commit;               
     --
     -- For Realized PNL Change update below tables for PROCESS_ID 
     --               
@@ -1400,7 +1402,7 @@ create or replace package body pkg_phy_physical_process is
              where dbd.corporate_id = pc_corporate_id
                and dbd.process = gvc_process
                and dbd.trade_date <= pd_trade_date);
-  
+  commit;
     update dgrdul_delivered_grd_ul dgrdul
        set dgrdul.process_id = pc_process_id
      where dgrdul.process_id is null
@@ -1417,7 +1419,7 @@ create or replace package body pkg_phy_physical_process is
              where dbd.corporate_id = pc_corporate_id
                and dbd.process = gvc_process
                and dbd.trade_date <= pd_trade_date);
-  
+commit;  
     update cdl_cost_delta_log cdl
        set cdl.process_id = pc_process_id
      where cdl.process_id is null
@@ -1433,6 +1435,7 @@ create or replace package body pkg_phy_physical_process is
              where dbd.corporate_id = pc_corporate_id
                and dbd.process = gvc_process
                and dbd.trade_date <= pd_trade_date);
+commit;               
     -- Washout Tables
     update sswh_spe_settle_washout_header sswh
        set process_id = pc_process_id
@@ -1443,7 +1446,7 @@ create or replace package body pkg_phy_physical_process is
              where axs.internal_action_ref_no = sswh.internal_action_ref_no
                and axs.eff_date <= pd_trade_date
                and axs.corporate_id = pc_corporate_id);
-  
+  commit;
     update sswd_spe_settle_washout_detail sswd
        set process_id = pc_process_id
      where process_id is null
@@ -1467,7 +1470,7 @@ create or replace package body pkg_phy_physical_process is
              where dbd.corporate_id = pc_corporate_id
                and dbd.process = gvc_process
                and dbd.trade_date <= pd_trade_date);
-               
+ commit;
       update cod_call_off_details cod
        set process_id = pc_process_id
      where process_id is null
@@ -1482,7 +1485,8 @@ create or replace package body pkg_phy_physical_process is
               from dbd_database_dump dbd
              where dbd.corporate_id = pc_corporate_id
                and dbd.process = gvc_process
-               and dbd.trade_date <= pd_trade_date);            
+               and dbd.trade_date <= pd_trade_date);
+commit;            
   exception
     when others then
       vobj_error_log.extend;
