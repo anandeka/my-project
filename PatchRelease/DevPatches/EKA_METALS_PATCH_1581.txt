@@ -1,0 +1,63 @@
+Patch No*          		:  EKA_METALS_PATCH_1581
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  17-May-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  77476,78156 
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD/EOM
+
+Sub-Module  			 :  EOD/EOM
+
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : EOD
+====================================================================================================================================
+
+Revision: 127268
+Author: sivachalabathi.s
+Date: 6:43:39 PM, Friday, May 17, 2013
+Message:
+EOD/EOM Rollback and performance improvement done
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/139_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process_boliden.sql -- FOR BOLIDEN only
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process_tata.sql	-- FOR TATA only
+
+
+Revision: 127270
+Author: sivachalabathi.s
+Date: 6:46:09 PM, Friday, May 17, 2013
+Message:
+eod_eom process performance history details
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/v_eodeom_precheck_history.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/v_eodeom_process_history.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/v_eodeom_record_count.sql
+====================================================================================================================================
