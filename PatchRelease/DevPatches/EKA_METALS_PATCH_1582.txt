@@ -1,0 +1,58 @@
+Patch No*          		:  EKA_METALS_PATCH_1582
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  22-May-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  77360
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Output Docs
+
+Sub-Module  			 :  Output Docs
+
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+====================================================================================================================================
+
+Revision: 127724
+Author: rajuga
+Date: 5:27:45 PM, Wednesday, May 22, 2013
+Message:
+Bug 77360 - Need to show the TC/RC rate in the details section
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_doc_invoice.sql
+
+====================================================================================================================================
+
+Revision: 127726
+Author: rajuga
+Date: 5:28:47 PM, Wednesday, May 22, 2013
+Message:
+Bug 77360 - Need to show the TC/RC rate in the details section
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument_DFI.rpt
+
+====================================================================================================================================
