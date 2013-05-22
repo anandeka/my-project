@@ -173,7 +173,8 @@ select 'Invoice' section_name,
        isd.adjustment_amount,
        isd.is_pledge pledge,
        isd.is_free_metal free_metal,
-       isd.invoice_amount
+       isd.invoice_amount,
+       null baseescdesc_type
   from is_d                  isd,
        is_conc_payable_child iscp,
        ds_document_summary   ds,
@@ -295,7 +296,8 @@ select 'Invoice' section_name,
        isd.adjustment_amount,
        isd.is_pledge pledge,
        isd.is_free_metal free_metal,
-       isd.invoice_amount
+       isd.invoice_amount,
+       null baseescdesc_type
   from is_d                    isd,
        igd_inv_gmr_details_d   igd,
        ds_document_summary     ds,
@@ -429,7 +431,8 @@ select 'Invoice' section_name,
        isd.adjustment_amount,
        isd.is_pledge pledge,
        isd.is_free_metal free_metal,
-       isd.invoice_amount
+       isd.invoice_amount,
+       ictc.baseescdesc_type
   from is_d                isd,
        is_conc_tc_child    ictc,
        ds_document_summary ds,
@@ -563,7 +566,8 @@ select 'Invoice' section_name,
        isd.adjustment_amount,
        isd.is_pledge pledge,
        isd.is_free_metal free_metal,
-       isd.invoice_amount
+       isd.invoice_amount,
+       icrc.baseescdesc_type
   from is_d                isd,
        is_conc_rc_child    icrc,
        ds_document_summary ds,
@@ -688,7 +692,8 @@ select 'Invoice' section_name,
        isd.adjustment_amount,
        isd.is_pledge pledge,
        isd.is_free_metal free_metal,
-       isd.invoice_amount
+       isd.invoice_amount,
+       null baseescdesc_type
   from is_d                  isd,
        is_conc_penalty_child icpc,
        ds_document_summary   ds,
@@ -803,7 +808,8 @@ select 'Other Charges' section_name,
        isd.adjustment_amount,
        isd.is_pledge pledge,
        isd.is_free_metal free_metal,
-       isd.invoice_amount
+       isd.invoice_amount,
+       null baseescdesc_type
   from is_d isd, ioc_d ioc, ds_document_summary ds, v_ak_corporate akc
  where isd.internal_doc_ref_no = ioc.internal_doc_ref_no(+)
    and isd.internal_doc_ref_no = ds.internal_doc_ref_no(+)
@@ -920,7 +926,8 @@ select 'Other Taxes' section_name,
        isd.adjustment_amount,
        isd.is_pledge pledge,
        isd.is_free_metal free_metal,
-       isd.invoice_amount
+       isd.invoice_amount,
+       null baseescdesc_type
   from is_d isd, itd_d itd, ds_document_summary ds, v_ak_corporate akc
  where isd.internal_doc_ref_no = itd.internal_doc_ref_no(+)
    and isd.internal_doc_ref_no = ds.internal_doc_ref_no(+)
@@ -1037,7 +1044,8 @@ select 'Invoice' section_name,
        isd.adjustment_amount,
        isd.is_pledge pledge,
        isd.is_free_metal free_metal,
-       isd.invoice_amount
+       isd.invoice_amount,
+       null baseescdesc_type
   from is_d isd,
        (select api.internal_doc_ref_no,
                api.internal_invoice_ref_no,
@@ -1190,7 +1198,8 @@ select 'Invoice' section_name,
        isd.adjustment_amount,
        isd.is_pledge pledge,
        isd.is_free_metal free_metal,
-       isd.invoice_amount
+       isd.invoice_amount,
+       null baseescdesc_type
   from is_d                isd,
        is_bdp_child_d      ibp,
        ds_document_summary ds,
@@ -1310,7 +1319,8 @@ select 'Invoice' section_name,
        isd.adjustment_amount,
        isd.is_pledge pledge,
        isd.is_free_metal free_metal,
-       isd.invoice_amount
+       isd.invoice_amount,
+       null baseescdesc_type
   from is_d                isd,
        is_bds_child_d      ibp,
        ds_document_summary ds,
@@ -1430,7 +1440,8 @@ select 'Invoice' section_name,
        isd.adjustment_amount,
        isd.is_pledge pledge,
        isd.is_free_metal free_metal,
-       isd.invoice_amount
+       isd.invoice_amount,
+       null baseescdesc_type
   from is_d                    isd,
        ds_document_summary     ds,
        v_ak_corporate          akc,
@@ -1555,7 +1566,8 @@ select 'Invoice' section_name,
        isd.adjustment_amount,
        isd.is_pledge pledge,
        isd.is_free_metal free_metal,
-       isd.invoice_amount
+       isd.invoice_amount,
+       null baseescdesc_type
   from is_d                  isd,
        ds_document_summary   ds,
        v_ak_corporate        akc
