@@ -1,0 +1,66 @@
+Patch No*          		:  EKA_METALS_PATCH_1583
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  23-May-2013
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  79133, 79099
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+====================================================================================================================================
+
+Revision: 127838
+Author: rajuga
+Date: 3:18:50 PM, Thursday, May 23, 2013
+Message:
+Bug: 79133
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PromptListByDate.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PromptListByDate_Excel.rpt
+
+====================================================================================================================================
+
+Revision: 127839
+Author: rajuga
+Date: 3:19:51 PM, Thursday, May 23, 2013
+Message:
+Bug: 79099
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ContractedVsDeliveredReport.rpt
+
+Revision: 127842
+Author: rajuga
+Date: 3:52:16 PM, Thursday, May 23, 2013
+Message:
+Bug: 79099
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ContractedVsDeliveredReport.rpt
+
+====================================================================================================================================
