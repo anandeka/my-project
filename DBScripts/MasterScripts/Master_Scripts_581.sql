@@ -3,4 +3,4 @@ Insert into GMC_GRID_MENU_CONFIGURATION
     FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
  Values
    ('113', 'LOG', 'GMR Details', 12, 2, 
-    'APP-PFL-N-182', 'function(){getConsolidatedSummary();}', NULL, '102', 'APP-ACL-N1062');
+    'APP-PFL-N-182', 'function(){loadConsolidatedSummary();}', NULL, '102', 'APP-ACL-N1062');
