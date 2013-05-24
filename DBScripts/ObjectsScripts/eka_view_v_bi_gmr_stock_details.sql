@@ -13,7 +13,8 @@ select gmr.corporate_id,
           (case
          when nvl(grd.tolling_stock_type, 'NA') in ('None Tolling', 'NA') then
           'Stock'
-         when nvl(grd.tolling_stock_type, 'NA') in ('MFT In Process Stock') then
+         when nvl(grd.tolling_stock_type, 'NA') in ('MFT In Process Stock','Free Metal IP Stock',
+         'Delta MFT IP Stock','Delta FM IP Stock') then
           'In Process'
          else
           'Stock'
@@ -83,7 +84,10 @@ select gmr.corporate_id,
    and pdm.product_type_id = 'Standard'
    and gmr.discharge_city_id = cim_dc.city_id(+)
    and nvl(grd.tolling_stock_type, 'NA') in
-       ('None Tolling', 'MFT In Process Stock', 'RM In Process Stock', 'NA') --Receive Material is added.
+       ('None Tolling', 'MFT In Process Stock','Free Metal IP Stock',
+         'Delta MFT IP Stock','Delta FM IP Stock', 'RM In Process Stock', 'NA') --Receive Material is added.
+      
+
 union all --For Base Metal Sale
 select gmr.corporate_id,
        (case
@@ -99,7 +103,8 @@ select gmr.corporate_id,
           (case
          when nvl(dgrd.tolling_stock_type, 'NA') in ('None Tolling', 'NA') then
           'Stock'
-         when nvl(dgrd.tolling_stock_type, 'NA') in ('MFT In Process Stock') then
+         when nvl(dgrd.tolling_stock_type, 'NA') in ('MFT In Process Stock','Free Metal IP Stock',
+         'Delta MFT IP Stock','Delta FM IP Stock') then
           'In Process'
          else
           'Stock'
@@ -168,7 +173,10 @@ select gmr.corporate_id,
    and pdm.product_type_id = 'Standard'
    and gmr.discharge_city_id = cim_dc.city_id(+)
    and nvl(dgrd.tolling_stock_type, 'NA') in
-       ('None Tolling', 'MFT In Process Stock', 'RM In Process Stock', 'NA')
+       ('None Tolling', 'MFT In Process Stock','Free Metal IP Stock',
+         'Delta MFT IP Stock','Delta FM IP Stock', 'RM In Process Stock', 'NA')
+       
+         
 union all --For Receive Material , In Process need to reduce
 SELECT gmr.corporate_id,
        (CASE
@@ -254,6 +262,7 @@ SELECT gmr.corporate_id,
    and pdm.product_type_id = 'Standard'
    and gmr.discharge_city_id = cim_dc.city_id(+)
    and grd.tolling_stock_type = 'RM In Process Stock'
+    
 union all
 
 SELECT gmr.corporate_id,
@@ -270,7 +279,8 @@ SELECT gmr.corporate_id,
           (CASE
          WHEN NVL(grd.tolling_stock_type, 'NA') IN ('None Tolling', 'NA') THEN
           'Stock'
-         WHEN NVL(grd.tolling_stock_type, 'NA') IN ('MFT In Process Stock') THEN
+         WHEN NVL(grd.tolling_stock_type, 'NA') IN ('MFT In Process Stock','Free Metal IP Stock',
+         'Delta MFT IP Stock','Delta FM IP Stock') THEN
           'In Process'
          ELSE
           'Stock'
@@ -365,4 +375,5 @@ SELECT gmr.corporate_id,
    and pdm.base_quantity_unit = ucm.to_qty_unit_id
    and gmr.discharge_city_id = cim_dc.city_id(+)
    and NVL(grd.tolling_stock_type, 'NA') IN
-       ('None Tolling', 'MFT In Process Stock', 'RM In Process Stock', 'NA')
+       ('None Tolling', 'MFT In Process Stock','Free Metal IP Stock',
+         'Delta MFT IP Stock','Delta FM IP Stock', 'RM In Process Stock', 'NA');
