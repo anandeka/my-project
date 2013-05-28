@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_1586
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir kumar Pagada
+ 
+Created on*        		:  28-May-2013 
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  79217
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physicals
+
+Sub-Module  			 :  Contract Items
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* :Transaction 
+==================================================================
+
+Revision: 128243
+Author: sishir.pagada
+Date: 12:05:45 PM, Tuesday, May 28, 2013
+Message:
+Bug # 79217
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_447.sql
+
+
+Revision: 128245
+Author: sishir.pagada
+Date: 12:08:46 PM, Tuesday, May 28, 2013
+Message:
+Bug # 79217
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_pci.sql
+
+
+
