@@ -137,7 +137,7 @@ AS
           pcm.cp_person_in_charge_id cp_person_in_charge_id,
           pcm.cp_contract_ref_no cp_contract_ref_no,
           pcm.our_person_in_charge_id our_person_in_charge_id,
-          pcm.issue_date AS issue_date,
+          pci.ci_effective_date AS issue_date,
           NVL (pcm.contract_type, 'Normal') trade_type,
           pci.item_status AS item_status, pci.spe_settlement_status,
           CAST (pci.is_active AS VARCHAR2 (1)) is_active,
