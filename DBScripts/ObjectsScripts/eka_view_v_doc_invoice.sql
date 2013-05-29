@@ -1204,7 +1204,7 @@ select 'Invoice' section_name,
        is_bdp_child_d      ibp,
        ds_document_summary ds,
        v_ak_corporate      akc
- where isd.internal_doc_ref_no = ibp.internal_doc_ref_no(+)
+ where isd.internal_doc_ref_no = ibp.internal_doc_ref_no
    and isd.internal_doc_ref_no = ds.internal_doc_ref_no(+)
    and ds.corporate_id = akc.corporate_id(+)
 union all
@@ -1325,7 +1325,7 @@ select 'Invoice' section_name,
        is_bds_child_d      ibp,
        ds_document_summary ds,
        v_ak_corporate      akc
- where isd.internal_doc_ref_no = ibp.internal_doc_ref_no(+)
+ where isd.internal_doc_ref_no = ibp.internal_doc_ref_no
    and isd.internal_doc_ref_no = ds.internal_doc_ref_no(+)
    and ds.corporate_id = akc.corporate_id(+)   
 union all
