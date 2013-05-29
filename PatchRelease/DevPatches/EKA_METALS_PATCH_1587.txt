@@ -1,0 +1,57 @@
+Patch No*          		:  EKA_METALS_PATCH_1587
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  29-May-2013 
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  79155
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Output Docs
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction 
+====================================================================================================================================
+
+Revision: 128430
+Author: rajuga
+Date: 3:53:51 PM, Wednesday, May 29, 2013
+Message:
+Bug 79155
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_doc_invoice.sql
+
+====================================================================================================================================
+
+Revision: 128429
+Author: rajuga
+Date: 3:53:32 PM, Wednesday, May 29, 2013
+Message:
+Bug 79155 - In FI draft output documemt it is not displaying delivery details-Trading contract
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument_DFI.rpt
+
+====================================================================================================================================
