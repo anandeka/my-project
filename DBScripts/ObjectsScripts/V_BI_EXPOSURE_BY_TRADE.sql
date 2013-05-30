@@ -1,4 +1,4 @@
- create or replace view V_BI_EXPOSURE_BY_TRADE as
+create or replace view V_BI_EXPOSURE_BY_TRADE as
 --  1st Fixed contracts
 select pcm.corporate_id,
        pcm.contract_ref_no,
@@ -29,8 +29,9 @@ select pcm.corporate_id,
  where pcm.contract_type = 'BASEMETAL'
    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
    and pcdi.internal_contract_ref_no = pcpd.internal_contract_ref_no
-   and pcdi.pcdi_id = pcdiqd.pcdiqd_id(+)
+   and pcdi.pcdi_id = pcdiqd.pcdi_id
    and pcdiqd.pcpq_id = pcpq.pcpq_id
+   and pcdiqd.is_active = 'Y'
    and pcpq.quality_template_id = qat.quality_id(+)
    and pcpd.input_output = 'Input'
    and qat.instrument_id = dim.instrument_id(+)
@@ -396,7 +397,7 @@ select pcm.corporate_id,
  where pcm.contract_type = 'CONCENTRATES'
    and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
    and pcdi.internal_contract_ref_no = pcpd.internal_contract_ref_no
-   and pcdi.pcdi_id = pcdiqd.pcdiqd_id(+)
+   and pcdi.pcdi_id = pcdiqd.pcdi_id
    and pcdiqd.pcpq_id = pcpq.pcpq_id
    and pcpq.quality_template_id = qat.conc_quality_id
    and pcpd.input_output = 'Input'
@@ -757,4 +758,4 @@ select pcm.corporate_id,
    and pocd.qp_period_type = 'Event'
    and pcdi_qty.qty_unit_id = ucm.from_qty_unit_id
    and pdm.base_quantity_unit = ucm.to_qty_unit_id
-   and ucm.is_active = 'Y'
+   and ucm.is_active = 'Y';
