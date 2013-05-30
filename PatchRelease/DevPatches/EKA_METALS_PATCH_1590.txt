@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_1590
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Siva
+ 
+Created on*        		:  30-May-2013 
+
+Bug / Enhancement*              :  Bugs
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  BI
+
+Sub-Module  			 :  BI
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+Message:
+
+bug id:79668,79662,79230
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_BI_EXPOSURE_BY_TRADE.sql			(Revision: 128578)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_bi_gmr_stock_details.sql		(Revision: 128577)
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_UNPNL_PHY_CHANGE_BY_TRADE.sql		(Revision: 128250)
+
+====================================================================================================================================
