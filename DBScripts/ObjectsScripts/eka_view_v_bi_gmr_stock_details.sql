@@ -1,4 +1,4 @@
-create or replace view v_bi_gmr_stock_details as
+CREATE OR REPLACE VIEW V_BI_GMR_STOCK_DETAILS AS
 select gmr.corporate_id,
        (case
          when nvl(grd.inventory_status, 'NA') in ('NA') then
@@ -86,8 +86,7 @@ select gmr.corporate_id,
    and nvl(grd.tolling_stock_type, 'NA') in
        ('None Tolling', 'MFT In Process Stock','Free Metal IP Stock',
          'Delta MFT IP Stock','Delta FM IP Stock', 'RM In Process Stock', 'NA') --Receive Material is added.
-      
-
+           
 union all --For Base Metal Sale
 select gmr.corporate_id,
        (case
@@ -169,6 +168,7 @@ select gmr.corporate_id,
    and dgrd.net_weight_unit_id = qum.qty_unit_id
    and pdm.base_quantity_unit = qum_base.qty_unit_id
    and dgrd.net_weight_unit_id = ucm.from_qty_unit_id
+   and nvl(dgrd.inventory_status,'NA') <> 'Out'---for Bug 79662
    and pdm.base_quantity_unit = ucm.to_qty_unit_id
    and pdm.product_type_id = 'Standard'
    and gmr.discharge_city_id = cim_dc.city_id(+)
@@ -176,7 +176,7 @@ select gmr.corporate_id,
        ('None Tolling', 'MFT In Process Stock','Free Metal IP Stock',
          'Delta MFT IP Stock','Delta FM IP Stock', 'RM In Process Stock', 'NA')
        
-         
+        
 union all --For Receive Material , In Process need to reduce
 SELECT gmr.corporate_id,
        (CASE
@@ -262,7 +262,7 @@ SELECT gmr.corporate_id,
    and pdm.product_type_id = 'Standard'
    and gmr.discharge_city_id = cim_dc.city_id(+)
    and grd.tolling_stock_type = 'RM In Process Stock'
-    
+   
 union all
 
 SELECT gmr.corporate_id,
