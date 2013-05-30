@@ -1,0 +1,6 @@
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('CON_GMR', 'MTGMR_LIST', 'GMR Details', 8, 2, 
+    NULL, 'function(){loadConsolidatedSummary();}', NULL, 'MTGMR_LIST_1', NULL);
