@@ -14,6 +14,13 @@ create or replace package "PKG_EXECUTE_EOM" is
                                  pd_trade_date   date);
 
 end pkg_execute_eom; 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
 /
 create or replace package body "PKG_EXECUTE_EOM" is
 
@@ -101,7 +108,6 @@ create or replace package body "PKG_EXECUTE_EOM" is
                                            'EOM',
                                            pc_action,
                                            pc_eom_status);
-    pkg_execute_eod.sp_refresh_mv;
     if pc_eom_status in ('EOD Processed Successfully',
         'EOD Process Success,Awaiting Cost Entry',
         'EOM Processed Successfully',
@@ -110,6 +116,7 @@ create or replace package body "PKG_EXECUTE_EOM" is
                                             'EOM',
                                             pd_trade_date);
     end if;
+    pkg_execute_eod.sp_refresh_mv;    
   end;
 
   procedure sp_record_cost(pc_corporate_id varchar2, pd_trade_date date) is

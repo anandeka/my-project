@@ -37,7 +37,6 @@ create or replace package "PKG_EXECUTE_EOD" is
   procedure sp_refresh_mv;
 end pkg_execute_eod; 
  
- 
 /
 create or replace package body "PKG_EXECUTE_EOD" is
 
@@ -151,13 +150,13 @@ create or replace package body "PKG_EXECUTE_EOD" is
                            'EOD',
                            pc_action,
                            pc_eod_status);
-    sp_refresh_mv;
     if pc_eod_status in ('EOD Processed Successfully',
         'EOD Process Success,Awaiting Cost Entry',
         'EOM Processed Successfully',
         'EOM Process Success,Awaiting Cost Entry') then
       sp_mark_process_count(pc_corporate_id, 'EOD', pd_trade_date);
     end if;
+    sp_refresh_mv;    
   exception
     when others then
       sp_mark_process_status(pc_corporate_id,
