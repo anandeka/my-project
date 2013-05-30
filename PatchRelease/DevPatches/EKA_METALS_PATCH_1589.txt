@@ -1,0 +1,57 @@
+Patch No*          		:  EKA_METALS_PATCH_1589
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  30-May-2013 
+
+Bug / Enhancement*              :  Bugs
+
+Bug ID*            		:  79682, 79671, 79672, 79674 
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Output Docs
+
+Sub-Module  			 :  Output Docs
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+
+Revision: 128529
+Author: rajuga
+Date: 3:56:35 PM, Thursday, May 30, 2013
+Message:
+Bugs:  
+79682 - Sorting order at Payment of Metals[@Summary] Section(Only DFI Document)
+79671, 79672, 79674 - Because of no entries in AK_CORPORATE_LOGO table, these Docs are not displaying data. 
+Now, irrespective of the existence of the data in this table, Doc will display the other Info. 
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AdvancePaymentDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/CommercialFeeInvoice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument_DFI.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/OCInvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ProfomaDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseDebitCreditNote.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ServiceInvoice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/VatDocument.rpt
+
+==================================================================
