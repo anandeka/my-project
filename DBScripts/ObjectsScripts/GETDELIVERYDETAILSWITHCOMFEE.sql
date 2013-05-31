@@ -1,7 +1,9 @@
 CREATE OR REPLACE FUNCTION GETDELIVERYDETAILSWITHCOMFEE (
    p_contractno    VARCHAR2,
    p_delivery_id   VARCHAR2,
-   p_cp_id         VARCHAR2
+   p_cp_id         VARCHAR2,
+   p_issue_date    VARCHAR2
+   
 )
    RETURN CLOB
 IS
@@ -201,9 +203,12 @@ BEGIN
                     || mcc.charge
                     || ' '
                     || cm.cur_code
-                    || '/'
-                    || qum.qty_unit
-                    || ' '
+                    || (CASE
+               		WHEN qum.qty_unit IS NULL
+                 	 THEN ''
+               		ELSE '/' || qum.qty_unit
+            		END)
+        	    || ' '
                     || mcc.weight_rate_basis
                     || ' '
                     || 'Basis'
@@ -218,18 +223,32 @@ BEGIN
                AND mcc.charge_cur_id = cm.cur_id
                AND pcpd.internal_contract_ref_no = p_contractno
                AND pcpd.input_output = 'Input'
-               AND mcc.qty_unit_id = qum.qty_unit_id
+               AND mcc.qty_unit_id = qum.qty_unit_id(+)
                AND mcc.quality_id = quality_rec.quality_id
                AND mcc.charge_name = 'Commercial Fee'
-               AND mcc.is_active='Y';
-
-            SELECT ('Premium:'
+               AND mcc.is_active='Y'
+ 	      	   AND (TO_DATE (MCC.FROM_DATE,'dd-Mon-YYYY') <=p_issue_date
+                    OR TO_DATE (MCC.TO_DATE,'dd-Mon-YYYY')>=p_issue_date
+                   );
+		 EXCEPTION
+            WHEN NO_DATA_FOUND
+            THEN
+               DBMS_OUTPUT.put_line ('No data found');
+               commercialdetails := '';
+         END;
+	
+	 BEGIN
+            SELECT (   'Premium:'
                     || ' '
                     || mcc.charge
                     || ' '
                     || cm.cur_code
-                    || '/'
-                    || qum.qty_unit
+                    || (CASE
+                           WHEN qum.qty_unit IS NULL
+                              THEN ''
+                           ELSE '/' || qum.qty_unit
+                        END
+                       )
                    )
               INTO premiumdetails
               FROM pcpd_pc_product_definition pcpd,
@@ -241,26 +260,47 @@ BEGIN
                AND mcc.charge_cur_id = cm.cur_id
                AND pcpd.internal_contract_ref_no = p_contractno
                AND pcpd.input_output = 'Input'
-               AND mcc.qty_unit_id = qum.qty_unit_id
+               AND mcc.qty_unit_id = qum.qty_unit_id(+)
                AND mcc.quality_id = quality_rec.quality_id
                AND mcc.charge_name = 'Premium'
-               AND mcc.is_active='Y';
-
-            qualitydecs :=
-                  qualitydecs
-               || '('
-               || commercialdetails
-               || ', '
-               || premiumdetails
-               || ')';
-            EXCEPTION
+               AND mcc.is_active = 'Y'
+               AND (   TO_DATE (mcc.from_date, 'dd-Mon-YYYY') <= p_issue_date
+                    OR TO_DATE (mcc.TO_DATE, 'dd-Mon-YYYY') >= p_issue_date
+                   );
+         EXCEPTION
             WHEN NO_DATA_FOUND
             THEN
-               dbms_output.put_line ('No data found');
-               commercialdetails := '';
+               DBMS_OUTPUT.put_line ('No data found');
                premiumdetails := '';
+
             END;
-      END LOOP;
+      	END LOOP;
+	
+		IF (commercialdetails IS NULL AND premiumdetails IS NULL)
+      		THEN
+         	qualitydecs := qualitydecs;
+      		END IF;
+
+     		IF (commercialdetails IS NOT NULL AND premiumdetails IS NULL)
+      		THEN
+         	qualitydecs := qualitydecs || '(' || commercialdetails || ')';
+      		END IF;
+
+      		IF (commercialdetails IS NULL AND premiumdetails IS NOT NULL)
+      		THEN
+         	qualitydecs := qualitydecs || '(' || premiumdetails || ')';
+      		END IF;
+
+      		IF (commercialdetails IS NOT NULL AND premiumdetails IS NOT NULL)
+      		THEN
+         	qualitydecs :=
+               	qualitydecs
+            	|| '('
+            	|| commercialdetails
+            	|| ', '
+            	|| premiumdetails
+            	|| ')';
+      END IF;
    END;
 
    deliverydescription :=

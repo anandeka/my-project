@@ -675,7 +675,8 @@ BEGIN
                    'Y', NULL, NULL,
                    getdeliverydetailswithcomfee (p_contractno,
                                              delivery_rec.pcdi_id,
-                                             cpid
+                                             cpid,
+                                             issuedate
                                             ),
                    NULL, NULL, 'N',
                    'N', 'N', 'FULL',
