@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_1592
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Kumar Pagada
+ 
+Created on*        		:  31-May-2013 
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  78291
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physicals
+
+Sub-Module  			 :  O/P Doc's
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction 
+==================================================================
+Revision: 128669
+Author: sishir.pagada
+Date: 12:14:04 PM, Friday, May 31, 2013
+Message:
+Bug #78291
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATECONTRACTOUTPUTDOC.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETDELIVERYDETAILSWITHCOMFEE.sql
+
