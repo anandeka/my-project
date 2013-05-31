@@ -1,0 +1,1 @@
+create table PPLM_PRICE_PROCESS_MAPPING  (price_process_id varchar2(15),free_metal_process_id varchar2(15));
