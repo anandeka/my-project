@@ -1778,7 +1778,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                       md.settlement_to_val_fx_rate,
                       cipde.element_id,
                       aml.attribute_name,
-                      sam.ash_id assay_header_id,
+                      --sam.ash_id assay_header_id,
+                      grd.weg_avg_pricing_assay_id assay_header_id,
                       ceqs.assay_qty,
                       ceqs.assay_qty_unit_id,
                       --Added Suresh                   
@@ -4664,7 +4665,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      md.settlement_to_val_fx_rate,
                      ceqs.element_id,
                      aml.attribute_name,
-                     sam.ash_id assay_header_id,
+                    -- sam.ash_id assay_header_id,
+                     grd.weg_avg_pricing_assay_id assay_header_id,
                      ceqs.assay_qty,
                      ceqs.assay_qty_unit_id,
                      --  added suresh                

@@ -7695,7 +7695,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              cipq.qty_unit_id,
              pcpq.assay_header_id,
              pqca.typical,
-             rm.ratio_name
+             rm.ratio_name,
+             pci.process_id
         from pci_physical_contract_item     pci,
              pcdi_pc_delivery_item          pcdi,
              cipq_contract_item_payable_qty cipq,
@@ -7757,7 +7758,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          payable_qty_unit_id,
          assay_percentage,
          assay_percentage_unit_id,
-         dbd_id)
+         dbd_id,
+         process_id)
       values
         (pc_corporate_id,
          cur_qty_rows.internal_contract_item_ref_no,
@@ -7768,7 +7770,8 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
          cur_qty_rows.qty_unit_id,
          cur_qty_rows.typical,
          cur_qty_rows.ratio_name,
-         pc_dbd_id);
+         pc_dbd_id,
+         cur_qty_rows.process_id);
     end loop;
   end;
   procedure sp_update_tmpc_fx_date(pc_corporate_id varchar2,

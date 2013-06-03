@@ -8785,7 +8785,10 @@ end;
      qty_unit,
      invoice_cur_id,
      invoice_cur_code,
-     purchase_sales)
+     purchase_sales,
+     contract_type,
+     delivery_item_no,
+     pcdi_id)
   --For Concentrates and Tolling contracts
   select pcm.internal_contract_ref_no,
                      pcm.contract_ref_no,
@@ -8804,7 +8807,10 @@ end;
                      qum.qty_unit,
                      pcm.invoice_currency_id invoice_cur_id,
                      pcm.invoice_cur_code invoice_cur_code,
-                     pcm.purchase_sales
+                     pcm.purchase_sales,
+                     pcm.contract_type,
+                     pcdi.delivery_item_no,
+                     pcdi.pcdi_id                    
                 from pcm_physical_contract_main     pcm,
                      dipq_delivery_item_payable_qty dipq,
                      pcpd_pc_product_definition     pcpd,
@@ -8850,7 +8856,10 @@ end;
                         qum.qty_unit,
                         pcm.invoice_currency_id,
                         pcm.invoice_cur_code,
-                        pcm.purchase_sales
+                        pcm.purchase_sales,
+                        pcm.contract_type,
+                        pcdi.delivery_item_no,
+                        pcdi.pcdi_id
         union all
         --For Base Metals
         select pcm.internal_contract_ref_no,
@@ -8870,7 +8879,10 @@ end;
                      qum.qty_unit,
                      pcm.invoice_currency_id invoice_cur_id,
                      pcm.invoice_cur_code invoice_cur_code,
-                     pcm.purchase_sales
+                     pcm.purchase_sales,
+                     pcm.contract_type,
+                     pcdi.delivery_item_no,
+                     pcdi.pcdi_id
                 from pcm_physical_contract_main     pcm,
                      diqs_delivery_item_qty_status dipq,
                      pcpd_pc_product_definition     pcpd,
@@ -8907,7 +8919,10 @@ end;
                         qum.qty_unit,
                         pcm.invoice_currency_id,
                         pcm.invoice_cur_code,
-                        pcm.purchase_sales;                  
+                        pcm.purchase_sales,
+                        pcm.contract_type,
+                        pcdi.delivery_item_no,
+                        pcdi.pcdi_id;                  
 commit;
 gvn_log_counter := gvn_log_counter + 1;
  sp_eodeom_process_log(pc_corporate_id,
@@ -8916,22 +8931,35 @@ gvn_log_counter := gvn_log_counter + 1;
                           gvn_log_counter,
                           'Main Table tcsm_temp_contract_status_main over');
 insert into tcs1_temp_cs_payable
-  (corporate_id, internal_contract_ref_no, element_id, landed_qty)
+  (corporate_id,
+   internal_contract_ref_no,
+   element_id,
+   landed_qty,
+   contract_type,
+   delivery_item_no,
+   pcdi_id)
 --Tolling P and S and Concentrates P contracts
 select pc_corporate_id,
          gmr.internal_contract_ref_no,
          spq.element_id,
-         sum(spq.payable_qty) landed_qty
+         sum(spq.payable_qty) landed_qty,
+         pcm.contract_type,
+         pcdi.delivery_item_no,
+         pcdi.pcdi_id
     from pcm_physical_contract_main pcm,
          process_gmr  gmr,
          process_spq      spq,
-         process_grd    grd
+         process_grd    grd,
+         pcdi_pc_delivery_item      pcdi
    where pcm.internal_contract_ref_no = gmr.internal_contract_ref_no
      and gmr.internal_gmr_ref_no = spq.internal_gmr_ref_no
      and spq.internal_gmr_ref_no = grd.internal_gmr_ref_no
      and spq.internal_grd_ref_no = grd.internal_grd_ref_no
      and spq.is_stock_split = 'N'
      and gmr.landed_qty > 0
+     and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+     and pcdi.pcdi_id = grd.pcdi_id
+     and pcdi.process_id = pc_process_id
      and pcm.is_active = 'Y'
      and spq.is_active = 'Y'
      and gmr.is_deleted = 'N'
@@ -8942,7 +8970,10 @@ select pc_corporate_id,
      and grd.process_id = pc_process_id
      and grd.status = 'Active'
    group by gmr.internal_contract_ref_no,
-            spq.element_id;
+            spq.element_id,
+            pcm.contract_type,
+            pcdi.delivery_item_no,
+            pcdi.pcdi_id;
 commit;
 gvn_log_counter := gvn_log_counter + 1;
 sp_eodeom_process_log(pc_corporate_id,
@@ -8951,16 +8982,26 @@ sp_eodeom_process_log(pc_corporate_id,
                           gvn_log_counter,
                           'Main Table tcs1_temp_cs_payable over 1');  
 insert into tcs1_temp_cs_payable
-  (corporate_id, internal_contract_ref_no, element_id, landed_qty)
+  (corporate_id,
+   internal_contract_ref_no,
+   element_id,
+   landed_qty,
+   contract_type,
+   delivery_item_no,
+   pcdi_id)
 --Concentrates S contracts
 select pc_corporate_id,
          gmr.internal_contract_ref_no,
          spq.element_id,
-         sum(spq.payable_qty) landed_qty
+         sum(spq.payable_qty) landed_qty,
+         pcm.contract_type,
+         pcdi.delivery_item_no,
+         pcdi.pcdi_id
     from pcm_physical_contract_main pcm,
          process_gmr  gmr,
          process_spq      spq,
-         dgrd_delivered_grd         dgrd
+         dgrd_delivered_grd         dgrd,
+         pcdi_pc_delivery_item      pcdi
    where pcm.internal_contract_ref_no = gmr.internal_contract_ref_no
      and gmr.internal_gmr_ref_no = spq.internal_gmr_ref_no
      and spq.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
@@ -8971,13 +9012,20 @@ select pc_corporate_id,
      and pcm.is_active = 'Y'
      and spq.is_active = 'Y'
      and gmr.is_deleted = 'N'
+     and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+     and pcdi.pcdi_id = dgrd.pcdi_id
+     and pcdi.is_active = 'Y'
+     and pcdi.process_id = pc_process_id
      and spq.process_id = pc_process_id
      and pcm.process_id = pc_process_id
      and gmr.process_id = pc_process_id
      and dgrd.process_id = pc_process_id
      and dgrd.status = 'Active'
    group by gmr.internal_contract_ref_no,
-            spq.element_id ;
+            spq.element_id,
+            pcm.contract_type,
+            pcdi.delivery_item_no,
+            pcdi.pcdi_id;
 commit;
 gvn_log_counter := gvn_log_counter + 1;
 sp_eodeom_process_log(pc_corporate_id,
@@ -8986,22 +9034,43 @@ sp_eodeom_process_log(pc_corporate_id,
                           gvn_log_counter,
                           'Main Table tcs1_temp_cs_payable over 2');                   
 insert into tcs1_temp_cs_payable
-  (corporate_id, internal_contract_ref_no, element_id, landed_qty)
+  (corporate_id,
+   internal_contract_ref_no,
+   element_id,
+   landed_qty,
+   contract_type,
+   delivery_item_no,
+   pcdi_id)
 --Base Metals P contracts
 select pc_corporate_id,
          gmr.internal_contract_ref_no,
          null element_id,
-         sum(grd.qty) landed_qty
+         sum(grd.qty) landed_qty,
+         pcm.contract_type,
+         pcdi.delivery_item_no,
+         pcdi.pcdi_id
     from process_gmr  gmr,
-         process_grd    grd
-   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no   
+         process_grd    grd,      
+         pcm_physical_contract_main pcm,
+         pcdi_pc_delivery_item      pcdi        
+   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
      and gmr.landed_qty > 0
      and gmr.is_deleted = 'N'
      and gmr.gmr_type = 'BASEMETAL'
      and gmr.process_id = pc_process_id
      and grd.process_id = pc_process_id
+     and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
+     and pcm.is_active = 'Y'
+     and pcm.process_id = pc_process_id
+     and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+     and pcdi.pcdi_id = grd.pcdi_id
+     and pcdi.is_active = 'Y'
+     and pcdi.process_id = pc_process_id
      and grd.status = 'Active'
-   group by gmr.internal_contract_ref_no;
+   group by gmr.internal_contract_ref_no,
+            pcm.contract_type,
+            pcdi.delivery_item_no,
+            pcdi.pcdi_id;
 commit;   
 gvn_log_counter := gvn_log_counter + 1;
 sp_eodeom_process_log(pc_corporate_id,
@@ -9010,14 +9079,25 @@ sp_eodeom_process_log(pc_corporate_id,
                           gvn_log_counter,
                           'Main Table tcs1_temp_cs_payable over 3');  
 insert into tcs1_temp_cs_payable
-  (corporate_id, internal_contract_ref_no, element_id, landed_qty)
+  (corporate_id,
+   internal_contract_ref_no,
+   element_id,
+   landed_qty,
+   contract_type,
+   delivery_item_no,
+   pcdi_id)
 --Base Metals S contracts
 select pc_corporate_id,
          gmr.internal_contract_ref_no,
          null element_id,
-         sum(dgrd.net_weight) landed_qty
+         sum(dgrd.net_weight) landed_qty,
+         pcm.contract_type,
+         pcdi.delivery_item_no,
+         pcdi.pcdi_id
     from process_gmr  gmr,
-         dgrd_delivered_grd         dgrd
+         dgrd_delivered_grd         dgrd,
+         pcm_physical_contract_main pcm,
+         pcdi_pc_delivery_item      pcdi
    where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no   
      and gmr.landed_qty > 0
      and gmr.is_deleted = 'N'
@@ -9025,7 +9105,17 @@ select pc_corporate_id,
      and gmr.process_id = pc_process_id
      and dgrd.process_id = pc_process_id
      and dgrd.status = 'Active'
-   group by gmr.internal_contract_ref_no;
+     and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
+     and pcm.is_active = 'Y'
+     and pcm.process_id = pc_process_id
+     and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+     and pcdi.pcdi_id = dgrd.pcdi_id
+     and pcdi.process_id = pc_process_id
+     and pcdi.is_active = 'Y'
+   group by gmr.internal_contract_ref_no,
+            pcm.contract_type,
+            pcdi.delivery_item_no,
+            pcdi.pcdi_id;
       commit;     
 gvn_log_counter := gvn_log_counter + 1;
 sp_eodeom_process_log(pc_corporate_id,
@@ -9034,36 +9124,63 @@ sp_eodeom_process_log(pc_corporate_id,
                           gvn_log_counter,
                           'Main Table tcs1_temp_cs_payable over');         
 insert into tcs2_temp_cs_priced
-  (corporate_id, internal_contract_ref_no, element_id, priced_qty)
+  (corporate_id,
+   internal_contract_ref_no,
+   element_id,
+   priced_qty,
+   instrument_id,
+   contract_type,
+   delivery_item_no,
+   pcdi_id)
 --All contracts of Price type <> Fixed, except. internal Tolling contracts
 select pc_corporate_id,
          pcm.internal_contract_ref_no,
          poch.element_id,
-         sum(pfd.qty_fixed) priced_qty
+         sum(pfd.qty_fixed) priced_qty,
+         ppfd.instrument_id,
+         pcm.contract_type,
+         pcdi.delivery_item_no,
+         pcdi.pcdi_id
     from pcm_physical_contract_main     pcm,
          pcdi_pc_delivery_item          pcdi,
          poch_price_opt_call_off_header poch,
          pocd_price_option_calloff_dtls pocd,
          pofh_price_opt_fixation_header pofh,
-         pfd_price_fixation_details     pfd
+         pfd_price_fixation_details     pfd,
+         pcbpd_pc_base_price_detail     pcbpd,
+         ppfh_phy_price_formula_header  ppfh,
+         ppfd_phy_price_formula_details ppfd
    where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
      and pocd.price_type <> 'Fixed'
      and pcdi.pcdi_id = poch.pcdi_id
      and poch.poch_id = pocd.poch_id
      and pocd.pocd_id = pofh.pocd_id
      and pofh.pofh_id = pfd.pofh_id
+     and pocd.pcbpd_id = pcbpd.pcbpd_id
+     and pcbpd.pcbpd_id = ppfh.pcbpd_id
+     and ppfh.ppfh_id = ppfd.ppfh_id
+     and ppfh.process_id = pc_process_id
+     and ppfd.process_id = pc_process_id
+     and pcbpd.process_id = pc_process_id
      and pcm.is_active = 'Y'
      and pcdi.is_active = 'Y'
      and poch.is_active = 'Y'
      and pocd.is_active = 'Y'
      and pofh.is_active = 'Y'
      and pfd.is_active = 'Y'
+     and pcbpd.is_active = 'Y'
+     and ppfh.is_active = 'Y'
+     and ppfd.is_active = 'Y'
      and pcm.process_id = pc_process_id
      and pcdi.process_id = pc_process_id
      and pfd.hedge_correction_date <= pd_trade_date
-     and nvl(pfd.is_cancel,'N')='N'
+     and nvl(pfd.is_cancel, 'N') = 'N'
    group by pcm.internal_contract_ref_no,
-            poch.element_id;
+            poch.element_id,
+            ppfd.instrument_id,
+            pcm.contract_type,
+            pcdi.delivery_item_no,
+            pcdi.pcdi_id;
 commit;
  gvn_log_counter := gvn_log_counter + 1;
 sp_eodeom_process_log(pc_corporate_id,
@@ -9073,12 +9190,21 @@ sp_eodeom_process_log(pc_corporate_id,
                           'Main Table tcs2_temp_cs_priced over 1');     
             
  insert into tcs2_temp_cs_priced
-  (corporate_id, internal_contract_ref_no, element_id, priced_qty)
-  --Price type =  Fixed, all Tolling and Concentrates
+  (corporate_id,
+   internal_contract_ref_no,
+   element_id,
+   priced_qty,
+   contract_type,
+   delivery_item_no,
+   pcdi_id)
+--Price type =  Fixed, all Tolling and Concentrates
   select pc_corporate_id,
          pcm.internal_contract_ref_no,
          dipq.element_id,
-         sum(dipq.payable_qty) priced_qty
+         sum(dipq.payable_qty) priced_qty,
+         pcm.contract_type,
+         pcdi.delivery_item_no,
+         pcdi.pcdi_id
     from pcm_physical_contract_main     pcm,
          pcdi_pc_delivery_item          pcdi,
          dipq_delivery_item_payable_qty dipq,
@@ -9103,7 +9229,11 @@ sp_eodeom_process_log(pc_corporate_id,
      and pcm.process_id = pc_process_id
      and pcdi.process_id = pc_process_id
    group by pcm.internal_contract_ref_no,
-            dipq.element_id;
+            dipq.element_id,
+            pcm.contract_type,
+            pcdi.delivery_item_no,
+            pcdi.pcdi_id;
+commit;
   gvn_log_counter := gvn_log_counter + 1;
 sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -9111,15 +9241,24 @@ sp_eodeom_process_log(pc_corporate_id,
                           gvn_log_counter,
                           'Main Table tcs2_temp_cs_priced over 2');              
  insert into tcs2_temp_cs_priced
-  (corporate_id, internal_contract_ref_no, element_id, priced_qty)
+  (corporate_id,
+   internal_contract_ref_no,
+   element_id,
+   priced_qty,
+   contract_type,
+   delivery_item_no,
+   pcdi_id)
 --Price type =  Fixed, all Base Metal contracts
   select pc_corporate_id,
          pcm.internal_contract_ref_no,
          null element_id,
-         sum(diqs.price_fixed_qty) priced_qty
+         sum(diqs.price_fixed_qty) priced_qty,
+         pcm.contract_type,
+         pcdi.delivery_item_no,
+         pcdi.pcdi_id
     from pcm_physical_contract_main     pcm,
          pcdi_pc_delivery_item          pcdi,
-         diqs_delivery_item_qty_status diqs,
+         diqs_delivery_item_qty_status  diqs,
          poch_price_opt_call_off_header poch,
          pocd_price_option_calloff_dtls pocd
    where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
@@ -9137,7 +9276,10 @@ sp_eodeom_process_log(pc_corporate_id,
      and pocd.is_active = 'Y'
      and pcm.process_id = pc_process_id
      and pcdi.process_id = pc_process_id
-   group by pcm.internal_contract_ref_no;
+   group by pcm.internal_contract_ref_no,
+            pcm.contract_type,
+            pcdi.delivery_item_no,
+            pcdi.pcdi_id;
 commit;
  gvn_log_counter := gvn_log_counter + 1;
 sp_eodeom_process_log(pc_corporate_id,
@@ -9168,7 +9310,11 @@ sp_eodeom_process_log(pc_corporate_id,
        unpriced_arrived_qty,
        unpriced_not_arrived_qty,
        purchase_sales,
-       element_desc)
+       element_desc,
+       instrument_id,
+       contract_type,
+       delivery_item_no,
+       pcdi_id)
       select main_table.corporate_id,
              main_table.corporate_name,
              pc_process_id,
@@ -9219,7 +9365,11 @@ sp_eodeom_process_log(pc_corporate_id,
                 nvl(pfc_data.priced_qty, 0)
              end)) unpriced_not_arrived_qty,
              main_table.purchase_sales,
-             main_table.attribute_desc
+             main_table.attribute_desc,
+             pfc_data.instrument_id,
+             main_table.contract_type,
+             main_table.delivery_item_no,
+             main_table.pcdi_id
         from tcsm_temp_contract_status_main         main_table,
              tcs1_temp_cs_payable stock_table,
              tcs2_temp_cs_priced pfc_data
@@ -9232,6 +9382,8 @@ sp_eodeom_process_log(pc_corporate_id,
          and main_table.element_id = pfc_data.element_id(+)
          and main_table.corporate_id = pfc_data.corporate_id(+)
         and main_table.corporate_id = pc_corporate_id
+        and main_table.pcdi_id=pfc_data.pcdi_id(+)
+        and main_table.pcdi_id=stock_table.pcdi_id(+)
         and main_table.element_id is not null;
     commit;
     
@@ -9258,7 +9410,11 @@ sp_eodeom_process_log(pc_corporate_id,
        unpriced_arrived_qty,
        unpriced_not_arrived_qty,
        purchase_sales,
-       element_desc)
+       element_desc,
+       instrument_id,
+       contract_type,
+       delivery_item_no,
+       pcdi_id)
       select main_table.corporate_id,
              main_table.corporate_name,
              pc_process_id,
@@ -9309,7 +9465,11 @@ sp_eodeom_process_log(pc_corporate_id,
                 nvl(pfc_data.priced_qty, 0)
              end)) unpriced_not_arrived_qty,
              main_table.purchase_sales,
-             main_table.attribute_desc
+             main_table.attribute_desc,
+             pfc_data.instrument_id,
+             main_table.contract_type,
+             main_table.delivery_item_no,
+             main_table.pcdi_id
         from tcsm_temp_contract_status_main         main_table,
              tcs1_temp_cs_payable stock_table,
              tcs2_temp_cs_priced pfc_data
@@ -9322,6 +9482,8 @@ sp_eodeom_process_log(pc_corporate_id,
 --         and main_table.element_id = pfc_data.element_id(+)
          and main_table.corporate_id = pfc_data.corporate_id(+)
         and main_table.corporate_id = pc_corporate_id
+        and main_table.pcdi_id=pfc_data.pcdi_id(+)
+        and main_table.pcdi_id=stock_table.pcdi_id(+)
         and main_table.element_id is null;
     commit;
      gvn_log_counter := gvn_log_counter + 1;

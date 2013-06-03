@@ -13024,7 +13024,18 @@ insert into process_spq
            where grd.internal_grd_ref_no = spq.internal_grd_ref_no
              and grd.corporate_id = pc_corporate_id
              and grd.dbd_id = gvc_dbd_id
-             and grd.status = 'Active');
+             and grd.status = 'Active')
+             and spq.internal_dgrd_ref_no is null;
+ commit;            
+update process_spq spq
+     set spq.is_active = 'N'
+   where spq.dbd_id = gvc_dbd_id
+     and not exists (select 1
+            from dgrd_delivered_grd grd
+           where grd.internal_grd_ref_no = spq.internal_dgrd_ref_no
+             and grd.dbd_id = gvc_dbd_id
+             and grd.status = 'Active')
+             and spq.internal_grd_ref_no is null;             
   commit;
    gvn_log_counter := gvn_log_counter + 1;
    sp_precheck_process_log(pc_corporate_id,
