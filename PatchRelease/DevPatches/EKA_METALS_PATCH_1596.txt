@@ -15,9 +15,9 @@ Branch (DEV / REL)*		:  Dev
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 :  Reports
+Module  		   	 :  EOD
 
-Sub-Module  			 :  Reports
+Sub-Module  			 :  EOD
  
 Section   		   	 :  N/A
  
@@ -32,17 +32,21 @@ FS Amendment details   		 :  N/A
 Dependent patches:		 :  N/A
 
 ==================================================================
-Schema type (Transaction / EOD)* : Transaction 
+Schema type (Transaction / EOD)* : EOD
 ==================================================================
 
-Revision: 128923
+Revision: 128921
 Author: suresh.gottipati
-Date: 6:39:16 PM, Monday, June 03, 2013
+Date: 6:27:28 PM, Monday, June 03, 2013
 Message:
 Bug Fixes
 ----
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyContractStatusReport.rpt
-Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyContractStatusReport_Excel.rpt
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/140_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_pre_check_process.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_conc_unrealized_pnl.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
 
 
 
