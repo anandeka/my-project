@@ -183,6 +183,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
              tmpc.mvp_id,
              tmpc.shipment_month,
              tmpc.shipment_year,
+             tmpc.valuation_point,
              nvl(pdm_conc.valuation_against_underlying, 'Y') valuation_against_underlying,
              ciscs.fw_rate_string accrual_to_base_fw_exch_rate,
              md.m2m_ld_fw_exch_rate,
@@ -946,16 +947,19 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
         vn_m2m_total_penality := 0;
         for cc in (select pci.internal_contract_item_ref_no,
                           pqca.element_id,
+                          aml.attribute_name,
                           pcpq.quality_template_id
                      from pci_physical_contract_item  pci,
                           pcpq_pc_product_quality     pcpq,
                           ash_assay_header            ash,
                           asm_assay_sublot_mapping    asm,
-                          pqca_pq_chemical_attributes pqca
+                          pqca_pq_chemical_attributes pqca,
+                          aml_attribute_master_list   aml
                     where pci.pcpq_id = pcpq.pcpq_id
                       and pcpq.assay_header_id = ash.ash_id
                       and ash.ash_id = asm.ash_id
                       and asm.asm_id = pqca.asm_id
+                      and pqca.element_id=aml.attribute_id
                       and pci.process_id = pc_process_id
                       and pcpq.process_id = pc_process_id
                       and pci.is_active = 'Y'
@@ -998,6 +1002,29 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                            (vn_m2m_penality *
                                            vn_dry_qty_in_base_conc),
                                            cur_unrealized_rows.base_cur_decimal);
+          else
+          insert into eel_eod_eom_exception_log
+            (corporate_id,
+             submodule_name,
+             exception_code,
+             data_missing_for,
+             trade_ref_no,
+             process,
+             process_run_date,
+             process_run_by,
+             trade_date)
+          values
+            (pc_corporate_id,
+             'Physicals M2M Pre-Check',
+             'PHY-104',
+             cur_unrealized_rows.conc_product_name || ',' || cur_unrealized_rows.conc_quality_name || ',' ||
+             cc.attribute_name || ',' || cur_unrealized_rows.shipment_month || '-' ||
+             cur_unrealized_rows.shipment_year || '-' || cur_unrealized_rows.valuation_point,
+             null,
+             pc_process,
+             sysdate,
+             pc_user_id,
+             pd_trade_date);
           end if;
         
         end loop;
@@ -1710,6 +1737,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
              tt.mvp_id,
              tt.shipment_month,
              tt.shipment_year,
+             tt.valuation_point,
              tt.base_price_unit_name,
              tt.valuation_against_underlying,
              tt.m2m_rc_fw_exch_rate,
@@ -1885,6 +1913,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                       tmpc.mvp_id,
                       tmpc.shipment_month,
                       tmpc.shipment_year,
+                      tmpc.valuation_point,
                       pum_base_price_id.price_unit_name base_price_unit_name,
                       nvl(pdm_conc.valuation_against_underlying, 'Y') valuation_against_underlying,
                       md.m2m_rc_fw_exch_rate,
@@ -2246,6 +2275,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      tmpc.mvp_id,
                      tmpc.shipment_month,
                      tmpc.shipment_year,
+                     tmpc.valuation_point,
                      pum_base_price_id.price_unit_name base_price_unit_name,
                      nvl(pdm_conc.valuation_against_underlying, 'Y') valuation_against_underlying,
                      md.m2m_rc_fw_exch_rate,
@@ -2595,6 +2625,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      tmpc.mvp_id,
                      tmpc.shipment_month,
                      tmpc.shipment_year,
+                     tmpc.valuation_point,
                      pum_base_price_id.price_unit_name base_price_unit_name,
                      nvl(pdm_conc.valuation_against_underlying, 'Y') valuation_against_underlying,
                      md.m2m_rc_fw_exch_rate,
@@ -2962,6 +2993,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      tmpc.mvp_id,
                      tmpc.shipment_month,
                      tmpc.shipment_year,
+                     tmpc.valuation_point,
                      pum_base_price_id.price_unit_name base_price_unit_name,
                      nvl(pdm_conc.valuation_against_underlying, 'Y') valuation_against_underlying,
                      md.m2m_rc_fw_exch_rate,
@@ -3201,6 +3233,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
     vc_price_to_base_fw_rate       varchar2(50);
     vc_pc_exch_rate_string         varchar2(100);
     vc_total_pc_exch_rate_string   varchar2(100); -- Contract Penalty 
+    vc_m2m_total_pc_fw_exch_rate   varchar2(100);--M2M Penality
+    vc_m2m_pc_fw_exch_rate         varchar2(100);
     vn_con_treatment_charge        number;
     vn_base_con_treatment_charge   number;
     vc_con_treatment_cur_id        varchar2(15);
@@ -3589,16 +3623,19 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
           vn_m2m_total_penality := 0;
           for cc in (select pci.internal_contract_item_ref_no,
                             pqca.element_id,
+                            aml.attribute_name,
                             pcpq.quality_template_id
                        from pci_physical_contract_item  pci,
                             pcpq_pc_product_quality     pcpq,
                             ash_assay_header            ash,
                             asm_assay_sublot_mapping    asm,
-                            pqca_pq_chemical_attributes pqca
+                            pqca_pq_chemical_attributes pqca,
+                            aml_attribute_master_list   aml
                       where pci.pcpq_id = pcpq.pcpq_id
                         and pcpq.assay_header_id = ash.ash_id
                         and ash.ash_id = asm.ash_id
                         and asm.asm_id = pqca.asm_id
+                        and pqca.element_id=aml.attribute_id
                         and pci.process_id = pc_process_id
                         and pcpq.process_id = pc_process_id
                         and pci.is_active = 'Y'
@@ -3611,7 +3648,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                             cur_grd_rows.internal_contract_item_ref_no)
           loop
           
-            pkg_phy_pre_check_process.sp_calc_m2m_tc_pc_rc_charge(cur_grd_rows.corporate_id,
+            pkg_phy_pre_check_process.sp_m2m_tc_pc_rc_charge(cur_grd_rows.corporate_id,
                                                                   pd_trade_date,
                                                                   cur_grd_rows.conc_product_id,
                                                                   cur_grd_rows.conc_quality_id,
@@ -3623,8 +3660,9 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                                                   to_char(pd_trade_date,
                                                                           'YYYY'),
                                                                   vc_price_unit_id,
+                                                                  cur_grd_rows.payment_due_date,
                                                                   vn_m2m_penality,
-                                                                  vc_penality_price_unit_id);
+                                                                  vc_m2m_pc_fw_exch_rate);
             if nvl(vn_m2m_penality, 0) <> 0 then
               vn_m2m_total_penality := round(vn_m2m_total_penality +
                                              (vn_m2m_penality *
@@ -3632,14 +3670,37 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                              cur_grd_rows.base_cur_decimal);
             
               if vc_pc_exch_rate_string is not null then
-                vc_total_pc_exch_rate_string := vc_pc_exch_rate_string;
+                vc_m2m_total_pc_fw_exch_rate := vc_m2m_pc_fw_exch_rate;
               else
                 if instr(vc_total_pc_exch_rate_string,
-                         vc_pc_exch_rate_string) = 0 then
-                  vc_total_pc_exch_rate_string := vc_total_pc_exch_rate_string || ',' ||
-                                                  vc_pc_exch_rate_string;
+                         vc_m2m_pc_fw_exch_rate) = 0 then
+                  vc_m2m_total_pc_fw_exch_rate := vc_total_pc_exch_rate_string || ',' ||
+                                                  vc_m2m_pc_fw_exch_rate;
                 end if;
               end if;
+            else
+              insert into eel_eod_eom_exception_log
+            (corporate_id,
+             submodule_name,
+             exception_code,
+             data_missing_for,
+             trade_ref_no,
+             process,
+             process_run_date,
+             process_run_by,
+             trade_date)
+          values
+            (pc_corporate_id,
+             'Physicals M2M Pre-Check',
+             'PHY-104',
+             cur_grd_rows.conc_product_name || ',' || cur_grd_rows.conc_quality_name || ',' ||
+             cc.attribute_name || ',' || cur_grd_rows.shipment_month || '-' ||
+             cur_grd_rows.shipment_year || '-' || cur_grd_rows.valuation_point,
+             null,
+             pc_process,
+             sysdate,
+             pc_user_id,
+             pd_trade_date);
             end if;
           
           end loop;
@@ -4587,6 +4648,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
              tt.mvp_id,
              tt.shipment_month,
              tt.shipment_year,
+             tt.valuation_point,
              tt.base_price_unit_name,
              tt.valuation_against_underlying,
              m2m_rc_fw_exch_rate,
@@ -4770,6 +4832,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      tmpc.mvp_id,
                      tmpc.shipment_month,
                      tmpc.shipment_year,
+                     tmpc.valuation_point,
                      pum_base_price_id.price_unit_name base_price_unit_name,
                      nvl(pdm_conc.valuation_against_underlying, 'Y') valuation_against_underlying,
                      md.m2m_rc_fw_exch_rate,
@@ -5576,16 +5639,19 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
           vn_m2m_total_penality := 0;
           for cc in (select pci.internal_contract_item_ref_no,
                             pqca.element_id,
+                            aml.attribute_name,
                             pcpq.quality_template_id
                        from pci_physical_contract_item  pci,
                             pcpq_pc_product_quality     pcpq,
                             ash_assay_header            ash,
                             asm_assay_sublot_mapping    asm,
-                            pqca_pq_chemical_attributes pqca
+                            pqca_pq_chemical_attributes pqca,
+                            aml_attribute_master_list   aml
                       where pci.pcpq_id = pcpq.pcpq_id
                         and pcpq.assay_header_id = ash.ash_id
                         and ash.ash_id = asm.ash_id
                         and asm.asm_id = pqca.asm_id
+                        and pqca.element_id=aml.attribute_id
                         and pci.process_id = pc_process_id
                         and pcpq.process_id = pc_process_id
                         and pci.is_active = 'Y'
@@ -5598,7 +5664,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                             cur_grd_rows.internal_contract_item_ref_no)
           loop
           
-            pkg_phy_pre_check_process.sp_calc_m2m_tc_pc_rc_charge(cur_grd_rows.corporate_id,
+            pkg_phy_pre_check_process.sp_m2m_tc_pc_rc_charge(cur_grd_rows.corporate_id,
                                                                   pd_trade_date,
                                                                   cur_grd_rows.conc_product_id,
                                                                   cur_grd_rows.conc_quality_id,
@@ -5610,8 +5676,9 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                                                   to_char(pd_trade_date,
                                                                           'YYYY'),
                                                                   vc_price_unit_id,
+                                                                  cur_grd_rows.payment_due_date,
                                                                   vn_m2m_penality,
-                                                                  vc_penality_price_unit_id);
+                                                                  vc_m2m_pc_exch_rate_string);
             if nvl(vn_m2m_penality, 0) <> 0 then
             
               vn_m2m_total_penality := round(vn_m2m_total_penality +
@@ -5628,8 +5695,30 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                                     vc_m2m_pc_exch_rate_string;
                 end if;
               end if;
-            end if;
-          
+            else
+            insert into eel_eod_eom_exception_log
+            (corporate_id,
+             submodule_name,
+             exception_code,
+             data_missing_for,
+             trade_ref_no,
+             process,
+             process_run_date,
+             process_run_by,
+             trade_date)
+          values
+            (pc_corporate_id,
+             'Physicals M2M Pre-Check',
+             'PHY-104',
+             cur_grd_rows.conc_product_name || ',' || cur_grd_rows.conc_quality_name || ',' ||
+             cc.attribute_name || ',' || cur_grd_rows.shipment_month || '-' ||
+             cur_grd_rows.shipment_year || '-' || cur_grd_rows.valuation_point,
+             null,
+             pc_process,
+             sysdate,
+             pc_user_id,
+             pd_trade_date); 
+            end if;          
           end loop;
         
         end if;

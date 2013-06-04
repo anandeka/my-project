@@ -145,7 +145,12 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
              pcbpd.price_unit_id,
              pcbpd.tonnage_basis,
              pcbpd.fx_to_base,
-             pcbpd.qty_to_be_priced,
+             case
+               when pcbph.is_balance_pricing = 'Y' then
+                100
+               else
+                pcbpd.qty_to_be_priced
+             end qty_to_be_priced,
              pcbph.price_description price_description
         from poch_price_opt_call_off_header poch,
              pocd_price_option_calloff_dtls pocd,
@@ -170,7 +175,12 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
              pcbpd.price_unit_id,
              pcbpd.tonnage_basis,
              pcbpd.fx_to_base,
-             pcbpd.qty_to_be_priced,
+              case
+               when pcbph.is_balance_pricing = 'Y' then
+                100
+               else
+                pcbpd.qty_to_be_priced
+             end qty_to_be_priced,
              pcbph.price_description
         from pci_physical_contract_item pci,
              pcipf_pci_pricing_formula  pcipf,
@@ -4252,7 +4262,12 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
              pcbpd.price_unit_id,
              pcbpd.tonnage_basis,
              pcbpd.fx_to_base,
-             pcbpd.qty_to_be_priced,
+             case
+               when pcbph.is_balance_pricing = 'Y' then
+                100
+               else
+                pcbpd.qty_to_be_priced
+             end qty_to_be_priced,
              pcbph.price_description
         from poch_price_opt_call_off_header poch,
              pocd_price_option_calloff_dtls pocd,
@@ -4278,7 +4293,12 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
              pcbpd.price_unit_id,
              pcbpd.tonnage_basis,
              pcbpd.fx_to_base,
-             pcbpd.qty_to_be_priced,
+             case
+               when pcbph.is_balance_pricing = 'Y' then
+                100
+               else
+                pcbpd.qty_to_be_priced
+             end qty_to_be_priced,          
              pcbph.price_description
         from pci_physical_contract_item pci,
              pcipf_pci_pricing_formula  pcipf,
