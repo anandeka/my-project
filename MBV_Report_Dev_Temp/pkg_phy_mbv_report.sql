@@ -707,7 +707,9 @@ for cur_pcs in (
 select sum(nvl(case
                  when pcs.purchase_sales = 'P' then
                   pcs.priced_arrived_qty
+               
                  else
+                 
                   0
                end,
                0)) priced_arrived_qty,
@@ -1263,7 +1265,24 @@ begin
      month_end_price,
      der_realized_qty,
      der_realized_pnl,
-     der_unrealized_pnl)
+     der_unrealized_pnl,
+     der_realized_ob,
+     qty_decimals,
+     ccy_decimals,
+     total_inv_qty,
+     priced_inv_qty,
+     unpriced_inv_qty,
+     unr_phy_priced_inv_pnl,
+     unr_phy_priced_na_pnl,
+     unr_phy_priced_nd_pnl,
+     der_ref_price_diff,
+     phy_ref_price_diff,
+     contango_dueto_qty_price,
+     contango_dueto_qty,
+     actual_hedged_qty,
+     hedge_effectiveness,
+     currency_unit,
+     qty_unit)
     select pc_process_id,
            pd_trade_date,
            akc.corporate_id,
@@ -1274,30 +1293,47 @@ begin
            dim.instrument_name,
            emt.exchange_id,
            emt.exchange_name,
-           0 phy_realized_ob,
-           0 phy_realized_qty,
-           0 phy_realized_pnl,
-           0 phy_realized_cb,
-           0 phy_unr_price_in_price,
-           0 phy_unr_price_na_in_price,
-           0 phy_unr_price_nd_in_price,
-           0 referential_price_diff,
-           0 contango_bw_diff,
-           0 priced_arrived_qty,
-           0 priced_not_arrived_qty,
-           0 unpriced_arrived_qty,
-           0 unpriced_not_arrived_qty,
-           0 priced_delivered_qty,
-           0 priced_not_delivered_qty,
-           0 unpriced_delivered_qty,
-           0 unpriced_not_delivered_qty,
-           0 metal_debt_qty,
-           0 metal_debt_value,
-           0 inventory_unreal_pnl,
-           0 month_end_price,
-           0 der_realized_qty,
-           0 der_realized_pnl,
-           0 der_unrealized_pnl
+           0, --    phy_realized_ob,
+           0, --    phy_realized_qty,
+           0, --    phy_realized_pnl,
+           0, --    phy_realized_cb,
+           0, --    phy_unr_price_inv_price,
+           0, --    phy_unr_price_na_inv_price,
+           0, --    phy_unr_price_nd_inv_price,
+           0, --    referential_price_diff,
+           0, --    contango_bw_diff,
+           0, --    priced_arrived_qty,
+           0, --    priced_not_arrived_qty,
+           0, --    unpriced_arrived_qty,
+           0, --    unpriced_not_arrived_qty,
+           0, --    priced_delivered_qty,
+           0, --    priced_not_delivered_qty,
+           0, --    unpriced_delivered_qty,
+           0, --    unpriced_not_delivered_qty,
+           0, --    metal_debt_qty,
+           0, --    metal_debt_value,
+           0, --    inventory_unreal_pnl,
+           0, --    month_end_price,
+           0, --    der_realized_qty,
+           0, --    der_realized_pnl,
+           0, --    der_unrealized_pnl,
+           0, --    der_realized_ob,
+           2, --    qty_decimals,-- update this later
+           2, --    ccy_decimals,-- update this later
+           0, --    total_inv_qty,
+           0, --    priced_inv_qty,
+           0, --    unpriced_inv_qty,
+           0, --    unr_phy_priced_inv_pnl,
+           0, --    unr_phy_priced_na_pnl,
+           0, --    unr_phy_priced_nd_pnl,
+           0, --    der_ref_price_diff,
+           0, --    phy_ref_price_diff,
+           0, --    contango_dueto_qty_price,
+           0, --    contango_dueto_qty,
+           0, --    actual_hedged_qty,
+           0, --    hedge_effectiveness,
+           null, -- currency_unit,
+           null -- qty_unit
       from ak_corporate               akc,
            pdm_productmaster          pdm,
            pdd_product_derivative_def pdd,
@@ -1310,222 +1346,67 @@ begin
        and dim.is_active = 'Y'
        and dim.is_deleted = 'N'
        and pdd.is_active = 'Y'
-       and pdm.product_type_id ='Standard';
+       and pdm.product_type_id = 'Standard';
   commit;
+  --
+  -- Month End Price for Each product Assuming One Product has one instrument
+  --
+  for cur_mep in(
+ select pdd.product_id,
+        tip.price,
+        tip.price_unit_id,
+        pum.price_unit_name
+   from tip_temp_instrument_price  tip,
+        dim_der_instrument_master  dim,
+        pdd_product_derivative_def pdd,
+        pum_price_unit_master      pum
+  where tip.instrument_id = dim.instrument_id
+    and dim.product_derivative_id = pdd.derivative_def_id
+    and tip.corporate_id = pc_corporate_id
+    and tip.price_unit_id = pum.price_unit_id
+    and tip.price is not null) loop
+   update mbv_metal_balance_valuation mbv
+      set mbv.month_end_price           = cur_mep.price,
+          mbv.month_end_price_unit_id   = cur_mep.price_unit_id,
+          mbv.month_end_price_unit_name = cur_mep.price_unit_name
+    where mbv.product_id = cur_mep.product_id
+      and mbv.process_id = pc_process_id;
+   end loop;
+commit;
+  
   --
   -- Physical Realized PNL Value
   --
   for cur_real_value in (select pfrh.product_id,
                                 pfrh.instrument_id,
-                                pfrh.realized_value
+                                pfrh.realized_value,
+                                pfrh.realized_qty
                            from pfrh_price_fix_report_header pfrh
                           where pfrh.process_id = pc_process_id)
   loop
     update mbv_metal_balance_valuation mbv
-       set mbv.phy_realized_pnl = cur_real_value.realized_value
+       set mbv.phy_realized_pnl = cur_real_value.realized_value,
+       mbv.phy_realized_qty = cur_real_value.realized_qty
      where mbv.process_id = pc_process_id
-       and mbv.product_id = cur_real_value.product_id
-       and mbv.instrument_id = cur_real_value.instrument_id;
-  end loop;
-  --
-  -- Data from Contract Status Report
-  --
-  for cur_pcs in (
-  select sum(priced_arrived_qty) priced_arrived_qty,
-       sum(priced_not_arrived_qty) priced_not_arrived_qty,
-       sum(unpriced_arrived_qty) unpriced_arrived_qty,
-       sum(unpriced_not_arrived_qty) unpriced_not_arrived_qty,
-       sum(priced_delivered_qty) priced_delivered_qty,
-       sum(priced_not_delivered_qty) priced_not_delivered_qty,
-       sum(unpriced_delivered_qty) unpriced_delivered_qty,
-       sum(unpriced_not_delivered_qty) unpriced_not_delivered_qty,
-       product_id,
-       instrument_id
-  from (
-        -- Concentrate Elements
-        select sum(nvl(case
-                          when pcs.purchase_sales = 'P' then
-                           pcs.priced_arrived_qty
-                        
-                          else
-                          
-                           0
-                        end,
-                        0)) priced_arrived_qty,
-                sum(nvl(case
-                          when pcs.purchase_sales = 'P' then
-                           pcs.priced_not_arrived_qty
-                        
-                          else
-                          
-                           0
-                        end,
-                        0)) priced_not_arrived_qty,
-                sum(nvl(case
-                          when pcs.purchase_sales = 'P' then
-                           pcs.unpriced_arrived_qty
-                        
-                          else
-                          
-                           0
-                        end,
-                        0)) unpriced_arrived_qty,
-                sum(nvl(case
-                          when pcs.purchase_sales = 'P' then
-                           pcs.unpriced_not_arrived_qty
-                        
-                          else
-                          
-                           0
-                        end,
-                        0)) unpriced_not_arrived_qty,
-                
-                sum(nvl(case
-                          when pcs.purchase_sales = 'S' then
-                           pcs.priced_arrived_qty
-                        
-                          else
-                          
-                           0
-                        end,
-                        0)) priced_delivered_qty,
-                sum(nvl(case
-                          when pcs.purchase_sales = 'S' then
-                           pcs.priced_not_arrived_qty
-                        
-                          else
-                          
-                           0
-                        end,
-                        0)) priced_not_delivered_qty,
-                sum(nvl(case
-                          when pcs.purchase_sales = 'S' then
-                           pcs.unpriced_arrived_qty
-                        
-                          else
-                          
-                           0
-                        end,
-                        0)) unpriced_delivered_qty,
-                sum(nvl(case
-                          when pcs.purchase_sales = 'S' then
-                           pcs.unpriced_not_arrived_qty
-                        
-                          else
-                          
-                           0
-                        end,
-                        0)) unpriced_not_delivered_qty,
-                aml.underlying_product_id product_id,
-                pcs.instrument_id
-          from pcs_purchase_contract_status pcs,
-                aml_attribute_master_list    aml
-         where pcs.process_id = pc_process_id
-           and pcs.element_id = aml.attribute_id
-         group by aml.underlying_product_id,
-                   pcs.instrument_id
-        union all -- Base Metal Products
-        select sum(nvl(case
-                         when pcs.purchase_sales = 'P' then
-                          pcs.priced_arrived_qty
-                       
-                         else
-                         
-                          0
-                       end,
-                       0)) priced_arrived_qty,
-               sum(nvl(case
-                         when pcs.purchase_sales = 'P' then
-                          pcs.priced_not_arrived_qty
-                       
-                         else
-                         
-                          0
-                       end,
-                       0)) priced_not_arrived_qty,
-               sum(nvl(case
-                         when pcs.purchase_sales = 'P' then
-                          pcs.unpriced_arrived_qty
-                       
-                         else
-                         
-                          0
-                       end,
-                       0)) unpriced_arrived_qty,
-               sum(nvl(case
-                         when pcs.purchase_sales = 'P' then
-                          pcs.unpriced_not_arrived_qty
-                       
-                         else
-                         
-                          0
-                       end,
-                       0)) unpriced_not_arrived_qty,
-               
-               sum(nvl(case
-                         when pcs.purchase_sales = 'S' then
-                          pcs.priced_arrived_qty
-                       
-                         else
-                         
-                          0
-                       end,
-                       0)) priced_delivered_qty,
-               sum(nvl(case
-                         when pcs.purchase_sales = 'S' then
-                          pcs.priced_not_arrived_qty
-                       
-                         else
-                         
-                          0
-                       end,
-                       0)) priced_not_delivered_qty,
-               sum(nvl(case
-                         when pcs.purchase_sales = 'S' then
-                          pcs.unpriced_arrived_qty
-                       
-                         else
-                         
-                          0
-                       end,
-                       0)) unpriced_delivered_qty,
-               sum(nvl(case
-                         when pcs.purchase_sales = 'S' then
-                          pcs.unpriced_not_arrived_qty
-                       
-                         else
-                         
-                          0
-                       end,
-                       0)) unpriced_not_delivered_qty,
-               pcs.product_id,
-               pcs.instrument_id
-          from pcs_purchase_contract_status pcs
-         where pcs.process_id = pc_process_id
-           and pcs.element_id is null
-         group by pcs.product_id,
-                  pcs.instrument_id)
- group by product_id,
-          instrument_id)
-  loop
-    update mbv_metal_balance_valuation mbv
-       set mbv.priced_arrived_qty       = cur_pcs.priced_arrived_qty,
-           mbv.priced_not_arrived_qty   = cur_pcs.priced_not_arrived_qty,
-           mbv.unpriced_arrived_qty     = cur_pcs.unpriced_arrived_qty,
-           mbv.unpriced_not_arrived_qty = cur_pcs.unpriced_not_arrived_qty,
-           mbv.priced_delivered_qty       = cur_pcs.priced_delivered_qty,
-           mbv.priced_not_delivered_qty   = cur_pcs.priced_not_delivered_qty,
-           mbv.unpriced_delivered_qty     = cur_pcs.unpriced_delivered_qty,
-           mbv.unpriced_not_delivered_qty = cur_pcs.unpriced_not_delivered_qty           
-     where mbv.process_id = pc_process_id
-       and mbv.product_id = cur_pcs.product_id
-       and mbv.instrument_id = cur_pcs.instrument_id;
+       and mbv.product_id = cur_real_value.product_id;
   end loop;
   commit;
--- 
---  Referential Price Diff and Contango/BW Diff Pending
---
---
+  --
+  -- Physical Realized Opening Balance from Previous EOM CB
+  --
+  for cur_ob in(
+  select mbv.product_id,
+         mbv.phy_realized_cb phy_realized_ob
+    from mbv_metal_balance_valuation mbv
+   where mbv.process_id = vc_previous_eom_id) loop
+   update mbv_metal_balance_valuation mbv
+   set mbv.phy_realized_ob = cur_ob.phy_realized_ob
+ where  mbv.process_id = pc_process_id
+       and mbv.product_id = cur_ob.product_id;
+   end loop;
+   commit;
+ 
+ --
 -- Derivative Unrealized and Realized PNL
 --
 for cur_der in(
@@ -1548,7 +1429,7 @@ select sum(case
               0
            end) der_realized_qty,
        dpd.instrument_id,
-       dpd.product_id
+       dpd.derivative_prodct_id
   from dpd_derivative_pnl_daily dpd
  where dpd.process_id = pc_process_id
    and dpd.instrument_type in ('Future', 'Forwards')
@@ -1558,26 +1439,112 @@ select sum(case
        mbv.der_realized_pnl = cur_der.der_realized_pnl,
        mbv.der_realized_qty = cur_der.der_realized_qty
      where mbv.process_id = pc_process_id
-       and mbv.product_id = cur_der.product_id
+       and mbv.product_id = cur_der.derivative_prodct_id
        and mbv.instrument_id = cur_der.instrument_id;
  end loop;
 commit;
- --
-  -- Physical Realized Opening Balance from Previous EOM CB
-  --
-  for cur_ob in(
-  select mbv.product_id,
-         mbv.instrument_id,
-         mbv.phy_realized_cb phy_realized_ob
-    from mbv_metal_balance_valuation mbv
-   where mbv.process_id = vc_previous_eom_id) loop
-   update mbv_metal_balance_valuation mbv
-   set mbv.phy_realized_ob = cur_ob.phy_realized_ob
- where  mbv.process_id = pc_process_id
-       and mbv.product_id = cur_ob.product_id
-       and mbv.instrument_id = cur_ob.instrument_id;
-   end loop;
-   commit;
+
+--
+-- Data from Contract Status Report for section Qty Recon Report
+--
+for cur_qty_recon in(
+select css.product_id,
+       sum(case
+             when css.contract_type = 'BASEMETAL' then
+              css.priced_unarrived_qty
+             else
+              0
+           end) priced_not_arrived_bm,
+       sum(case
+             when css.contract_type = 'CONCENTRATES' then
+              css.priced_unarrived_qty
+             else
+              0
+           end) priced_not_arrived_rm,
+       sum(case
+             when css.contract_type = 'BASEMETAL' then
+              css.unpriced_arrived_qty
+             else
+              0
+           end) unpriced_arrived_bm,
+       sum(case
+             when css.contract_type = 'CONCENTRATES' then
+              css.unpriced_arrived_qty
+             else
+              0
+           end) unpriced_arrived_rm,
+       sum(case
+             when css.contract_type = 'BASEMETAL' and css.purchase_sales = 'S' then
+              css.unpriced_delivered_qty
+             else
+              0
+           end) sales_unpriced_delivered_bm,
+       sum(case
+             when css.contract_type = 'CONCENTRATES' and
+                  css.purchase_sales = 'S' then
+              css.unpriced_delivered_qty
+             else
+              0
+           end) sales_unpriced_delivered_rm,
+       sum(case
+             when css.contract_type = 'BASEMETAL' and css.purchase_sales = 'S' then
+              css.priced_undelivered_qty
+             else
+              0
+           end) sales_priced_not_delivered_bm,
+       sum(case
+             when css.contract_type = 'CONCENTRATES' and
+                  css.purchase_sales = 'S' then
+              css.priced_undelivered_qty
+             else
+              0
+           end) sales_priced_not_delivered_rm
+  from css_contract_status_summary css
+ where css.process_id = pc_process_id
+ group by css.product_id) loop
+update mbv_metal_balance_valuation mbv
+   set priced_not_arrived_bm         = cur_qty_recon.priced_not_arrived_bm,
+       priced_not_arrived_rm         = cur_qty_recon.priced_not_arrived_rm,
+       unpriced_arrived_bm           = cur_qty_recon.unpriced_arrived_bm,
+       unpriced_arrived_rm           = cur_qty_recon.unpriced_arrived_rm,
+       sales_unpriced_delivered_bm   = cur_qty_recon.sales_unpriced_delivered_bm,
+       sales_unpriced_delivered_rm   = cur_qty_recon.sales_unpriced_delivered_rm,
+       sales_priced_not_delivered_bm = cur_qty_recon.sales_priced_not_delivered_bm,
+       sales_priced_not_delivered_rm = cur_qty_recon.sales_priced_not_delivered_rm
+ where mbv.process_id = pc_process_id
+   and mbv.product_id = cur_qty_recon.product_id;
+ end loop;
+commit;
+
+-- 
+--  Difference Explanation
+--
+
+--
+-- Update Contract Status and Inventory Status which is at the end of excel
+--   
+-- Contract Status Updation is not required as report is coming directly form CSS tab;e
+--
+-- Update Inventory Status Section
+--
+for cur_inv_section in(
+select css.product_id,
+       sum(css.priced_arrived_qty + css.unpriced_arrived_qty +
+           css.priced_delivered_qty + css.unpriced_delivered_qty) total_inv_qty,
+       sum(css.priced_arrived_qty + css.priced_delivered_qty) priced_inv_qty,
+       sum(css.unpriced_arrived_qty + css.unpriced_delivered_qty) unpriced_inv_qty
+  from css_contract_status_summary css
+ where css.process_id = pc_process_id
+ group by css.product_id) loop
+ update mbv_metal_balance_valuation mbv
+ set mbv.total_inv_qty = cur_inv_section.total_inv_qty,
+ mbv.priced_inv_qty = cur_inv_section.priced_inv_qty,
+ mbv.unpriced_inv_qty = cur_inv_section.unpriced_inv_qty
+ where mbv.process_id = pc_process_id
+ and mbv.product_id = cur_inv_section.product_id;
+ end loop;
+commit;
+
   --
   -- Qty Total P and L Till Date(Closing Balance) 
   -- 
@@ -1585,7 +1552,7 @@ commit;
   set mbv.phy_realized_cb = mbv.phy_realized_ob + mbv.phy_realized_pnl
   where  mbv.process_id = pc_process_id;
   commit;
- 
+
 exception
   when others then
     vobj_error_log.extend;
