@@ -960,13 +960,32 @@ insert into diwap_di_weighted_avg_price
          pfrd.price_unit_id,
          pfrd.price_unit_name,
          pfrd.element_id,
-         null element_name
-    from pfrd_price_fix_report_detail pfrd
+         aml.attribute_name element_name
+    from pfrd_price_fix_report_detail pfrd,
+         aml_attribute_master_list aml
    where pfrd.process_id = pc_process_id
+   and pfrd.element_id = aml.attribute_id(+)
      and pfrd.section_name = 'New PFC for this Month'
-     and pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor <> 0;
-  
-   exception when others then vobj_error_log.extend;
+     and pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor <> 0
+   group by process_id,
+            eod_trade_date,
+            purchase_sales,
+            corporate_id,
+            corporate_name,
+            product_id,
+            product_name,
+            instrument_id,
+            instrument_name,
+            pcdi_id,
+            contract_type,
+            pfrd.price_unit_id,
+            pfrd.price_unit_name,
+            pfrd.element_id,
+            aml.attribute_name;
+  commit;
+   exception 
+   when others then 
+   vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                            'procedure pkg_phy_mbv_report.sp_calc_pf_data',
                                                            'M2M-013',
@@ -1409,6 +1428,7 @@ begin
   --
   -- Month End Price for Each product Assuming One Product has one instrument
   --
+   vc_error_msg := 'Month End Price for Each product';
   for cur_mep in(
  select pdd.product_id,
         tip.price,
@@ -1431,7 +1451,7 @@ begin
       and mbv.process_id = pc_process_id;
    end loop;
 commit;
-  
+     vc_error_msg := 'Physical Realized PNL Value';
   --
   -- Physical Realized PNL Value
   --
@@ -1449,6 +1469,7 @@ commit;
        and mbv.product_id = cur_real_value.product_id;
   end loop;
   commit;
+       vc_error_msg := 'Physical Realized Opening Balance';
   --
   -- Physical Realized Opening Balance from Previous EOM CB
   --
@@ -1463,7 +1484,7 @@ commit;
        and mbv.product_id = cur_ob.product_id;
    end loop;
    commit;
- 
+        vc_error_msg := 'Derivative Unrealized and Realized PNL';
  --
 -- Derivative Unrealized and Realized PNL
 --
@@ -1491,7 +1512,7 @@ select sum(case
   from dpd_derivative_pnl_daily dpd
  where dpd.process_id = pc_process_id
    and dpd.instrument_type in ('Future', 'Forwards')
- group by dpd.instrument_id, dpd.product_id) loop
+ group by dpd.instrument_id, dpd.derivative_prodct_id) loop
  update mbv_metal_balance_valuation mbv
        set mbv.der_unrealized_pnl = cur_der.der_unrealized_pnl,
        mbv.der_realized_pnl = cur_der.der_realized_pnl,
@@ -1502,6 +1523,7 @@ select sum(case
  end loop;
 commit;
 
+        vc_error_msg := 'Data from Contract Status Report';
 --
 -- Data from Contract Status Report for section Qty Recon Report
 --
@@ -1582,6 +1604,7 @@ commit;
 --
 -- Derivative Ref Price Diff
 --
+        vc_error_msg := 'Derivative Ref Price Diff';
 for cur_der_ref_price_diff in(
 select mbvd.product_id,
        sum(mbvd.value_diff_in_base_ccy) der_ref_price_diff
@@ -1594,6 +1617,7 @@ select mbvd.product_id,
    and mbv.product_id = cur_der_ref_price_diff.product_id;
  end loop;
 commit;
+        vc_error_msg := 'Physical Ref Price Diff';
 --
 -- Physical Ref Price Diff
 --
@@ -1609,10 +1633,9 @@ select mbvp.product_id,
     and mbv.product_id = cur_phy_ref_price_diff.product_id;
  end loop;
 commit;
+        vc_error_msg := 'Contango/BW Diff due to price';
 --
--- Contango/BW Diff due to qty and price
--- 
---  
+-- Contango/BW Diff due to price
 --
 for cur_contango_dueto_qty in(
 select mbva.product_id,
@@ -1626,6 +1649,7 @@ select mbva.product_id,
     and mbv.product_id = cur_contango_dueto_qty.product_id;
  end loop;
 commit;
+        vc_error_msg := 'Contango/BW Diff due to qty';
 -- Contango/BW Diff due to qty
 -- = (Hedged Qty * Actual Hedged Qty) * Month End Price
 --
@@ -1653,6 +1677,7 @@ select mbv.product_id,
 --
 -- Update Inventory Status Section
 --
+      vc_error_msg := 'Update Inventory Status Section';
 for cur_inv_section in(
 select css.product_id,
        sum(css.priced_arrived_qty + css.unpriced_arrived_qty +
@@ -1670,7 +1695,7 @@ select css.product_id,
  and mbv.product_id = cur_inv_section.product_id;
  end loop;
 commit;
-
+     vc_error_msg := 'Qty Total P and L Till Date';
   --
   -- Qty Total P and L Till Date(Closing Balance) 
   -- 
@@ -1678,7 +1703,7 @@ commit;
   set mbv.phy_realized_cb = mbv.phy_realized_ob + mbv.phy_realized_pnl
   where  mbv.process_id = pc_process_id;
   commit;
-
+  vc_error_msg := 'End of sp_calc_mbv_report';
 exception
   when others then
     vobj_error_log.extend;
@@ -2007,9 +2032,9 @@ begin
                                                              cur_mar_price_rows.price_unit_name || ',' ||
                                                              cur_mar_price_rows.available_price_name ||
                                                              ' Price,Prompt Date:' ||
-                                                             vd_3rd_wed_of_qp ||
+                                                             to_char(vd_3rd_wed_of_qp,'dd-Mon-yyyy') ||
                                                              ' Trade Date :' ||
-                                                             vd_valid_quote_date,
+                                                             to_char(vd_valid_quote_date,'dd-Mon-yyyy'),
                                                              '',
                                                              pc_process,
                                                              pc_user_id,
@@ -2146,8 +2171,15 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
            pum.weight_unit_id mon_price_unit_weight_unit_id,
            qum.qty_unit mon_price_unit_weight_unit,
            pum.weight month_end_price_weight,
-           pum.price_unit_name month_end_price_unit_name
-    
+           pum.price_unit_name month_end_price_unit_name,
+           diwap.weighted_avg_price,
+           diwap.wap_price_unit_id,
+           diwap.wap_price_unit_name,
+           null wap_price_cur_id,
+           null wap_price_cur_code,
+           null wap_price_weight_unit_id,
+           null wap_price_weight_unit,
+           null wap_price_weight
       from pcm_physical_contract_main pcm,
            pcdi_pc_delivery_item pcdi,
            ak_corporate akc,
@@ -2164,6 +2196,11 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
              where pcs.process_id = pc_process_id
                and pcs.contract_type = 'CONCENTRATES'
                and pcs.element_id is not null) pcs,
+           (select *
+              from diwap_di_weighted_avg_price diwap
+             where diwap.process_id = pc_process_id
+               and diwap.contractt_type = 'CONCENTRATES'
+               and diwap.element_id is not null) diwap,
            tip_temp_instrument_price tip,
            pum_price_unit_master pum,
            qum_quantity_unit_master qum,
@@ -2195,6 +2232,8 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
        and pum.weight_unit_id = qum.qty_unit_id
        and pum.cur_id = cm.cur_id
        and mvp.price_unit_id = ppu_pum.product_price_unit_id
+       and diwap.pcdi_id = pcdi.pcdi_id
+       and diwap.element_id = pcs.element_id
     union all --  external tolling contracts
     select pcm.internal_contract_ref_no,
            pcdi.pcdi_id,
@@ -2241,7 +2280,15 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
            pum.weight_unit_id mon_price_unit_weight_unit_id,
            qum.qty_unit mon_price_unit_weight_unit,
            pum.weight month_end_price_weight,
-           pum.price_unit_name month_end_price_unit_name
+           pum.price_unit_name month_end_price_unit_name,
+           diwap.weighted_avg_price,
+           diwap.wap_price_unit_id,
+           diwap.wap_price_unit_name,
+           null wap_price_cur_id,
+           null wap_price_cur_code,
+           null wap_price_weight_unit_id,
+           null wap_price_weight_unit,
+           null wap_price_weight
       from pcm_physical_contract_main pcm,
            pcdi_pc_delivery_item pcdi,
            ak_corporate akc,
@@ -2259,6 +2306,11 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
              where pcs.process_id = pc_process_id
                and pcs.contract_type = 'CONCENTRATES'
                and pcs.element_id is not null) pcs,
+            (select *
+              from diwap_di_weighted_avg_price diwap
+             where diwap.process_id = pc_process_id
+               and diwap.contractt_type = 'CONCENTRATES'
+               and diwap.element_id is not null) diwap,               
            tip_temp_instrument_price tip,
            pum_price_unit_master pum,
            qum_quantity_unit_master qum,
@@ -2292,6 +2344,9 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
        and pum.weight_unit_id = qum.qty_unit_id
        and pum.cur_id = cm.cur_id
        and mvp.price_unit_id = ppu_pum.product_price_unit_id
+       and diwap.pcdi_id = pcdi.pcdi_id
+       and diwap.element_id = pcs.element_id
+         
     union all -- base metal contrtcts
     select pcm.internal_contract_ref_no,
            pcdi.delivery_item_no,
@@ -2338,7 +2393,15 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
            pum.weight_unit_id mon_price_unit_weight_unit_id,
            qum.qty_unit mon_price_unit_weight_unit,
            pum.weight month_end_price_weight,
-           pum.price_unit_name month_end_price_unit_name
+           pum.price_unit_name month_end_price_unit_name,
+           diwap.weighted_avg_price,
+           diwap.wap_price_unit_id,
+           diwap.wap_price_unit_name,
+           null wap_price_cur_id,
+           null wap_price_cur_code,
+           null wap_price_weight_unit_id,
+           null wap_price_weight_unit,
+           null wap_price_weight
       from pcm_physical_contract_main pcm,
            pcdi_pc_delivery_item pcdi,
            ak_corporate akc,
@@ -2354,6 +2417,11 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
              where pcs.process_id = pc_process_id
                and pcs.contract_type = 'BASEMETAL'
                and pcs.element_id is null) pcs,
+   (select *
+              from diwap_di_weighted_avg_price diwap
+             where diwap.process_id = pc_process_id
+               and diwap.contractt_type = 'BASEMETAL'
+               and diwap.element_id is null) diwap,                
            tip_temp_instrument_price tip,
            pum_price_unit_master pum,
            qum_quantity_unit_master qum,
@@ -2377,11 +2445,13 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
        and tip.price_unit_id = pum.price_unit_id
        and pum.weight_unit_id = qum.qty_unit_id
        and pum.cur_id = cm.cur_id
-       and mvp.price_unit_id = ppu_pum.product_price_unit_id;
+       and mvp.price_unit_id = ppu_pum.product_price_unit_id
+       and diwap.pcdi_id = pcs.pcdi_id;
 
   --vn_con_price_in_base_cur number(25, 5);
   vn_val_price_in_base_cur number(25, 5);
   vn_med_price_in_base_cur number(25, 5);
+  
   --month end price main currency details
   vc_mep_main_cur_id       varchar2(15);
   vc_mep_main_cur_code     varchar2(15);
@@ -2393,12 +2463,20 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
   vn_vp_sub_cur_id_factor number(25, 5);
   vn_vp_cur_decimals      number(5);
   ----------------
+   vc_con_main_cur_id       varchar2(15);
+  vc_con_main_cur_code     varchar2(15);
+  vn_con_sub_cur_id_factor number(25, 5);
+  vn_con_cur_decimals      number(5);
+ vn_con_price_in_base_cur number(25, 5);
   vn_mep_value_in_base_cur   number(25, 5);
   vn_val_value_in_base_cur   number(25, 5);
   vn_fx_rate_mep_to_base_ccy number(30, 10);
   vn_fx_rate_val_to_base_ccy number(30, 10);
+  vn_fx_rate_con_to_base_ccy  number(30, 10);
+  vn_con_value_in_base_cur    number(25, 5);
   vn_value_diff_in_base_ccy  number(25, 5);
   vn_price_diffin_base_ccy   number(25, 5);
+  vn_unreal_pnl_in_base_ccy  number(25, 5);
   vn_eel_error_count number := 1;
   vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
   vc_error_msg       varchar2(100);
@@ -2406,6 +2484,13 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
 begin
   for cur_diff_rows in cur_diff
   loop
+  
+  pkg_general.sp_get_main_cur_detail(cur_diff_rows.wap_price_cur_id,
+                                       vc_con_main_cur_id,
+                                       vc_con_main_cur_code,
+                                       vn_con_sub_cur_id_factor,
+                                       vn_con_cur_decimals);
+                                       
     pkg_general.sp_get_main_cur_detail(cur_diff_rows.month_end_price_unit_cur_id,
                                        vc_mep_main_cur_id,
                                        vc_mep_main_cur_code,
@@ -2416,6 +2501,12 @@ begin
                                        vc_vp_main_cur_code,
                                        vn_vp_sub_cur_id_factor,
                                        vn_vp_cur_decimals);
+vn_fx_rate_con_to_base_ccy := pkg_general.f_get_converted_currency_amt(pc_corporate_id,
+                                                                           vc_con_main_cur_id,
+                                                                           cur_diff_rows.base_cur_id,
+                                                                           pd_trade_date,
+                                                                           1);
+                                                                                                                  
   
     vn_fx_rate_val_to_base_ccy := pkg_general.f_get_converted_currency_amt(pc_corporate_id,
                                                                            vc_vp_main_cur_id,
@@ -2428,6 +2519,9 @@ begin
                                                                            cur_diff_rows.base_cur_id,
                                                                            pd_trade_date,
                                                                            1);
+ vn_con_price_in_base_cur   := cur_diff_rows.weighted_avg_price *
+                                  vn_fx_rate_con_to_base_ccy;
+                                                                              
     vn_val_price_in_base_cur   := cur_diff_rows.val_price *
                                   vn_fx_rate_val_to_base_ccy;
     vn_med_price_in_base_cur   := cur_diff_rows.month_end_price *
@@ -2440,6 +2534,20 @@ begin
       vn_price_diffin_base_ccy := vn_med_price_in_base_cur -
                                   vn_val_price_in_base_cur;
     end if;
+    
+       vn_con_value_in_base_cur := ((cur_diff_rows.weighted_avg_price /
+                                nvl(cur_diff_rows.wap_price_weight,
+                                      1)) *
+                                pkg_general.f_get_converted_currency_amt(pc_corporate_id,
+                                                                          cur_diff_rows.wap_price_cur_id,
+                                                                          cur_diff_rows.base_cur_id,
+                                                                          pd_trade_date,
+                                                                          1)) *
+                                (pkg_general.f_get_converted_quantity(cur_diff_rows.product_id,
+                                                                      cur_diff_rows.payable_qty_unit_id,
+                                                                      cur_diff_rows.wap_price_weight_unit_id,
+                                                                      cur_diff_rows.priced_not_arrived_qty));
+    
   
     vn_mep_value_in_base_cur := ((cur_diff_rows.month_end_price /
                                 nvl(cur_diff_rows.month_end_price_weight,
@@ -2471,6 +2579,14 @@ begin
       vn_value_diff_in_base_ccy := vn_mep_value_in_base_cur -
                                    vn_val_value_in_base_cur;
     end if;
+     if cur_diff_rows.purchase_sales = 'P' then
+      vn_unreal_pnl_in_base_ccy := vn_val_value_in_base_cur -
+                                   vn_con_value_in_base_cur;
+    else
+      vn_unreal_pnl_in_base_ccy := vn_con_value_in_base_cur -
+                                   vn_val_value_in_base_cur;
+    end if;
+    
   
     insert into mbv_phy_postion_diff_report
       (process_id,
@@ -2496,6 +2612,14 @@ begin
        qty,
        qty_unit_id,
        qty_unit,
+       con_price,
+       con_price_unit_id,
+       con_price_unit_cur_id,
+       con_price_unit_cur_code,
+       con_price_unit_weight_unit_id,
+       con_price_unit_weight_unit,
+       con_price_unit_weight,
+       con_price_unit_name,
        val_price,
        val_price_unit_id,
        val_price_unit_cur_id,
@@ -2512,25 +2636,26 @@ begin
        mon_end_price_unit_weight_unit,      
        mon_end_price_unit_weight,
        mon_end_price_unit_name,
-       --  fx_con_price_to_base_cur,
+       fx_con_price_to_base_cur,
        fx_val_price_to_base_cur,
        fx_monend_price_to_base_cur,
-       --  contract_price_in_base_cur,
+       contract_price_in_base_cur,
        valuation_price_in_base_cur,
        month_end_price_in_base_cur,
        referential_price_in_base_cur,
-       -- contract_value_in_base_cur,
+       contract_value_in_base_cur,
        valuation_value_in_base_cur,
        month_end_value_in_base_cur,
        referential_value_in_base_cur,
-       -- cp_main_cur_id,
-       -- cp_main_cur_code,
+       cp_main_cur_id,
+       cp_main_cur_code,
        vp_main_cur_id,
        vp_main_cur_code,
        mep_main_cur_id,
        mep_main_cur_code,
        base_cur_id,
-       base_cur_code)
+       base_cur_code,
+       unrealized_pnl_in_base_cur)
     values
       (pc_process_id,
        pd_trade_date,
@@ -2555,6 +2680,14 @@ begin
        cur_diff_rows.priced_not_arrived_qty,
        cur_diff_rows.payable_qty_unit_id,
        cur_diff_rows.payable_qty_unit_name,
+       cur_diff_rows.weighted_avg_price,
+       cur_diff_rows.wap_price_unit_id,
+       cur_diff_rows.wap_price_cur_id,
+       cur_diff_rows.wap_price_cur_code,
+       cur_diff_rows.wap_price_weight_unit_id,
+       cur_diff_rows.wap_price_weight_unit,
+       cur_diff_rows.wap_price_weight,
+       cur_diff_rows.wap_price_unit_name,       
        cur_diff_rows.val_price,
        cur_diff_rows.val_price_unit_id,
        cur_diff_rows.val_price_unit_cur_id,
@@ -2571,22 +2704,26 @@ begin
        cur_diff_rows.mon_price_unit_weight_unit,
        cur_diff_rows.month_end_price_weight,
        cur_diff_rows.month_end_price_unit_name,
+       vn_fx_rate_con_to_base_ccy,
        vn_fx_rate_val_to_base_ccy,
        vn_fx_rate_mep_to_base_ccy,
+       vn_con_price_in_base_cur,
        vn_val_price_in_base_cur,
        vn_med_price_in_base_cur,
        vn_price_diffin_base_ccy,
+       vn_con_value_in_base_cur,
        vn_val_value_in_base_cur,
        vn_mep_value_in_base_cur,
        vn_value_diff_in_base_ccy,
-       -- vc_cp_main_cur_id,
-       -- vc_cp_main_cur_code,
+       vc_con_main_cur_id,
+       vc_con_main_cur_code,
        vc_vp_main_cur_id,
        vc_vp_main_cur_code,
        vc_mep_main_cur_id,
        vc_mep_main_cur_code,
        cur_diff_rows.base_cur_id,
-       cur_diff_rows.base_currency_name);
+       cur_diff_rows.base_currency_name,
+       vn_unreal_pnl_in_base_ccy);
   end loop;
   commit;
  exception
