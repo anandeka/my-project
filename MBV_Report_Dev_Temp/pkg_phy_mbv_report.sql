@@ -1450,25 +1450,25 @@ commit;
 for cur_qty_recon in(
 select css.product_id,
        sum(case
-             when css.contract_type = 'BASEMETAL' then
+             when css.contract_type = 'BASEMETAL' and css.purchase_sales = 'P' then
               css.priced_unarrived_qty
              else
               0
            end) priced_not_arrived_bm,
        sum(case
-             when css.contract_type = 'CONCENTRATES' then
+             when css.contract_type = 'CONCENTRATES' and css.purchase_sales = 'P' then
               css.priced_unarrived_qty
              else
               0
            end) priced_not_arrived_rm,
        sum(case
-             when css.contract_type = 'BASEMETAL' then
+             when css.contract_type = 'BASEMETAL' and css.purchase_sales = 'P' then
               css.unpriced_arrived_qty
              else
               0
            end) unpriced_arrived_bm,
        sum(case
-             when css.contract_type = 'CONCENTRATES' then
+             when css.contract_type = 'CONCENTRATES' and css.purchase_sales = 'P' then
               css.unpriced_arrived_qty
              else
               0
@@ -1515,11 +1515,79 @@ update mbv_metal_balance_valuation mbv
    and mbv.product_id = cur_qty_recon.product_id;
  end loop;
 commit;
-
+--
+-- Update Actual Hedged Qty
+-- Update Hedge Effectivenes
+--
 -- 
 --  Difference Explanation
 --
+-- Derivative Ref Price Diff
+--
+for cur_der_ref_price_diff in(
+select mbvd.product_id,
+       sum(mbvd.value_diff_in_base_ccy) der_ref_price_diff
+  from mbv_derivative_diff_report mbvd
+ where mbvd.process_id = pc_process_id
+ group by mbvd.product_id) loop
+ Update mbv_metal_balance_valuation mbv
+ set mbv.der_ref_price_diff = cur_der_ref_price_diff.der_ref_price_diff
+ where mbv.process_id = pc_process_id
+   and mbv.product_id = cur_der_ref_price_diff.product_id;
+ end loop;
+commit;
+--
+-- Physical Ref Price Diff
+--
+for cur_phy_ref_price_diff in(
+select mbvp.product_id,
+       sum(mbvp.referential_price_in_base_cur * qty) phy_ref_price_diff
+  from mbv_phy_postion_diff_report mbvp
+ where mbvp.process_id = pc_process_id
+ group by mbvp.product_id) loop
+ update mbv_metal_balance_valuation mbv
+    set mbv.phy_ref_price_diff = cur_phy_ref_price_diff.phy_ref_price_diff
+  where mbv.process_id = pc_process_id
+    and mbv.product_id = cur_phy_ref_price_diff.product_id;
+ end loop;
+commit;
+--
+-- Contango/BW Diff due to qty and price
+-- 
+--  
+--
+for cur_contango_dueto_qty in(
+select mbva.product_id,
+       sum(mbva.opening_balance_qty) contango_dueto_qty_price
+  from mbv_allocation_report_header mbva
+ where mbva.process_id = pc_process_id
+ group by mbva.product_id) loop
+ update mbv_metal_balance_valuation mbv
+    set mbv.contango_dueto_qty_price = cur_contango_dueto_qty.contango_dueto_qty_price
+  where mbv.process_id = pc_process_id
+    and mbv.product_id = cur_contango_dueto_qty.product_id;
+ end loop;
+commit;
+-- Contango/BW Diff due to qty
+-- = (Hedged Qty * Actual Hedged Qty) * Month End Price
+--
 
+for cur_contango_dueto_qty in(
+select mbv.product_id,
+       sum((total_inv_qty + priced_not_arrived_bm + priced_not_arrived_rm -
+           unpriced_arrived_bm - unpriced_arrived_rm +
+           sales_unpriced_delivered_bm + sales_unpriced_delivered_rm -
+           sales_priced_not_delivered_bm - sales_priced_not_delivered_rm +
+           mbv.actual_hedged_qty) * mbv.month_end_price) contango_dueto_qty
+  from mbv_metal_balance_valuation mbv
+ where mbv.process_id = pc_process_id
+ group by mbv.product_id) loop
+ Update mbv_metal_balance_valuation mbv
+ set mbv.contango_dueto_qty = cur_contango_dueto_qty.contango_dueto_qty
+ where mbv.process_id = pc_process_id
+    and mbv.product_id = cur_contango_dueto_qty.product_id;
+ end loop;
+ commit;
 --
 -- Update Contract Status and Inventory Status which is at the end of excel
 --   
@@ -1758,8 +1826,6 @@ procedure sp_calc_di_valuation_price(pc_corporate_id varchar2,
   vobj_error_log               tableofpelerrorlog := tableofpelerrorlog();
   vn_eel_error_count           number := 1;
   vd_valid_quote_date          date;
-  vd_qp_start_date             date;
-  vd_qp_end_date               date;
   vd_quotes_date               date;
   workings_days                number;
   vc_price_unit_cur_id         varchar2(15);
@@ -1767,10 +1833,7 @@ procedure sp_calc_di_valuation_price(pc_corporate_id varchar2,
   vc_price_unit_weight_unit_id varchar2(15);
   vc_price_unit_weight_unit    varchar2(15);
   vn_price_unit_weight         number;
-  vn_exch_rate                 number;
   vc_error_msg                 varchar2(100);
-
-
 begin
   for cur_mar_price_rows in cur_mar_price
   loop
@@ -2258,7 +2321,7 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
        and pum.cur_id = cm.cur_id
        and mvp.price_unit_id = ppu_pum.product_price_unit_id;
 
-  vn_con_price_in_base_cur number(25, 5);
+  --vn_con_price_in_base_cur number(25, 5);
   vn_val_price_in_base_cur number(25, 5);
   vn_med_price_in_base_cur number(25, 5);
   --month end price main currency details
@@ -2492,17 +2555,14 @@ procedure sp_allocation_report(pc_corporate_id varchar2,
                                pc_process_id   varchar2) as
 
   vd_prev_eom_date   date;
-  vc_prev_process_id varchar2(15);
-  vn_eel_error_count number := 1;
+ vn_eel_error_count number := 1;
   vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
   vc_error_msg       varchar2(100);
 
 begin
   begin
-    select tdc.trade_date,
-           tdc.process_id
-      into vd_prev_eom_date,
-           vc_prev_process_id
+    select tdc.trade_date
+      into vd_prev_eom_date
       from tdc_trade_date_closure tdc
      where tdc.trade_date = (select max(t.trade_date)
                                from tdc_trade_date_closure t
@@ -2514,7 +2574,6 @@ begin
   
   exception
     when no_data_found then
-      vc_prev_process_id := null;
       vd_prev_eom_date   := to_date('01-Jan-2000', 'dd-Mon-yyyy');
   end;
 
