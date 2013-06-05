@@ -174,7 +174,9 @@ end;
        consumed_qty,
        fixation_value,
        fixed_unit_base_qty_factor,
-       pfd_id)
+       pfd_id,
+       element_id,
+       contract_type)
       select pc_process_id,
              pd_trade_date,
              'New PFC for this Month' section_name,
@@ -217,7 +219,9 @@ end;
              end) * pfd.qty_fixed * pfd.user_price * nvl(pfd.fx_to_base, 1) *
              ucm.multiplication_factor fixation_value,
              ucm.multiplication_factor,
-             pfd.pfd_id
+             pfd.pfd_id,
+             aml.attribute_id,
+             pcm.contract_type
         from pcm_physical_contract_main     pcm,
              pcdi_pc_delivery_item          pcdi,
              poch_price_opt_call_off_header poch,
@@ -308,7 +312,9 @@ end;
              end) * pfd.qty_fixed * pfd.user_price * nvl(pfd.fx_to_base, 1) *
              ucm.multiplication_factor fixation_value,
              ucm.multiplication_factor,
-             pfd.pfd_id
+             pfd.pfd_id,
+             vped.element_id,
+             pcm.contract_type
         from pcm_physical_contract_main     pcm,
              pcdi_pc_delivery_item          pcdi,
              poch_price_opt_call_off_header poch,
@@ -430,7 +436,9 @@ end;
        price_in_base_cur,
        consumed_qty,
        fixation_value,
-       pfd_id)
+       pfd_id,
+       element_id,
+       contract_type)
       select pc_process_id,
              pd_trade_date,
              'List of Consumed Fixations for Realization' section_name,
@@ -472,7 +480,9 @@ end;
                 (-1)
              end) * (consumed_qty) * price_in_base_cur *
              fixed_unit_base_qty_factor,
-             pfd_id
+             pfd_id,
+             element_id,
+             contract_type
         from pfrd_price_fix_report_detail pfrd
        where pfrd.process_id = pc_process_id
          and pfrd.consumed_qty > 0;
@@ -516,7 +526,9 @@ end;
        price_in_base_cur,
        consumed_qty,
        fixation_value,
-       pfd_id)
+       pfd_id,
+       element_id,
+       contract_type)
       select pc_process_id,
              pd_trade_date,
              'List of Balance Price Fixations' section_name,
@@ -558,7 +570,9 @@ end;
                 (-1)
              end) * (fixed_qty - consumed_qty) * price_in_base_cur *
              fixed_unit_base_qty_factor,
-             pfd_id
+             pfd_id,
+             element_id,
+             contract_type
         from pfrd_price_fix_report_detail pfrd
        where pfrd.process_id = pc_process_id
          and pfrd.fixed_qty - pfrd.consumed_qty <> 0;
@@ -601,7 +615,9 @@ end;
        price_in_base_cur,
        consumed_qty,
        fixation_value,
-       pfd_id)
+       pfd_id,
+       element_id,
+       contract_type)
       select pc_process_id,
              pd_trade_date,
              'List of Balance Price Fixations from previous Month' section_name,
@@ -637,7 +653,9 @@ end;
              price_in_base_cur,
              consumed_qty,
              fixation_value,
-             pfd_id
+             pfd_id,
+             element_id,
+             contract_type
         from pfrd_price_fix_report_detail pfrd
        where pfrd.process_id = vc_previous_eom_id
          and pfrd.section_name = 'List of Balance Price Fixations';
@@ -818,14 +836,14 @@ select sum(nvl(case
                         else
                          0
                       end,
-                      0)) opem_purchase_price_fixq_ty,
+                      0)) opem_purchase_price_fix_qty,
               sum(nvl(case
                         when pfrd.purchase_sales = 'Sales' then
                          pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor
                         else
                          0
                       end,
-                      0)) opem_sales_price_fixq_ty,
+                      0)) opem_sales_price_fix_qty,
              case when  sum(nvl(case
                         when pfrd.purchase_sales = 'Purchase' then
                          pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor
@@ -864,8 +882,8 @@ select sum(nvl(case
              group by pfrd.product_id, pfrd.instrument_id)
     loop
       update pfrh_price_fix_report_header pfrh
-         set pfrh.purchase_price_fix_qty   = cur_pf_qty.opem_purchase_price_fixq_ty,
-             pfrh.sales_price_fixation_qty = cur_pf_qty.opem_sales_price_fixq_ty,
+         set pfrh.purchase_price_fix_qty   = cur_pf_qty.opem_purchase_price_fix_qty,
+             pfrh.sales_price_fixation_qty = cur_pf_qty.opem_sales_price_fix_qty,
              pfrh.wap_purchase_price_fixations = cur_pf_qty.wap_purchase_price_fixations,
              pfrh.wap_sales_price_fixations = cur_pf_qty.wap_sales_price_fixations
        where pfrh.process_id = pc_process_id
@@ -906,9 +924,49 @@ select pfrd.product_id,
          and pfrh.instrument_id = cur_fix_qty.instrument_id;
     end loop;
     commit;
-  exception
-    when others then
-      vobj_error_log.extend;
+    --
+    -- Populate DI level Weighted Price in DIWAP_DI_WEIGHTED_AVG_PRICE
+    --
+insert into diwap_di_weighted_avg_price
+  (process_id,
+   eod_trade_date,
+   purchase_sales,
+   corporate_id,
+   corporate_name,
+   product_id,
+   product_name,
+   instrument_id,
+   instrument_name,
+   pcdi_id,
+   contractt_type,
+   weighted_avg_price,
+   wap_price_unit_id,
+   wap_price_unit_name,
+   element_id,
+   element_name)
+  select process_id,
+         eod_trade_date,
+         purchase_sales,
+         corporate_id,
+         corporate_name,
+         product_id,
+         product_name,
+         instrument_id,
+         instrument_name,
+         pcdi_id,
+         contract_type,
+         sum(pfrd.fixation_value) /
+         sum(pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor),
+         pfrd.price_unit_id,
+         pfrd.price_unit_name,
+         pfrd.element_id,
+         null element_name
+    from pfrd_price_fix_report_detail pfrd
+   where pfrd.process_id = pc_process_id
+     and pfrd.section_name = 'New PFC for this Month'
+     and pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor <> 0;
+  
+   exception when others then vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                            'procedure pkg_phy_mbv_report.sp_calc_pf_data',
                                                            'M2M-013',
