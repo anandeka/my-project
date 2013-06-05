@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1602
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Srinivasan Murugesan
+ 
+Created on*        		:  05-Jun-2013 
+
+Bug / Enhancement*      :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  PeriodEndPricing
+
+Sub-Module  			 :  Scheduler
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 129224
+Author: srinivasanmurugesan
+Date: Wednesday, June 05, 2013 3:24:52 PM
+Message:
+452 - alter script to add Is_Scheduled column in PPL table
+453 - DDL related to Scheduler Data model
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_452.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_453.sql
+
