@@ -1,5 +1,4 @@
-create or replace view V_BI_EXPOSURE_BY_TRADE as
---  1st Fixed contracts
+create or replace view v_bi_exposure_by_trade as
 select pcm.corporate_id,
        pcm.contract_ref_no,
        pcm.internal_contract_ref_no,
@@ -37,6 +36,7 @@ select pcm.corporate_id,
    and qat.instrument_id = dim.instrument_id(+)
    and pcpd.product_id = pdm.product_id
    and pcm.is_active = 'Y'
+   and pcm.contract_status <> 'Cancelled'----------Added 
    and pcdi.is_active = 'Y'
    and poch.is_active = 'Y'
    and pocd.is_active = 'Y'
@@ -172,7 +172,7 @@ select pcm.corporate_id,
    and pdm.base_quantity_unit = ucm.to_qty_unit_id
    and ucm.is_active = 'Y'
 union all
--- 4th event based contract unfixed qty for qty not deliveryed 
+-- 4th event based contract unfixed qty for qty not deliveryed
 select pcm.corporate_id,
        pcm.contract_ref_no,
        pcm.internal_contract_ref_no,
@@ -759,3 +759,4 @@ select pcm.corporate_id,
    and pcdi_qty.qty_unit_id = ucm.from_qty_unit_id
    and pdm.base_quantity_unit = ucm.to_qty_unit_id
    and ucm.is_active = 'Y';
+

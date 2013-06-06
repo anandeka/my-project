@@ -66,11 +66,12 @@ select gmr.corporate_id corporate_id,
    and gmr.is_deleted = 'N'
    and agmr.qty_unit_id = qum.qty_unit_id
    and ypd.internal_gmr_ref_no = grd.internal_gmr_ref_no
+   and ypd.is_active = 'Y'---added for Bug ID 79231
    and ypd.element_id = grd.element_id
    and aml.is_active = 'Y'
    and pdm.is_active = 'Y'
    and agmr.action_no = '1'
-  group by gmr.corporate_id,
+       group by gmr.corporate_id,
        pdm.product_id,
        pdm.product_desc,
        grd.smelter_id,
@@ -79,5 +80,4 @@ select gmr.corporate_id corporate_id,
        grd.qty_unit_id,
        grd.qty_unit,
        to_char(agmr.eff_date, 'yyyy'),
-       to_char(agmr.eff_date, 'Mon')
-/
+       to_char(agmr.eff_date, 'Mon');
