@@ -364,34 +364,188 @@ end;
          and pfd.hedge_correction_date > vd_prev_eom_date
          and pfd.hedge_correction_date <= pd_trade_date;
     commit;
+    --
+    -- Need to insert PFRH here and Update the realized qty, since we have to use the 
+    -- Realized qty per product and distribute it across price fixations in asecnding order
+    --
+    --
+    -- Insert Header Raw Data
+    --
+    insert into pfrh_price_fix_report_header
+      (process_id,
+       eod_trade_date,
+       corporate_id,
+       corporate_name,
+       product_id,
+       product_name,
+       instrument_id,
+       instrument_name,
+       priced_arrived_qty,
+       priced_delivered_qty,
+       realized_qty,
+       realized_qty_prev_month,
+       realized_qty_current_month,
+       realized_value,
+       purchase_price_fix_qty,
+       wap_purchase_price_fixations,
+       sales_price_fixation_qty,
+       wap_sales_price_fixations,
+       price_fix_qty_purchase_ob,
+       price_fix_qty_sales_ob,
+       price_fix_qty_purchase_new,
+       price_fix_qty_sales_new)
+      select pc_process_id,
+             pd_trade_date,
+             corporate_id,
+             corporate_name,
+             product_id,
+             product_name,
+             instrument_id,
+             instrument_name,
+             0 priced_arrived_qty,
+             0 priced_delivered_qty,
+             0 realized_qty,
+             0 realized_qty_prev_month,
+             0 realized_qty_current_month,
+             0 realized_value,
+             0 purchase_price_fix_qty,
+             0 wap_purchase_price_fixations,
+             0 sales_price_fixation_qty,
+             0 wap_sales_price_fixations,
+             0 price_fix_qty_purchase_ob,
+             0 price_fix_qty_sales_ob,
+             0 price_fix_qty_purchase_new,
+             0 price_fix_qty_sales_new
+        from pfrd_price_fix_report_detail pfrd
+       where pfrd.process_id = pc_process_id
+       group by corporate_id,
+                corporate_name,
+                product_id,
+                product_name,
+                instrument_id,
+                instrument_name;
+    commit;
     
+      --
+    -- Update Previous Month Realized Qty, Price Fixation Qty OB for Purchase and Sales
+    --
+    for cur_pfhr_prev_real_qty in (select pfrh_prev.product_id,
+                                          pfrh_prev.instrument_id,
+                                          pfrh_prev.realized_qty realized_qty_prev_month,
+                                          pfrh_prev.price_fix_qty_purchase_new price_fix_qty_purchase_ob,
+                                          pfrh_prev.price_fix_qty_sales_new price_fix_qty_sales_ob
+                                     from pfrh_price_fix_report_header pfrh_prev
+                                    where pfrh_prev.process_id = vc_previous_eom_id)
+    loop
+      update pfrh_price_fix_report_header pfrh
+         set pfrh.realized_qty_prev_month = cur_pfhr_prev_real_qty.realized_qty_prev_month,
+         pfrh.price_fix_qty_purchase_ob = cur_pfhr_prev_real_qty.price_fix_qty_purchase_ob,
+         pfrh.price_fix_qty_sales_ob = cur_pfhr_prev_real_qty.price_fix_qty_sales_ob
+       where pfrh.process_id = pc_process_id
+         and pfrh.product_id = cur_pfhr_prev_real_qty.product_id
+         and pfrh.instrument_id = cur_pfhr_prev_real_qty.instrument_id;
+    end loop;
+    commit;
+    
+    --
+    -- Update Priced and Arrived Qty and Priced and Delivered Qty for Concentrates and Base Metal
+    -- 
+for cur_pcs in (
+-- Concentrated Elements
+select sum(nvl(case
+                 when pcs.purchase_sales = 'P' then
+                  pcs.priced_arrived_qty
+               
+                 else
+                 
+                  0
+               end,
+               0)) priced_arrived_qty,
+       sum(nvl(case
+                 when pcs.purchase_sales = 'S' then
+                  pcs.priced_arrived_qty
+               
+                 else
+                 
+                  0
+               end,
+               0)) priced_delivered_qty,
+       aml.underlying_product_id product_id,
+       pcs.instrument_id
+  from pcs_purchase_contract_status pcs,
+       aml_attribute_master_list    aml
+ where pcs.process_id = pc_process_id
+   and pcs.element_id = aml.attribute_id
+ group by pcs.instrument_id,
+          aml.underlying_product_id
+union all -- Base Metal Products
+select sum(nvl(case
+                 when pcs.purchase_sales = 'P' then
+                  pcs.priced_arrived_qty
+               
+                 else
+                 
+                  0
+               end,
+               0)) priced_arrived_qty,
+       sum(nvl(case
+                 when pcs.purchase_sales = 'S' then
+                  pcs.priced_arrived_qty
+               
+                 else
+                 
+                  0
+               end,
+               0)) priced_delivered_qty,
+       pcs.product_id product_id,
+       pcs.instrument_id
+  from pcs_purchase_contract_status pcs
+ where pcs.process_id = pc_process_id
+   and pcs.element_id is null
+ group by pcs.product_id,
+          pcs.instrument_id)
+    loop
+      update pfrh_price_fix_report_header pfrh
+         set pfrh.priced_arrived_qty   = cur_pcs.priced_arrived_qty,
+             pfrh.priced_delivered_qty = cur_pcs.priced_delivered_qty,
+             pfrh.realized_qty         = least(cur_pcs.priced_arrived_qty, cur_pcs.priced_delivered_qty)
+       where pfrh.process_id = pc_process_id
+         and pfrh.product_id = cur_pcs.product_id;
+    end loop;
+    commit;
+    
+    --
+    -- Update Realized Qty Current Month
+    -- = Realized Qty - Realized Qty Last EOM
+    --
+    update pfrh_price_fix_report_header pfrh
+    set pfrh.realized_qty_current_month = pfrh.realized_qty - pfrh.realized_qty_prev_month
+     where pfrh.process_id = pc_process_id;
     --
     -- Update consumed qty for the above data from Purchase / Sales Contract Status
     --
     for cur_consumed_qty in(
-    select pcs.pcdi_id,
-           pcs.product_id,
-           pcs.priced_arrived_qty consumed_qty
-      from pcs_purchase_contract_status pcs
-     where pcs.process_id = pc_process_id) loop
+ select pfrh.product_id,
+        pfrh.realized_qty_current_month consumed_qty
+   from pfrh_price_fix_report_header pfrh
+  where pfrh.process_id = pc_process_id) loop
      vn_qty_to_consume := cur_consumed_qty.consumed_qty;
-         for cur_ppfd in (
+         for cur_fixation in (
          select pfrd.fixed_qty,
                 pfrd.internal_action_ref_no
            from pfrd_price_fix_report_detail pfrd
           where pfrd.process_id = pc_process_id
             and pfrd.product_id = cur_consumed_qty.product_id
-            and pfrd.pcdi_id = cur_consumed_qty.pcdi_id
           order by to_number(substr(pfrd.internal_action_ref_no, 5))) loop
-         If cur_ppfd.fixed_qty <= vn_qty_to_consume then
+         If cur_fixation.fixed_qty <= vn_qty_to_consume then
              Update pfrd_price_fix_report_detail pfrd
-             set pfrd.consumed_qty = abs(vn_qty_to_consume - cur_ppfd.fixed_qty)
+             set pfrd.consumed_qty = abs(vn_qty_to_consume - cur_fixation.fixed_qty)
              where pfrd.process_id = pc_process_id
-             and pfrd.pcdi_id = cur_consumed_qty.pcdi_id
-             and pfrd.internal_action_ref_no = cur_ppfd.internal_action_ref_no;
-             vn_qty_to_consume := vn_qty_to_consume - cur_ppfd.fixed_qty;
+             and pfrd.product_id = cur_consumed_qty.product_id
+             and pfrd.internal_action_ref_no = cur_fixation.internal_action_ref_no;
+             vn_qty_to_consume := vn_qty_to_consume - cur_fixation.fixed_qty;
          end if;
-         If vn_qty_to_consume <= 0 then -- Everything is consumed for this DI
+         If vn_qty_to_consume <= 0 then -- Everything is consumed for this Product / Instrument
             exit;
          end if;
          end loop;
@@ -660,150 +814,10 @@ end;
        where pfrd.process_id = vc_previous_eom_id
          and pfrd.section_name = 'List of Balance Price Fixations';
     commit;
-    --
-    -- Insert Header Raw Data
-    --
-    insert into pfrh_price_fix_report_header
-      (process_id,
-       eod_trade_date,
-       corporate_id,
-       corporate_name,
-       product_id,
-       product_name,
-       instrument_id,
-       instrument_name,
-       priced_arrived_qty,
-       priced_delivered_qty,
-       realized_qty,
-       realized_qty_prev_month,
-       realized_qty_current_month,
-       realized_value,
-       purchase_price_fix_qty,
-       wap_purchase_price_fixations,
-       sales_price_fixation_qty,
-       wap_sales_price_fixations,
-       price_fix_qty_purchase_ob,
-       price_fix_qty_sales_ob,
-       price_fix_qty_purchase_new,
-       price_fix_qty_sales_new)
-      select pc_process_id,
-             pd_trade_date,
-             corporate_id,
-             corporate_name,
-             product_id,
-             product_name,
-             instrument_id,
-             instrument_name,
-             0 priced_arrived_qty,
-             0 priced_delivered_qty,
-             0 realized_qty,
-             0 realized_qty_prev_month,
-             0 realized_qty_current_month,
-             0 realized_value,
-             0 purchase_price_fix_qty,
-             0 wap_purchase_price_fixations,
-             0 sales_price_fixation_qty,
-             0 wap_sales_price_fixations,
-             0 price_fix_qty_purchase_ob,
-             0 price_fix_qty_sales_ob,
-             0 price_fix_qty_purchase_new,
-             0 price_fix_qty_sales_new
-        from pfrd_price_fix_report_detail pfrd
-       where pfrd.process_id = pc_process_id
-       group by corporate_id,
-                corporate_name,
-                product_id,
-                product_name,
-                instrument_id,
-                instrument_name;
-    commit;
-    --
-    -- Update Priced and Arrived Qty and Priced and Delivered Qty for Concentrates and Base Metal
-    -- 
-for cur_pcs in (
--- Concentrated Elements
-select sum(nvl(case
-                 when pcs.purchase_sales = 'P' then
-                  pcs.priced_arrived_qty
-               
-                 else
-                 
-                  0
-               end,
-               0)) priced_arrived_qty,
-       sum(nvl(case
-                 when pcs.purchase_sales = 'S' then
-                  pcs.priced_arrived_qty
-               
-                 else
-                 
-                  0
-               end,
-               0)) priced_delivered_qty,
-       aml.underlying_product_id product_id,
-       pcs.instrument_id
-  from pcs_purchase_contract_status pcs,
-       aml_attribute_master_list    aml
- where pcs.process_id = pc_process_id
-   and pcs.element_id = aml.attribute_id
- group by pcs.instrument_id,
-          aml.underlying_product_id
-union all -- Base Metal Products
-select sum(nvl(case
-                 when pcs.purchase_sales = 'P' then
-                  pcs.priced_arrived_qty
-               
-                 else
-                 
-                  0
-               end,
-               0)) priced_arrived_qty,
-       sum(nvl(case
-                 when pcs.purchase_sales = 'S' then
-                  pcs.priced_arrived_qty
-               
-                 else
-                 
-                  0
-               end,
-               0)) priced_delivered_qty,
-       pcs.product_id product_id,
-       pcs.instrument_id
-  from pcs_purchase_contract_status pcs
- where pcs.process_id = pc_process_id
-   and pcs.element_id is null
- group by pcs.product_id,
-          pcs.instrument_id)
-    loop
-      update pfrh_price_fix_report_header pfrh
-         set pfrh.priced_arrived_qty   = cur_pcs.priced_arrived_qty,
-             pfrh.priced_delivered_qty = cur_pcs.priced_delivered_qty,
-             pfrh.realized_qty         = least(cur_pcs.priced_arrived_qty, cur_pcs.priced_delivered_qty)
-       where pfrh.process_id = pc_process_id
-         and pfrh.product_id = cur_pcs.product_id
-         and pfrh.instrument_id = cur_pcs.instrument_id;
-    end loop;
-    commit;
-    --
-    -- Update Previous Month Realized Qty, Price Fixation Qty OB for Purchase and Sales
-    --
-    for cur_pfhr_prev_real_qty in (select pfrh_prev.product_id,
-                                          pfrh_prev.instrument_id,
-                                          pfrh_prev.realized_qty realized_qty_prev_month,
-                                          pfrh_prev.price_fix_qty_purchase_new price_fix_qty_purchase_ob,
-                                          pfrh_prev.price_fix_qty_sales_new price_fix_qty_sales_ob
-                                     from pfrh_price_fix_report_header pfrh_prev
-                                    where pfrh_prev.process_id = vc_previous_eom_id)
-    loop
-      update pfrh_price_fix_report_header pfrh
-         set pfrh.realized_qty_prev_month = cur_pfhr_prev_real_qty.realized_qty_prev_month,
-         pfrh.price_fix_qty_purchase_ob = cur_pfhr_prev_real_qty.price_fix_qty_purchase_ob,
-         pfrh.price_fix_qty_sales_ob = cur_pfhr_prev_real_qty.price_fix_qty_sales_ob
-       where pfrh.process_id = pc_process_id
-         and pfrh.product_id = cur_pfhr_prev_real_qty.product_id
-         and pfrh.instrument_id = cur_pfhr_prev_real_qty.instrument_id;
-    end loop;
-    commit;
+    
+
+  
+     
     --
     -- Update Realized Value
     --
@@ -924,6 +938,7 @@ select pfrd.product_id,
          and pfrh.instrument_id = cur_fix_qty.instrument_id;
     end loop;
     commit;
+  
     --
     -- Populate DI level Weighted Price in DIWAP_DI_WEIGHTED_AVG_PRICE
     --
