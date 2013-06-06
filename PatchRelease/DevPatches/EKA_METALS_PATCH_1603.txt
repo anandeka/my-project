@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1603
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek
+ 
+Created on*        		:  06-Jun-2013 
+
+Bug / Enhancement*      :  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Contarct
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 129409
+Author: abhishek.vijay
+Date: 4:50:15 PM, Thursday, June 06, 2013
+Message:
+contract fulfillment 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_588.sql
+
