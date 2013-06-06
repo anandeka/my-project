@@ -44,3 +44,22 @@ Message:
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_452.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_453.sql
 
+==================================================================
+
+Revision: 129478
+Author: srinivasanmurugesan
+Date: Thursday, June 06, 2013 7:55:13 PM
+Message:
+Column EXEC_STATUS_DESCRIPTION added in SED table
+Column EXECUTION_END_TIME  made nullable.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_453.sql
+
+Revision: 129476
+Author: srinivasanmurugesan
+Date: Thursday, June 06, 2013 7:49:48 PM
+Message:
+Not null constraint removed for Is_scheduled column.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_452.sql
+
