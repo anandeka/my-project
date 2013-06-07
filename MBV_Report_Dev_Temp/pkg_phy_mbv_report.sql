@@ -269,7 +269,7 @@ end;
          and pcm.contract_type = 'CONCENTRATES'
          and pfd.hedge_correction_date > vd_prev_eom_date
          and pfd.hedge_correction_date <= pd_trade_date
-      union all
+     union all
       select pc_process_id,
              pd_trade_date,
              'New PFC for this Month' section_name,
@@ -442,19 +442,17 @@ end;
          pfrh.price_fix_qty_purchase_ob = cur_pfhr_prev_real_qty.price_fix_qty_purchase_ob,
          pfrh.price_fix_qty_sales_ob = cur_pfhr_prev_real_qty.price_fix_qty_sales_ob
        where pfrh.process_id = pc_process_id
-         and pfrh.product_id = cur_pfhr_prev_real_qty.product_id
-         and pfrh.instrument_id = cur_pfhr_prev_real_qty.instrument_id;
+         and pfrh.product_id = cur_pfhr_prev_real_qty.product_id;
     end loop;
     commit;
     
     --
-    -- Update Priced and Arrived Qty and Priced and Delivered Qty for Concentrates and Base Metal
+    -- Update Priced and Arrived Qty and Priced and Delivered Qty
     -- 
 for cur_pcs in (
--- Concentrated Elements
 select sum(nvl(case
-                 when pcs.purchase_sales = 'P' then
-                  pcs.priced_arrived_qty
+                 when css.purchase_sales = 'P' then
+                  css.priced_arrived_qty
                
                  else
                  
@@ -462,48 +460,18 @@ select sum(nvl(case
                end,
                0)) priced_arrived_qty,
        sum(nvl(case
-                 when pcs.purchase_sales = 'S' then
-                  pcs.priced_arrived_qty
+                 when css.purchase_sales = 'S' then
+                  css.priced_arrived_qty
                
                  else
                  
                   0
                end,
                0)) priced_delivered_qty,
-       aml.underlying_product_id product_id,
-       pcs.instrument_id
-  from pcs_purchase_contract_status pcs,
-       aml_attribute_master_list    aml
- where pcs.process_id = pc_process_id
-   and pcs.element_id = aml.attribute_id
- group by pcs.instrument_id,
-          aml.underlying_product_id
-union all -- Base Metal Products
-select sum(nvl(case
-                 when pcs.purchase_sales = 'P' then
-                  pcs.priced_arrived_qty
-               
-                 else
-                 
-                  0
-               end,
-               0)) priced_arrived_qty,
-       sum(nvl(case
-                 when pcs.purchase_sales = 'S' then
-                  pcs.priced_arrived_qty
-               
-                 else
-                 
-                  0
-               end,
-               0)) priced_delivered_qty,
-       pcs.product_id product_id,
-       pcs.instrument_id
-  from pcs_purchase_contract_status pcs
- where pcs.process_id = pc_process_id
-   and pcs.element_id is null
- group by pcs.product_id,
-          pcs.instrument_id)
+       css.product_id
+  from css_contract_status_summary css
+ where css.process_id = pc_process_id
+ group by css.product_id)
     loop
       update pfrh_price_fix_report_header pfrh
          set pfrh.priced_arrived_qty   = cur_pcs.priced_arrived_qty,
@@ -515,14 +483,14 @@ select sum(nvl(case
     commit;
     
     --
-    -- Update Realized Qty Current Month
-    -- = Realized Qty - Realized Qty Last EOM
+    -- Update Realized Qty Current Month = (Realized Qty - Realized Qty Last EOM)
     --
     update pfrh_price_fix_report_header pfrh
     set pfrh.realized_qty_current_month = pfrh.realized_qty - pfrh.realized_qty_prev_month
      where pfrh.process_id = pc_process_id;
     --
-    -- Update consumed qty for the above data from Purchase / Sales Contract Status
+    -- Update consumed qty for the above data from Purchase / Sales Contract Status which is
+    -- already updated in PFRH column REALIZED_QTY_CURRENT_MONTH
     --
     for cur_consumed_qty in(
  select pfrh.product_id,
@@ -539,13 +507,15 @@ select sum(nvl(case
           order by to_number(substr(pfrd.internal_action_ref_no, 5))) loop
          If cur_fixation.fixed_qty <= vn_qty_to_consume then
              Update pfrd_price_fix_report_detail pfrd
-             set pfrd.consumed_qty = abs(vn_qty_to_consume - cur_fixation.fixed_qty)
+             set pfrd.consumed_qty = abs(vn_qty_to_consume - cur_fixation.fixed_qty) 
+             -- If remianing qty is 10 and fixed is 20 and qty to consume is 10,
+             -- then 10-20 = -10, it should be 10 hence absolute
              where pfrd.process_id = pc_process_id
              and pfrd.product_id = cur_consumed_qty.product_id
              and pfrd.internal_action_ref_no = cur_fixation.internal_action_ref_no;
              vn_qty_to_consume := vn_qty_to_consume - cur_fixation.fixed_qty;
          end if;
-         If vn_qty_to_consume <= 0 then -- Everything is consumed for this Product / Instrument
+         If vn_qty_to_consume <= 0 then -- Everything is consumed for this Product
             exit;
          end if;
          end loop;
@@ -682,7 +652,8 @@ select sum(nvl(case
        fixation_value,
        pfd_id,
        element_id,
-       contract_type)
+       contract_type,
+       fixed_unit_base_qty_factor)
       select pc_process_id,
              pd_trade_date,
              'List of Balance Price Fixations' section_name,
@@ -726,10 +697,11 @@ select sum(nvl(case
              fixed_unit_base_qty_factor,
              pfd_id,
              element_id,
-             contract_type
+             contract_type,
+             fixed_unit_base_qty_factor
         from pfrd_price_fix_report_detail pfrd
        where pfrd.process_id = pc_process_id
-         and pfrd.fixed_qty - pfrd.consumed_qty <> 0;
+         and (pfrd.fixed_qty - pfrd.consumed_qty) <> 0;
     --
     -- List of Balance Price Fixations from previous Month
     --
@@ -771,7 +743,8 @@ select sum(nvl(case
        fixation_value,
        pfd_id,
        element_id,
-       contract_type)
+       contract_type,
+       fixed_unit_base_qty_factor)
       select pc_process_id,
              pd_trade_date,
              'List of Balance Price Fixations from previous Month' section_name,
@@ -809,32 +782,27 @@ select sum(nvl(case
              fixation_value,
              pfd_id,
              element_id,
-             contract_type
+             contract_type,
+             fixed_unit_base_qty_factor
         from pfrd_price_fix_report_detail pfrd
        where pfrd.process_id = vc_previous_eom_id
          and pfrd.section_name = 'List of Balance Price Fixations';
     commit;
     
-
-  
-     
     --
     -- Update Realized Value
     --
     for cur_realized_value in (select pfrd.product_id,
-                                      pfrd.instrument_id,
                                       sum(pfrd.fixation_value) fixation_value
                                  from pfrd_price_fix_report_detail pfrd
                                 where pfrd.process_id = pc_process_id
                                   and pfrd.section_name = 'List of Consumed Fixations For Realization'
-                                group by pfrd.product_id,
-                                         pfrd.instrument_id)
+                                group by pfrd.product_id)
     loop
       update pfrh_price_fix_report_header pfrh
          set pfrh.realized_value = cur_realized_value.fixation_value
        where pfrh.process_id = pc_process_id
-         and pfrh.product_id = cur_realized_value.product_id
-         and pfrh.instrument_id = cur_realized_value.instrument_id;
+         and pfrh.product_id = cur_realized_value.product_id;
     end loop;
     commit;
   
@@ -843,7 +811,6 @@ select sum(nvl(case
     --
     for cur_pf_qty in (
     select    pfrd.product_id,
-              pfrd.instrument_id,
               sum(nvl(case
                         when pfrd.purchase_sales = 'Purchase' then
                          pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor
@@ -893,7 +860,7 @@ select sum(nvl(case
              from pfrd_price_fix_report_detail pfrd
              where pfrd.process_id = pc_process_id
              and pfrd.section_name = 'List of Balance Price Fixations'
-             group by pfrd.product_id, pfrd.instrument_id)
+             group by pfrd.product_id)
     loop
       update pfrh_price_fix_report_header pfrh
          set pfrh.purchase_price_fix_qty   = cur_pf_qty.opem_purchase_price_fix_qty,
@@ -901,8 +868,7 @@ select sum(nvl(case
              pfrh.wap_purchase_price_fixations = cur_pf_qty.wap_purchase_price_fixations,
              pfrh.wap_sales_price_fixations = cur_pf_qty.wap_sales_price_fixations
        where pfrh.process_id = pc_process_id
-         and pfrh.product_id = cur_pf_qty.product_id
-         and pfrh.instrument_id = cur_pf_qty.instrument_id;
+         and pfrh.product_id = cur_pf_qty.product_id;
     end loop;
     commit;
     --
@@ -910,7 +876,6 @@ select sum(nvl(case
     --
     for cur_fix_qty in (
 select pfrd.product_id,
-       pfrd.instrument_id,
        sum(nvl(case
                  when pfrd.purchase_sales = 'Purchase' then
                   pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor
@@ -928,14 +893,13 @@ select pfrd.product_id,
   from pfrd_price_fix_report_detail pfrd
  where pfrd.process_id = pc_process_id
    and pfrd.section_name = 'New PFC for this Month'
- group by pfrd.product_id, pfrd.instrument_id)
+ group by pfrd.product_id)
     loop
       update pfrh_price_fix_report_header pfrh
          set pfrh.price_fix_qty_purchase_new = cur_fix_qty.purchase_price_fix_qty,
          pfrh.price_fix_qty_sales_new = cur_fix_qty.sales_price_fix_qty
        where pfrh.process_id = pc_process_id
-         and pfrh.product_id = cur_fix_qty.product_id
-         and pfrh.instrument_id = cur_fix_qty.instrument_id;
+         and pfrh.product_id = cur_fix_qty.product_id;
     end loop;
     commit;
   
@@ -970,7 +934,7 @@ insert into diwap_di_weighted_avg_price
          instrument_name,
          pcdi_id,
          contract_type,
-         sum(pfrd.fixation_value) /
+         sum(abs(pfrd.fixation_value)) / -- absolute for sales since we are storing as negative
          sum(pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor),
          pfrd.price_unit_id,
          pfrd.price_unit_name,
@@ -1538,7 +1502,7 @@ select sum(case
  end loop;
 commit;
 
-        vc_error_msg := 'Data from Contract Status Report';
+vc_error_msg := 'Data from Contract Status Report';
 --
 -- Data from Contract Status Report for section Qty Recon Report
 --
@@ -1612,8 +1576,43 @@ update mbv_metal_balance_valuation mbv
 commit;
 --
 -- Update Actual Hedged Qty
+--
+for cur_actual_hedged_qty in(
+select mbvah.product_id,
+       mbvah.opening_balance_qty
+  from mbv_allocation_report_header mbvah
+ where mbvah.process_id = pc_process_id) loop
+
+Update mbv_metal_balance_valuation mbv
+set mbv.actual_hedged_qty = cur_actual_hedged_qty.opening_balance_qty
+where mbv.process_id = pc_process_id
+and mbv.product_id = cur_actual_hedged_qty.product_id;
+end loop;
+commit;
+
+--
+-- Update actual hedged qty
+-- 
+
+update mbv_metal_balance_valuation mbv
+   set mbv.qty_to_be_hedged = total_inv_qty + priced_not_arrived_bm +
+                              priced_not_arrived_rm - unpriced_arrived_bm -
+                              unpriced_arrived_rm +
+                              sales_unpriced_delivered_bm +
+                              sales_unpriced_delivered_rm -
+                              sales_priced_not_delivered_bm -
+                              sales_priced_not_delivered_rm
+ where mbv.process_id = pc_process_id;
+commit;
+--
 -- Update Hedge Effectivenes
 --
+update mbv_metal_balance_valuation mbv
+   set mbv.hedge_effectiveness = 1 - (mbv.qty_to_be_hedged -
+                                 mbv.actual_hedged_qty) /
+                                 mbv.qty_to_be_hedged
+ where mbv.process_id = pc_process_id;
+ commit;   
 -- 
 --  Difference Explanation
 --
@@ -1638,7 +1637,7 @@ commit;
 --
 for cur_phy_ref_price_diff in(
 select mbvp.product_id,
-       sum(mbvp.referential_price_in_base_cur * qty) phy_ref_price_diff
+       sum(mbvp.referential_price_in_base_cur * mbvp.qty) phy_ref_price_diff
   from mbv_phy_postion_diff_report mbvp
  where mbvp.process_id = pc_process_id
  group by mbvp.product_id) loop
@@ -1665,6 +1664,7 @@ select mbva.product_id,
  end loop;
 commit;
         vc_error_msg := 'Contango/BW Diff due to qty';
+--        
 -- Contango/BW Diff due to qty
 -- = (Hedged Qty * Actual Hedged Qty) * Month End Price
 --
