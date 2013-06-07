@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_1606
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Varaprasad B
+ 
+Created on*        		:  07-Jun-2013 
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice Module
+
+Sub-Module  			 :  Advance Payment
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+
+Revision: 129562
+Author: varaprasad.b
+Date: 15:07:19, 07 June 2013
+Message:
+80096,80014 Fix : Not able to generate AdvancePayment output document and vat output document.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_454.sql
+
