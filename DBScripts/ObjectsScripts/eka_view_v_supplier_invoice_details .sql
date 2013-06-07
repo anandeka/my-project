@@ -25,7 +25,7 @@ select tt.supplier_invoive_no,
                sum(test.tc_amount + test.rc_amount + test.penality_amount) charges_to_supplier,
                test.invoice_currency_id,
                test.invoice_currency_code,
-               nvl(iss.total_other_charge_amount, 0) add_charges_to_supplier
+               nvl(iss.total_other_charge_amount, 0) / iss.gmr_cnt add_charges_to_supplier
           from (select pcm.contract_ref_no supplier_contract_ref_no,
                        gmr.gmr_ref_no supplier_gmr_ref_no,
                        gmr.internal_gmr_ref_no supplier_internal_gmr_ref_no,
@@ -96,7 +96,16 @@ select tt.supplier_invoive_no,
                    and iid.invoice_currency_id = cm.cur_id
                    and pcm.cp_id = phd.profileid
                    and gmr.corporate_id=akc.corporate_id) test,
-               is_invoice_summary iss
+               (select is1.internal_invoice_ref_no,
+                       nvl(is1.total_other_charge_amount, 0)total_other_charge_amount,
+                       count(distinct iid.internal_gmr_ref_no) gmr_cnt
+                  from is_invoice_summary          is1,
+                       iid_invoicable_item_details iid
+                 where iid.internal_invoice_ref_no =
+                       is1.internal_invoice_ref_no
+                   and iid.is_active = 'Y'
+                 group by is1.internal_invoice_ref_no,
+                          nvl(is1.total_other_charge_amount, 0)) iss
          where test.internal_invoice_ref_no = iss.internal_invoice_ref_no(+)
          group by test.supplier_invoive_no,
                   test.supplier_invoice_date,
@@ -109,4 +118,5 @@ select tt.supplier_invoive_no,
                   test.invoice_currency_code,
                   test.supplier_gmr_ref_no,
                   test.supplier_internal_gmr_ref_no,
-                  iss.total_other_charge_amount) tt 
+                  iss.total_other_charge_amount,
+                  iss.gmr_cnt) tt

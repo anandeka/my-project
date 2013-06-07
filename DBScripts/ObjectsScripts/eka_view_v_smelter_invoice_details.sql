@@ -1,5 +1,6 @@
 create or replace view v_smelter_invoice_details as
 select test.supp_internal_gmr_ref_no,
+       test.smelter_gmr_ref_no,
        test.smelter_invoive_no,
        test.smelter_invoice_date,
        test.smelter_id,
@@ -8,7 +9,8 @@ select test.supp_internal_gmr_ref_no,
        test.corporate_name,
        sum(test.tc_amount + test.rc_amount + test.penality_amount) charges_to_smelter,
        test.invoice_currency_id,
-       test.invoice_currency_code
+       test.invoice_currency_code,
+       sum(test.add_charges_to_smelter)add_charges_to_smelter
   from (select gmr.internal_gmr_ref_no smelter_internal_gmr_ref_no,
                gmr.gmr_ref_no smelter_gmr_ref_no,
                grd.internal_grd_ref_no,
@@ -24,7 +26,8 @@ select test.supp_internal_gmr_ref_no,
                iss.invoice_issue_date smelter_invoice_date,
                iid.invoice_currency_id,
                cm.cur_code invoice_currency_code,
-               iss.internal_invoice_ref_no
+               iss.internal_invoice_ref_no,
+               (invoice_supp.total_other_charge_amount/invoice_supp.gmr_qty)*grd.qty add_charges_to_smelter
           from pcm_physical_contract_main pcm,
                phd_profileheaderdetails phd,
                gmr_goods_movement_record gmr,
@@ -74,6 +77,7 @@ select test.supp_internal_gmr_ref_no,
                   and grd.is_deleted = 'N'
                   and grd.internal_grd_ref_no = iid.stock_id
                 group by iid.internal_gmr_ref_no) invoice,
+               v_gmr_inv_other_charges invoice_supp,
                cm_currency_master cm,
                ak_corporate akc
          where pcm.internal_contract_ref_no = gmr.internal_contract_ref_no
@@ -99,7 +103,8 @@ select test.supp_internal_gmr_ref_no,
               
            and iid.invoice_currency_id = cm.cur_id
            and pcm.cp_id = phd.profileid
-           and gmr.corporate_id = akc.corporate_id) test
+           and gmr.corporate_id = akc.corporate_id
+           and grd.supp_internal_gmr_ref_no=invoice_supp.internal_gmr_ref_no) test
  group by test.smelter_invoive_no,
           test.smelter_invoice_date,
           test.smelter,
@@ -108,4 +113,5 @@ select test.supp_internal_gmr_ref_no,
           test.supp_internal_gmr_ref_no,
           test.smelter_id,
           test.corporate_id,
-          test.corporate_name;
+          test.corporate_name,        
+          test.smelter_gmr_ref_no;
