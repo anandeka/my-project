@@ -2816,6 +2816,12 @@ create or replace package body pkg_phy_eod_reports is
       vn_gmr_treatment_charge      := 0;
       vn_gmr_penality_charge       := 0;
       vn_gmr_refine_charge         := 0;
+      vc_gmr_pay_cur_id            :=null;
+      vn_gmr_price_in_pay_in_cur   :=null;
+      vn_gmr_price_unit_weight     :=null;
+      vn_pay_in_price_unit_weight  :=null;
+      vc_pay_in_price_unit_id      :=null;
+      vc_pay_price_unit_wt_unit_id :=null;
       if cur_pur_accural_rows.payable_type <> 'Penalty' then
       
         vn_gmr_price                 := cur_pur_accural_rows.gmr_price;
@@ -8789,7 +8795,8 @@ end;
      contract_type,
      delivery_item_no,
      pcdi_id,
-     instrument_id)
+     instrument_id,
+     underlying_product_id)
   --For Concentrates and Tolling contracts
   select pcm.internal_contract_ref_no,
                      pcm.contract_ref_no,
@@ -8812,7 +8819,8 @@ end;
                      pcm.contract_type,
                      pcdi.delivery_item_no,
                      pcdi.pcdi_id,
-                     v_pcdi.instrument_id                  
+                     v_pcdi.instrument_id,
+                     aml.underlying_product_id                  
                 from pcm_physical_contract_main     pcm,
                      dipq_delivery_item_payable_qty dipq,
                      pcpd_pc_product_definition     pcpd,
@@ -8866,7 +8874,8 @@ end;
                         pcm.contract_type,
                         pcdi.delivery_item_no,
                         pcdi.pcdi_id,
-                        v_pcdi.instrument_id
+                        v_pcdi.instrument_id,
+                        aml.underlying_product_id
         union all
         --For Base Metals
         select pcm.internal_contract_ref_no,
@@ -8890,7 +8899,8 @@ end;
                      pcm.contract_type,
                      pcdi.delivery_item_no,
                      pcdi.pcdi_id,
-                     v_pcdi.instrument_id
+                     v_pcdi.instrument_id,
+                     null
                 from pcm_physical_contract_main     pcm,
                      diqs_delivery_item_qty_status dipq,
                      pcpd_pc_product_definition     pcpd,
@@ -8949,7 +8959,8 @@ insert into tcs1_temp_cs_payable
    contract_type,
    delivery_item_no,
    pcdi_id,
-   instrument_id)
+   instrument_id,
+   underlying_product_id)
 --Tolling P and S and Concentrates P contracts
 select pc_corporate_id,
          gmr.internal_contract_ref_no,
@@ -8958,13 +8969,15 @@ select pc_corporate_id,
          pcm.contract_type,
          pcdi.delivery_item_no,
          pcdi.pcdi_id,
-         v_pcdi.instrument_id
+         v_pcdi.instrument_id,
+         aml.underlying_product_id
     from pcm_physical_contract_main pcm,
          process_gmr  gmr,
          process_spq      spq,
          process_grd    grd,
          pcdi_pc_delivery_item      pcdi,
-         v_pcdi_exchange_detail v_pcdi
+         v_pcdi_exchange_detail v_pcdi,
+         aml_attribute_master_list aml
    where pcm.internal_contract_ref_no = gmr.internal_contract_ref_no
      and gmr.internal_gmr_ref_no = spq.internal_gmr_ref_no
      and spq.internal_gmr_ref_no = grd.internal_gmr_ref_no
@@ -8986,12 +8999,14 @@ select pc_corporate_id,
      and v_pcdi.pcdi_id = pcdi.pcdi_id
      and v_pcdi.element_id = spq.element_id
      and pcm.is_pass_through ='N'
+     and aml.attribute_id = spq.element_id
    group by gmr.internal_contract_ref_no,
             spq.element_id,
             pcm.contract_type,
             pcdi.delivery_item_no,
             pcdi.pcdi_id,
-            v_pcdi.instrument_id;
+            v_pcdi.instrument_id,
+            aml.underlying_product_id;
 commit;
 gvn_log_counter := gvn_log_counter + 1;
 sp_eodeom_process_log(pc_corporate_id,
@@ -9007,7 +9022,8 @@ insert into tcs1_temp_cs_payable
    contract_type,
    delivery_item_no,
    pcdi_id,
-   instrument_id)
+   instrument_id,
+   underlying_product_id)
 --Concentrates S contracts
 select pc_corporate_id,
          gmr.internal_contract_ref_no,
@@ -9016,13 +9032,15 @@ select pc_corporate_id,
          pcm.contract_type,
          pcdi.delivery_item_no,
          pcdi.pcdi_id,
-         v_pcdi.instrument_id
+         v_pcdi.instrument_id,
+         aml.underlying_product_id
     from pcm_physical_contract_main pcm,
          process_gmr  gmr,
          process_spq      spq,
          dgrd_delivered_grd         dgrd,
          pcdi_pc_delivery_item      pcdi,
-         v_pcdi_exchange_detail v_pcdi
+         v_pcdi_exchange_detail v_pcdi,
+         aml_attribute_master_list aml
    where pcm.internal_contract_ref_no = gmr.internal_contract_ref_no
      and gmr.internal_gmr_ref_no = spq.internal_gmr_ref_no
      and spq.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
@@ -9045,12 +9063,14 @@ select pc_corporate_id,
      and v_pcdi.pcdi_id = pcdi.pcdi_id
      and v_pcdi.element_id = spq.element_id
      and pcm.is_pass_through ='N'
+     and aml.attribute_id = spq.element_id
    group by gmr.internal_contract_ref_no,
             spq.element_id,
             pcm.contract_type,
             pcdi.delivery_item_no,
             pcdi.pcdi_id,
-            v_pcdi.instrument_id;
+            v_pcdi.instrument_id,
+            aml.underlying_product_id;
 commit;
 gvn_log_counter := gvn_log_counter + 1;
 sp_eodeom_process_log(pc_corporate_id,
@@ -9166,7 +9186,8 @@ insert into tcs2_temp_cs_priced
    instrument_id,
    contract_type,
    delivery_item_no,
-   pcdi_id)
+   pcdi_id,
+   underlying_product_id)
 --All contracts of Price type <> Fixed, except. internal Tolling contracts
 select pc_corporate_id,
          pcm.internal_contract_ref_no,
@@ -9175,14 +9196,16 @@ select pc_corporate_id,
          v_pcdi.instrument_id,
          pcm.contract_type,
          pcdi.delivery_item_no,
-         pcdi.pcdi_id
+         pcdi.pcdi_id,
+         aml.underlying_product_id
     from pcm_physical_contract_main     pcm,
          pcdi_pc_delivery_item          pcdi,
          poch_price_opt_call_off_header poch,
          pocd_price_option_calloff_dtls pocd,
          pofh_price_opt_fixation_header pofh,
          pfd_price_fixation_details     pfd,
-         v_pcdi_exchange_detail v_pcdi
+         v_pcdi_exchange_detail         v_pcdi,
+         aml_attribute_master_list      aml
          /*,
          pcbpd_pc_base_price_detail     pcbpd,
          ppfh_phy_price_formula_header  ppfh,
@@ -9215,12 +9238,14 @@ select pc_corporate_id,
      and v_pcdi.pcdi_id = pcdi.pcdi_id
      and v_pcdi.element_id = poch.element_id
      and pcm.is_pass_through ='N'
+     and aml.attribute_id = poch.element_id
    group by pcm.internal_contract_ref_no,
             poch.element_id,
             v_pcdi.instrument_id,
             pcm.contract_type,
             pcdi.delivery_item_no,
-            pcdi.pcdi_id;
+            pcdi.pcdi_id,
+            aml.underlying_product_id;
 commit;
  gvn_log_counter := gvn_log_counter + 1;
 sp_eodeom_process_log(pc_corporate_id,
@@ -9236,7 +9261,8 @@ sp_eodeom_process_log(pc_corporate_id,
    priced_qty,
    contract_type,
    delivery_item_no,
-   pcdi_id)
+   pcdi_id,
+   underlying_product_id)
 --Price type =  Fixed, all Tolling and Concentrates
   select pc_corporate_id,
          pcm.internal_contract_ref_no,
@@ -9244,7 +9270,8 @@ sp_eodeom_process_log(pc_corporate_id,
          sum(dipq.payable_qty) priced_qty,
          pcm.contract_type,
          pcdi.delivery_item_no,
-         pcdi.pcdi_id
+         pcdi.pcdi_id,
+         aml.underlying_product_id
     from pcm_physical_contract_main     pcm,
          pcdi_pc_delivery_item          pcdi,
          dipq_delivery_item_payable_qty dipq,
@@ -9273,7 +9300,8 @@ sp_eodeom_process_log(pc_corporate_id,
             dipq.element_id,
             pcm.contract_type,
             pcdi.delivery_item_no,
-            pcdi.pcdi_id;
+            pcdi.pcdi_id,
+            aml.underlying_product_id;
 commit;
   gvn_log_counter := gvn_log_counter + 1;
 sp_eodeom_process_log(pc_corporate_id,
@@ -9356,7 +9384,8 @@ sp_eodeom_process_log(pc_corporate_id,
        instrument_id,
        contract_type,
        delivery_item_no,
-       pcdi_id)
+       pcdi_id,
+       underlying_product_id)
       select main_table.corporate_id,
              main_table.corporate_name,
              pc_process_id,
@@ -9411,7 +9440,8 @@ sp_eodeom_process_log(pc_corporate_id,
              main_table.instrument_id,
              main_table.contract_type,
              main_table.delivery_item_no,
-             main_table.pcdi_id
+             main_table.pcdi_id,
+             main_table.underlying_product_id
         from tcsm_temp_contract_status_main         main_table,
              tcs1_temp_cs_payable stock_table,
              tcs2_temp_cs_priced pfc_data
@@ -9456,7 +9486,8 @@ sp_eodeom_process_log(pc_corporate_id,
        instrument_id,
        contract_type,
        delivery_item_no,
-       pcdi_id)
+       pcdi_id,
+       underlying_product_id)
       select main_table.corporate_id,
              main_table.corporate_name,
              pc_process_id,
@@ -9511,7 +9542,8 @@ sp_eodeom_process_log(pc_corporate_id,
              main_table.instrument_id,
              main_table.contract_type,
              main_table.delivery_item_no,
-             main_table.pcdi_id
+             main_table.pcdi_id,
+             main_table.underlying_product_id
         from tcsm_temp_contract_status_main         main_table,
              tcs1_temp_cs_payable stock_table,
              tcs2_temp_cs_priced pfc_data
@@ -9623,8 +9655,8 @@ insert into css_contract_status_summary
           pcs.corporate_name,
           pcs.process_id,
           pcs.eod_trade_date,
-          pcs.product_id,
-          pcs.product_name,
+          case when pcs.contract_type='BASEMETAL' then pcs.product_id else pcs.underlying_product_id end product_id,
+          case when pcs.contract_type='BASEMETAL' then pcs.product_name else pcs.element_desc end product_name,
           pcs.contract_type,
           sum(decode(pcs.purchase_sales,
                      'P',
@@ -9699,7 +9731,10 @@ insert into css_contract_status_summary
              pcs.contract_type,
              pdm.base_quantity_unit,
              qum.qty_unit,
-             pcs.purchase_sales
+             pcs.purchase_sales,
+             pcs.underlying_product_id,
+             pcs.element_desc
+             
    union all
    select 'P',-- Assuming Free metal as only Purchase, If not we have to get the contract type from somewhere
           csfm.corporate_id,
