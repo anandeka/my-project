@@ -453,18 +453,14 @@ for cur_pcs in (
 select sum(nvl(case
                  when css.purchase_sales = 'P' then
                   css.priced_arrived_qty
-               
                  else
-                 
                   0
                end,
                0)) priced_arrived_qty,
        sum(nvl(case
                  when css.purchase_sales = 'S' then
                   css.priced_arrived_qty
-               
                  else
-                 
                   0
                end,
                0)) priced_delivered_qty,
@@ -609,7 +605,8 @@ select sum(nvl(case
              contract_type
         from pfrd_price_fix_report_detail pfrd
        where pfrd.process_id = pc_process_id
-         and pfrd.consumed_qty > 0;
+         and pfrd.consumed_qty > 0
+         and pfrd.section_name = 'New PFC for this Month';
        commit;
     -- 
     -- List of Balance Price Fixations
@@ -689,7 +686,7 @@ select sum(nvl(case
              price_in_base_cur,
              0 consumed_qty, -- Not applicable for this section
              (case
-               when purchase_sales = 'P' then
+               when purchase_sales = 'Purchase' then
                 1
                else
                 (-1)
@@ -701,7 +698,9 @@ select sum(nvl(case
              fixed_unit_base_qty_factor
         from pfrd_price_fix_report_detail pfrd
        where pfrd.process_id = pc_process_id
-         and (pfrd.fixed_qty - pfrd.consumed_qty) <> 0;
+         and (pfrd.fixed_qty - pfrd.consumed_qty) <> 0
+         and pfrd.section_name = 'New PFC for this Month'
+         ;
     --
     -- List of Balance Price Fixations from previous Month
     --
@@ -833,7 +832,8 @@ select sum(nvl(case
                       end,
                       0)) = 0 then 0 
              else
-                      sum(pfrd.fixation_value) / 
+                      sum(case
+                        when pfrd.purchase_sales = 'Purchase' then pfrd.fixation_value else 0 end) / 
                        sum(nvl(case
                         when pfrd.purchase_sales = 'Purchase' then
                          pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor
@@ -849,7 +849,8 @@ select sum(nvl(case
                       end,
                       0)) = 0 then 0 
              else
-                      sum(pfrd.fixation_value) / 
+                      sum( case
+                        when pfrd.purchase_sales = 'Sales' then pfrd.fixation_value * -1 else 0 end ) / 
                        sum(nvl(case
                         when pfrd.purchase_sales = 'Sales' then
                          pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor
@@ -921,6 +922,11 @@ insert into diwap_di_weighted_avg_price
    weighted_avg_price,
    wap_price_unit_id,
    wap_price_unit_name,
+   wap_price_cur_id,
+   wap_price_cur_code,
+   wap_price_weight_unit_id,
+   wap_price_weight_unit,
+   wap_price_weight,
    element_id,
    element_name)
   select process_id,
@@ -928,22 +934,37 @@ insert into diwap_di_weighted_avg_price
          purchase_sales,
          corporate_id,
          corporate_name,
-         product_id,
+         pfrd.product_id,
          product_name,
          instrument_id,
          instrument_name,
          pcdi_id,
          contract_type,
-         sum(abs(pfrd.fixation_value)) / -- absolute for sales since we are storing as negative
-         sum(pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor),
+         sum(case
+               when pfrd.purchase_sales = 'Purchase' then
+                pfrd.fixation_value
+               else
+                -1 * pfrd.fixation_value
+             end) / sum(pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor),
          pfrd.price_unit_id,
          pfrd.price_unit_name,
+         cm.cur_id,
+         cm.cur_code,
+         qum.qty_unit_id,
+         qum.qty_unit,
+         ppu.weight,
          pfrd.element_id,
          aml.attribute_name element_name
     from pfrd_price_fix_report_detail pfrd,
-         aml_attribute_master_list aml
+         aml_attribute_master_list    aml,
+         v_ppu_pum                    ppu,
+         cm_currency_master           cm,
+         qum_quantity_unit_master     qum
    where pfrd.process_id = pc_process_id
-   and pfrd.element_id = aml.attribute_id(+)
+     and pfrd.element_id = aml.attribute_id(+)
+     and pfrd.price_unit_id = ppu.price_unit_id
+     and ppu.cur_id = cm.cur_id
+     and ppu.weight_unit_id = qum.qty_unit_id
      and pfrd.section_name = 'New PFC for this Month'
      and pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor <> 0
    group by process_id,
@@ -951,7 +972,7 @@ insert into diwap_di_weighted_avg_price
             purchase_sales,
             corporate_id,
             corporate_name,
-            product_id,
+            pfrd.product_id,
             product_name,
             instrument_id,
             instrument_name,
@@ -959,6 +980,11 @@ insert into diwap_di_weighted_avg_price
             contract_type,
             pfrd.price_unit_id,
             pfrd.price_unit_name,
+            cm.cur_id,
+            cm.cur_code,
+            qum.qty_unit_id,
+            qum.qty_unit,
+            ppu.weight,
             pfrd.element_id,
             aml.attribute_name;
   commit;
@@ -1336,6 +1362,7 @@ begin
      contango_dueto_qty_price,
      contango_dueto_qty,
      actual_hedged_qty,
+     qty_to_be_hedged,
      hedge_effectiveness,
      currency_unit,
      qty_unit)
@@ -1374,8 +1401,8 @@ begin
            0, --    der_realized_pnl,
            0, --    der_unrealized_pnl,
            0, --    der_realized_ob,
-           2, --    qty_decimals,-- update this later
-           2, --    ccy_decimals,-- update this later
+           qum.decimals, --    qty_decimals,-- update this later
+           cm.decimals, --    ccy_decimals,-- update this later
            0, --    total_inv_qty,
            0, --    priced_inv_qty,
            0, --    unpriced_inv_qty,
@@ -1387,14 +1414,17 @@ begin
            0, --    contango_dueto_qty_price,
            0, --    contango_dueto_qty,
            0, --    actual_hedged_qty,
+           0, -- qty_to_be_hedged
            0, --    hedge_effectiveness,
-           null, -- currency_unit,
-           null -- qty_unit
+           cm.cur_code, -- currency_unit,
+           qum.qty_unit -- qty_unit
       from ak_corporate               akc,
            pdm_productmaster          pdm,
            pdd_product_derivative_def pdd,
            dim_der_instrument_master  dim,
-           emt_exchangemaster         emt
+           emt_exchangemaster         emt,
+           qum_quantity_unit_master qum,
+           cm_currency_master cm
      where akc.corporate_id = pc_corporate_id
        and pdm.product_id = pdd.product_id
        and pdd.exchange_id = emt.exchange_id
@@ -1402,7 +1432,10 @@ begin
        and dim.is_active = 'Y'
        and dim.is_deleted = 'N'
        and pdd.is_active = 'Y'
-       and pdm.product_type_id = 'Standard';
+       and pdm.product_type_id = 'Standard'
+       and pdm.base_quantity_unit = qum.qty_unit_id
+       and akc.base_cur_id = cm.cur_id
+       ;
   commit;
   --
   -- Month End Price for Each product Assuming One Product has one instrument
@@ -1508,56 +1541,56 @@ vc_error_msg := 'Data from Contract Status Report';
 --
 for cur_qty_recon in(
 select css.product_id,
-       sum(case
+       nvl(sum(case
              when css.contract_type = 'BASEMETAL' and css.purchase_sales = 'P' then
               css.priced_unarrived_qty
              else
               0
-           end) priced_not_arrived_bm,
-       sum(case
+           end),0) priced_not_arrived_bm,
+       nvl(sum(case
              when css.contract_type = 'CONCENTRATES' and css.purchase_sales = 'P' then
               css.priced_unarrived_qty
              else
               0
-           end) priced_not_arrived_rm,
-       sum(case
+           end),0) priced_not_arrived_rm,
+       nvl(sum(case
              when css.contract_type = 'BASEMETAL' and css.purchase_sales = 'P' then
               css.unpriced_arrived_qty
              else
               0
-           end) unpriced_arrived_bm,
-       sum(case
+           end),0) unpriced_arrived_bm,
+       nvl(sum(case
              when css.contract_type = 'CONCENTRATES' and css.purchase_sales = 'P' then
               css.unpriced_arrived_qty
              else
               0
-           end) unpriced_arrived_rm,
-       sum(case
+           end),0) unpriced_arrived_rm,
+       nvl(sum(case
              when css.contract_type = 'BASEMETAL' and css.purchase_sales = 'S' then
               css.unpriced_delivered_qty
              else
               0
-           end) sales_unpriced_delivered_bm,
-       sum(case
+           end),0) sales_unpriced_delivered_bm,
+       nvl(sum(case
              when css.contract_type = 'CONCENTRATES' and
                   css.purchase_sales = 'S' then
               css.unpriced_delivered_qty
              else
               0
-           end) sales_unpriced_delivered_rm,
-       sum(case
+           end),0) sales_unpriced_delivered_rm,
+       nvl(sum(case
              when css.contract_type = 'BASEMETAL' and css.purchase_sales = 'S' then
               css.priced_undelivered_qty
              else
               0
-           end) sales_priced_not_delivered_bm,
-       sum(case
+           end),0) sales_priced_not_delivered_bm,
+       nvl(sum(case
              when css.contract_type = 'CONCENTRATES' and
                   css.purchase_sales = 'S' then
               css.priced_undelivered_qty
              else
               0
-           end) sales_priced_not_delivered_rm
+           end),0) sales_priced_not_delivered_rm
   from css_contract_status_summary css
  where css.process_id = pc_process_id
  group by css.product_id) loop
@@ -1574,6 +1607,8 @@ update mbv_metal_balance_valuation mbv
    and mbv.product_id = cur_qty_recon.product_id;
  end loop;
 commit;
+
+vc_error_msg := 'Update Actual Hedged Qty';
 --
 -- Update Actual Hedged Qty
 --
@@ -1589,7 +1624,7 @@ where mbv.process_id = pc_process_id
 and mbv.product_id = cur_actual_hedged_qty.product_id;
 end loop;
 commit;
-
+vc_error_msg := 'Update actual hedged qty';
 --
 -- Update actual hedged qty
 -- 
@@ -1604,15 +1639,18 @@ update mbv_metal_balance_valuation mbv
                               sales_priced_not_delivered_rm
  where mbv.process_id = pc_process_id;
 commit;
+vc_error_msg := 'Update Hedge Effectivenes';
 --
 -- Update Hedge Effectivenes
 --
 update mbv_metal_balance_valuation mbv
-   set mbv.hedge_effectiveness = 1 - (mbv.qty_to_be_hedged -
+   set mbv.hedge_effectiveness = case when mbv.qty_to_be_hedged <> 0 then 1 - (mbv.qty_to_be_hedged -
                                  mbv.actual_hedged_qty) /
                                  mbv.qty_to_be_hedged
+                                 else 0 end 
  where mbv.process_id = pc_process_id;
  commit;   
+ vc_error_msg := 'Derivative Ref Price Diff';
 -- 
 --  Difference Explanation
 --
@@ -2049,7 +2087,7 @@ begin
                                                              ' Price,Prompt Date:' ||
                                                              to_char(vd_3rd_wed_of_qp,'dd-Mon-yyyy') ||
                                                              ' Trade Date :' ||
-                                                             to_char(vd_valid_quote_date,'dd-Mon-yyyy'),
+                                                             to_char(pd_trade_date,'dd-Mon-yyyy'),
                                                              '',
                                                              pc_process,
                                                              pc_user_id,
@@ -2190,11 +2228,11 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
            diwap.weighted_avg_price,
            diwap.wap_price_unit_id,
            diwap.wap_price_unit_name,
-           null wap_price_cur_id,
-           null wap_price_cur_code,
-           null wap_price_weight_unit_id,
-           null wap_price_weight_unit,
-           null wap_price_weight
+           diwap.wap_price_cur_id wap_price_cur_id,
+           diwap.wap_price_cur_code wap_price_cur_code,
+           diwap.wap_price_weight_unit_id wap_price_weight_unit_id,
+           diwap.wap_price_weight_unit wap_price_weight_unit,
+           diwap.wap_price_weight wap_price_weight
       from pcm_physical_contract_main pcm,
            pcdi_pc_delivery_item pcdi,
            ak_corporate akc,
@@ -2299,11 +2337,11 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
            diwap.weighted_avg_price,
            diwap.wap_price_unit_id,
            diwap.wap_price_unit_name,
-           null wap_price_cur_id,
-           null wap_price_cur_code,
-           null wap_price_weight_unit_id,
-           null wap_price_weight_unit,
-           null wap_price_weight
+           diwap.wap_price_cur_id wap_price_cur_id,
+           diwap.wap_price_cur_code wap_price_cur_code,
+           diwap.wap_price_weight_unit_id wap_price_weight_unit_id,
+           diwap.wap_price_weight_unit wap_price_weight_unit,
+           diwap.wap_price_weight wap_price_weight
       from pcm_physical_contract_main pcm,
            pcdi_pc_delivery_item pcdi,
            ak_corporate akc,
