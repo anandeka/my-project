@@ -1270,6 +1270,14 @@ create or replace package body pkg_phy_physical_process is
                             pc_process_id,
                             vn_logno,
                             'pkg_phy_custom_reports.sp_call_custom_reports finished');
+    if pc_process = 'EOM' then
+        pkg_phy_mbv_report.sp_run_mbv_report(pc_corporate_id,
+                                             pd_trade_date,
+                                             pc_process_id,
+                                             pc_process,
+                                             pc_user_id);
+	end if;
+    commit;
     
     end if; ---this end if starts from if vn_error_count = 0 then
     sp_eodeom_process_log(pc_corporate_id,
@@ -3973,6 +3981,24 @@ commit;
     delete from grh_gmr_refining_header where dbd_id = vc_dbd_id;
     delete from gph_gmr_penalty_header where dbd_id = vc_dbd_id;
     commit;
+	delete from mbv_allocation_report where process_id = pc_process_id;
+    delete from mbv_allocation_report_header
+     where process_id = pc_process_id;
+    delete from mbv_di_valuation_price where process_id = pc_process_id;
+    delete from mbv_phy_postion_diff_report
+     where process_id = pc_process_id;
+    delete from mbv_derivative_diff_report
+     where process_id = pc_process_id;
+    delete from mbv_metal_balance_valuation
+     where process_id = pc_process_id;
+    delete from pfrh_price_fix_report_header
+     where process_id = pc_process_id;
+    delete from pfrd_price_fix_report_detail
+     where process_id = pc_process_id;
+    delete from diwap_di_weighted_avg_price
+     where process_id = pc_process_id;
+    commit;
+
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,

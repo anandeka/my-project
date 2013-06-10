@@ -216,7 +216,7 @@ create or replace package pkg_phy_populate_data is
                                    pd_trade_date   date,
                                    pc_user_id      varchar2);
 
-end pkg_phy_populate_data; 
+end pkg_phy_populate_data;
 /
 create or replace package body PKG_PHY_POPULATE_DATA is
 
@@ -6589,7 +6589,16 @@ commit;
      (select pcmte.int_contract_ref_no
               from pcmte_pcm_tolling_ext pcmte
              where pcmte.int_contract_ref_no = pcm.internal_contract_ref_no);
-  
+  update pcm_physical_contract_main pcm
+       set pcm.is_pass_through ='Y'
+       
+       where exists
+       ( select pcmte.int_contract_ref_no
+              from pcmte_pcm_tolling_ext pcmte
+             where pcmte.int_contract_ref_no = pcm.internal_contract_ref_no
+             and pcmte.is_pass_through ='Y')
+             and pcm.dbd_id = gvc_dbd_id;
+       
   exception
     when others then
       vobj_error_log.extend;
@@ -15700,12 +15709,12 @@ insert into gmr_goods_movement_record
     from process_gmr
     where corporate_id = pc_corporate_id;    
  commit;
- delete from process_grd grd where grd.status <> 'Active' and grd.corporate_id = pc_corporate_id;
+/* delete from process_grd grd where grd.status <> 'Active' and grd.corporate_id = pc_corporate_id;
  commit;
  delete from process_spq spq where spq.is_active = 'N' and spq.corporate_id = pc_corporate_id;
  commit;
  delete from process_gmr gmr where gmr.is_deleted = 'Y' and gmr.corporate_id = pc_corporate_id;
- commit;
+ commit;*/
  
  gvn_log_counter :=  gvn_log_counter + 1;
  sp_precheck_process_log(pc_corporate_id,

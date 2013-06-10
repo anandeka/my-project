@@ -1197,6 +1197,17 @@ create or replace package body pkg_phy_physical_process is
                                                       pc_dbd_id);
       end if;
       commit;
+    
+      --- Added suresh  for MBV Report
+      if pc_process = 'EOM' then
+        pkg_phy_mbv_report.sp_run_mbv_report(pc_corporate_id,
+                                             pd_trade_date,
+                                             pc_process_id,
+                                             pc_process,
+                                             pc_user_id);
+      end if;
+      commit;
+      --- End Suresh 
     end if; ---this end if starts from if vn_error_count = 0 then
     commit;
     sp_eodeom_process_log(pc_corporate_id,
@@ -1295,7 +1306,7 @@ create or replace package body pkg_phy_physical_process is
              where trim(agh_prev.realized_status) = 'Realized'
                and agh_prev.process_id = gvc_previous_process_id
                and agh_prev.is_deleted = 'N');
-commit;               
+    commit;
     --
     -- 2. AGH was present in previous eod and became inventory out in this eod
     --
@@ -1310,7 +1321,7 @@ commit;
              where trim(agh_prev.realized_status) <> 'Realized'
                and agh_prev.process_id = gvc_previous_process_id
                and agh_prev.is_deleted = 'N');
-commit;               
+    commit;
     --
     -- For Realized PNL Change update below tables for PROCESS_ID 
     --               
@@ -1329,7 +1340,7 @@ commit;
              where dbd.corporate_id = pc_corporate_id
                and dbd.process = gvc_process
                and dbd.trade_date <= pd_trade_date);
-  commit;
+    commit;
     update dgrdul_delivered_grd_ul dgrdul
        set dgrdul.process_id = pc_process_id
      where dgrdul.process_id is null
@@ -1346,7 +1357,7 @@ commit;
              where dbd.corporate_id = pc_corporate_id
                and dbd.process = gvc_process
                and dbd.trade_date <= pd_trade_date);
-commit;  
+    commit;
     update cdl_cost_delta_log cdl
        set cdl.process_id = pc_process_id
      where cdl.process_id is null
@@ -1362,7 +1373,7 @@ commit;
              where dbd.corporate_id = pc_corporate_id
                and dbd.process = gvc_process
                and dbd.trade_date <= pd_trade_date);
-commit;               
+    commit;
     -- Washout Tables
     update sswh_spe_settle_washout_header sswh
        set process_id = pc_process_id
@@ -1381,7 +1392,7 @@ commit;
            (select sswh.sswh_id
               from sswh_spe_settle_washout_header sswh
              where sswh.process_id = pc_process_id);
-commit;             
+    commit;
     --- added suresh   
     update pca_physical_contract_action pca
        set process_id = pc_process_id
@@ -1398,7 +1409,7 @@ commit;
              where dbd.corporate_id = pc_corporate_id
                and dbd.process = gvc_process
                and dbd.trade_date <= pd_trade_date);
-commit;  
+    commit;
     update cod_call_off_details cod
        set process_id = pc_process_id
      where process_id is null
@@ -1414,7 +1425,7 @@ commit;
              where dbd.corporate_id = pc_corporate_id
                and dbd.process = gvc_process
                and dbd.trade_date <= pd_trade_date);
-commit;               
+    commit;
   exception
     when others then
       vobj_error_log.extend;
@@ -3876,6 +3887,25 @@ commit;
     delete from grh_gmr_refining_header where dbd_id = vc_dbd_id;
     delete from gph_gmr_penalty_header where dbd_id = vc_dbd_id;
     commit;
+    --- added suresh for MBV Report
+    delete from mbv_allocation_report where process_id = pc_process_id;
+    delete from mbv_allocation_report_header
+     where process_id = pc_process_id;
+    delete from mbv_di_valuation_price where process_id = pc_process_id;
+    delete from mbv_phy_postion_diff_report
+     where process_id = pc_process_id;
+    delete from mbv_derivative_diff_report
+     where process_id = pc_process_id;
+    delete from mbv_metal_balance_valuation
+     where process_id = pc_process_id;
+    delete from pfrh_price_fix_report_header
+     where process_id = pc_process_id;
+    delete from pfrd_price_fix_report_detail
+     where process_id = pc_process_id;
+    delete from diwap_di_weighted_avg_price
+     where process_id = pc_process_id;
+    commit;
+    --end Suresh 
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
