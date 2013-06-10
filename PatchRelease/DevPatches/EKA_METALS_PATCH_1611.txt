@@ -36,7 +36,7 @@ Schema type (Transaction / EOD)* : Transaction
 ==================================================================
 
 Revision: 129829
-Author: jana
+Author: janna
 Date: 7:21:23 PM, Monday, June 10, 2013
 Message:
 PFAM
@@ -45,7 +45,7 @@ Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_45
 
 
 Revision: 129831
-Author: jana
+Author: janna
 Date: 7:23:49 PM, Monday, June 10, 2013
 Message:
 MBV
@@ -55,7 +55,7 @@ Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_59
 
 
 Revision: 129832
-Author: jana
+Author: janna
 Date: 7:24:48 PM, Monday, June 10, 2013
 Message:
 
@@ -64,7 +64,7 @@ Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScrip
 
 
 Revision: 129833
-Author: jana
+Author: janna
 Date: 7:26:07 PM, Monday, June 10, 2013
 Message:
 
@@ -79,5 +79,16 @@ Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/Physic
 Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PhysicalPositionReport.rpt
 Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PhysicalPositionReport_Excel.rpt
 Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PriceFixationReport.rpt
+
+
+
+Revision: 129687
+Author: janna
+Date: 10:05:10 AM, Monday, June 10, 2013
+Message:
+Summary by warehouse section shows two records per element when the selected ware house has GMRs from contract counter parties with internal and external (Production Issue Fixed and Released with Patch  \\192.168.1.93\MetalsQAReleases\PostWave2\Metals 8.1.25.0ConsolidatedPatch20
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseAccrualReport.rpt
+
 
 
