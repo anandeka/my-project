@@ -31,3 +31,10 @@ Insert into AMC_APP_MENU_CONFIGURATION
    ('RPT-D373', 'Metal Balance Valuation Report', 101, 5, '/EkaReport/CommonFilter.do?method=populateFilter&docType=EOM&ReportID=373&ReportName=MetalBalanceValuationReport.rpt&ExportFormat=HTML', 'RPT-D23', 'APP-ACL-N1305', 'Reports', 'APP-PFL-N-215', 'N');
 
 commit;
+
+Insert into AMC_APP_MENU_CONFIGURATION
+   (MENU_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, LINK_CALLED, MENU_PARENT_ID, ACL_ID, TAB_ID, FEATURE_ID, IS_DELETED)
+ Values
+   ('RPT-D374', 'Price Fixation Report', 102, 5, '/EkaReport/CommonFilter.do?method=populateFilter&docType=EOM&ReportID=374&ReportName=PriceFixationReport.rpt&ExportFormat=HTML&isEodReport=Y', 'RPT-D23', 'APP-ACL-N1305', 'Reports', 'APP-PFL-N-215', 'N');
+
+COMMIT;
