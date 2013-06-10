@@ -111,6 +111,7 @@ end;
     vc_error_msg       varchar2(100);
     vd_prev_eom_date   date;
     vn_qty_to_consume  number;
+    vn_consumed_for_this_fixation number;
   
   begin
     --
@@ -488,34 +489,42 @@ select sum(nvl(case
     -- Update consumed qty for the above data from Purchase / Sales Contract Status which is
     -- already updated in PFRH column REALIZED_QTY_CURRENT_MONTH
     --
-    for cur_consumed_qty in(
- select pfrh.product_id,
-        pfrh.realized_qty_current_month consumed_qty
-   from pfrh_price_fix_report_header pfrh
-  where pfrh.process_id = pc_process_id) loop
-     vn_qty_to_consume := cur_consumed_qty.consumed_qty;
-         for cur_fixation in (
-         select pfrd.fixed_qty,
-                pfrd.internal_action_ref_no
-           from pfrd_price_fix_report_detail pfrd
-          where pfrd.process_id = pc_process_id
-            and pfrd.product_id = cur_consumed_qty.product_id
-          order by to_number(substr(pfrd.internal_action_ref_no, 5))) loop
-         If cur_fixation.fixed_qty <= vn_qty_to_consume then
-             Update pfrd_price_fix_report_detail pfrd
-             set pfrd.consumed_qty = abs(vn_qty_to_consume - cur_fixation.fixed_qty) 
-             -- If remianing qty is 10 and fixed is 20 and qty to consume is 10,
-             -- then 10-20 = -10, it should be 10 hence absolute
-             where pfrd.process_id = pc_process_id
-             and pfrd.product_id = cur_consumed_qty.product_id
-             and pfrd.internal_action_ref_no = cur_fixation.internal_action_ref_no;
-             vn_qty_to_consume := vn_qty_to_consume - cur_fixation.fixed_qty;
-         end if;
-         If vn_qty_to_consume <= 0 then -- Everything is consumed for this Product
-            exit;
-         end if;
-         end loop;
-     end loop;
+    for cur_consumed_qty in (select pfrh.product_id,
+                                   pfrh.realized_qty_current_month consumed_qty
+                               from pfrh_price_fix_report_header pfrh
+                              where pfrh.process_id = pc_process_id
+                              and pfrh.realized_qty_current_month > 0 )
+    loop
+      vn_qty_to_consume := cur_consumed_qty.consumed_qty ;
+    
+    for cur_fixation in (select pfrd.fixed_qty,
+                                to_number(pfrd.pfd_id) pfd_id
+                           from pfrd_price_fix_report_detail pfrd
+                          where pfrd.process_id = pc_process_id
+                            and pfrd.product_id =
+                                cur_consumed_qty.product_id
+                                and pfrd.section_name ='New PFC for this Month'
+                          order by to_number(pfrd.pfd_id))
+    loop
+    
+    If vn_qty_to_consume <  cur_fixation.fixed_qty then
+        vn_consumed_for_this_fixation := vn_qty_to_consume;
+    else
+        vn_consumed_for_this_fixation := cur_fixation.fixed_qty;
+    end if;
+    
+        update pfrd_price_fix_report_detail pfrd
+           set pfrd.consumed_qty = vn_consumed_for_this_fixation
+         where pfrd.process_id = pc_process_id
+           and pfrd.product_id = cur_consumed_qty.product_id
+           and pfrd.pfd_id = cur_fixation.pfd_id;
+        vn_qty_to_consume := vn_qty_to_consume - cur_fixation.fixed_qty;
+      if vn_qty_to_consume <= 0 then
+        -- Everything is consumed for this Product
+        exit;
+      end if;
+    end loop;
+  end loop;
     commit;
     --
     -- List of Consumed Fixations for Realization
