@@ -428,25 +428,11 @@ Insert into RFC_REPORT_FILTER_CONFIG
            (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
          Values
            (rc.corp_id, '371', 'RFC371PHY04', 'RFP1051', 'multiple');    
-
-    COMMIT;
-  end loop;
-end;
-/
-
+-------------------------------------------------------------------------------------------------------------------------
 /*
 Metal Balance Report related Corporate Script...        ::Raj, 3rd Jun 2013
 */
-set define off;
-
-Begin
-    for rc in 
-        (select 
-        akc.corporate_id corp_id, akc.corporate_name 
-        from ak_corporate akc where akc.is_internal_corporate = 'N')
-    loop
-
-        --Year Filter
+ --Year Filter
         Insert into RFC_REPORT_FILTER_CONFIG
            (CORPORATE_ID, REPORT_ID, LABEL_ID, LABEL_COLUMN_NUMBER, LABEL_ROW_NUMBER, LABEL, FIELD_ID, COLSPAN, IS_MANDATORY)
          Values
@@ -549,9 +535,14 @@ Begin
 --        Insert into RPC_RF_PARAMETER_CONFIG
 --           (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
 --         Values
---           (rc.corp_id, '373', 'RFC373PHY04', 'RFP1051', 'multiple');    
-           
-        COMMIT;
-    end loop;
+--           (rc.corp_id, '373', 'RFC373PHY04', 'RFP1051', 'multiple');   
+
+    COMMIT;
+  end loop;
 end;
 /
+
+
+
+
+       
