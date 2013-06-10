@@ -2401,8 +2401,8 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
          
     union all -- base metal contrtcts
     select pcm.internal_contract_ref_no,
-           pcdi.delivery_item_no,
            pcdi.pcdi_id,
+           pcdi.delivery_item_no,          
            pcm.contract_ref_no || '(' || pcdi.delivery_item_no || ')' contract_ref_no_del_item_no,
            pcm.issue_date,
            pcm.corporate_id,
