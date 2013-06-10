@@ -945,7 +945,7 @@ insert into diwap_di_weighted_avg_price
                 pfrd.fixation_value
                else
                 -1 * pfrd.fixation_value
-             end) / sum(pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor),
+             end) / sum(pfrd.fixed_qty ),
          pfrd.price_unit_id,
          pfrd.price_unit_name,
          cm.cur_id,
@@ -962,7 +962,7 @@ insert into diwap_di_weighted_avg_price
          qum_quantity_unit_master     qum
    where pfrd.process_id = pc_process_id
      and pfrd.element_id = aml.attribute_id(+)
-     and pfrd.price_unit_id = ppu.price_unit_id
+     and pfrd.price_unit_id = ppu.product_price_unit_id
      and ppu.cur_id = cm.cur_id
      and ppu.weight_unit_id = qum.qty_unit_id
      and pfrd.section_name = 'New PFC for this Month'
@@ -1075,7 +1075,6 @@ insert into diwap_di_weighted_avg_price
        and dpd.instrument_type in ('Future', 'Forwards')
        and dpd.pnl_type = 'Unrealized'
        and tip.corporate_id = pc_corporate_id;
-  --vn_mep_price_in_trade_cur   number(25, 5);
   vn_mep_value_in_base_cur   number(25, 5);
   vn_sett_value_in_base_cur   number(25, 5);
   vn_fx_rate_mep_to_base_ccy number(30, 10);
@@ -1097,9 +1096,6 @@ begin
   vc_error_msg := 'Start';
   for mbv_ddr_rows in mbv_ddr
   loop
-    --vn_value_diff_in_trade_ccy  := 0;
-    --vn_mep_value_in_base_cur   := 0;
-    --vn_fx_rate_mep_to_base_ccy := null;
     vn_value_diff_in_trade_ccy  := 0;
     vn_value_diff_in_base_ccy   := 0;
    
@@ -1401,8 +1397,8 @@ begin
            0, --    der_realized_pnl,
            0, --    der_unrealized_pnl,
            0, --    der_realized_ob,
-           qum.decimals, --    qty_decimals,-- update this later
-           cm.decimals, --    ccy_decimals,-- update this later
+           qum.decimals, --    qty_decimals,
+           cm.decimals, --    ccy_decimals,
            0, --    total_inv_qty,
            0, --    priced_inv_qty,
            0, --    unpriced_inv_qty,
@@ -1414,7 +1410,7 @@ begin
            0, --    contango_dueto_qty_price,
            0, --    contango_dueto_qty,
            0, --    actual_hedged_qty,
-           0, -- qty_to_be_hedged
+           0, --    qty_to_be_hedged
            0, --    hedge_effectiveness,
            cm.cur_code, -- currency_unit,
            qum.qty_unit -- qty_unit
@@ -1434,8 +1430,7 @@ begin
        and pdd.is_active = 'Y'
        and pdm.product_type_id = 'Standard'
        and pdm.base_quantity_unit = qum.qty_unit_id
-       and akc.base_cur_id = cm.cur_id
-       ;
+       and akc.base_cur_id = cm.cur_id;
   commit;
   --
   -- Month End Price for Each product Assuming One Product has one instrument
@@ -1624,19 +1619,45 @@ where mbv.process_id = pc_process_id
 and mbv.product_id = cur_actual_hedged_qty.product_id;
 end loop;
 commit;
-vc_error_msg := 'Update actual hedged qty';
---
--- Update actual hedged qty
--- 
 
+--
+-- Update Contract Status and Inventory Status which is at the end of excel
+--   
+-- Contract Status Updation is not required as report is coming directly form CSS tab;e
+--
+-- Update Inventory Status Section
+--
+      vc_error_msg := 'Update Inventory Status Section';
+for cur_inv_section in(
+select css.product_id,
+       sum(css.priced_arrived_qty + css.unpriced_arrived_qty +
+           css.priced_delivered_qty + css.unpriced_delivered_qty) total_inv_qty,
+       sum(css.priced_arrived_qty + css.priced_delivered_qty) priced_inv_qty,
+       sum(css.unpriced_arrived_qty + css.unpriced_delivered_qty) unpriced_inv_qty
+  from css_contract_status_summary css
+ where css.process_id = pc_process_id
+ group by css.product_id) loop
+ update mbv_metal_balance_valuation mbv
+ set mbv.total_inv_qty = cur_inv_section.total_inv_qty,
+ mbv.priced_inv_qty = cur_inv_section.priced_inv_qty,
+ mbv.unpriced_inv_qty = cur_inv_section.unpriced_inv_qty
+ where mbv.process_id = pc_process_id
+ and mbv.product_id = cur_inv_section.product_id;
+ end loop;
+commit;
+
+vc_error_msg := 'Update Quantity to be hedged';
+--
+-- Update Quantity to be hedged
+-- 
 update mbv_metal_balance_valuation mbv
-   set mbv.qty_to_be_hedged = total_inv_qty + priced_not_arrived_bm +
-                              priced_not_arrived_rm - unpriced_arrived_bm -
-                              unpriced_arrived_rm +
-                              sales_unpriced_delivered_bm +
-                              sales_unpriced_delivered_rm -
-                              sales_priced_not_delivered_bm -
-                              sales_priced_not_delivered_rm
+   set mbv.qty_to_be_hedged =  mbv.total_inv_qty +  mbv.priced_not_arrived_bm +
+                               mbv.priced_not_arrived_rm -  mbv.unpriced_arrived_bm -
+                               mbv.unpriced_arrived_rm +
+                               mbv.sales_unpriced_delivered_bm +
+                               mbv.sales_unpriced_delivered_rm -
+                               mbv.sales_priced_not_delivered_bm -
+                               mbv.sales_priced_not_delivered_rm
  where mbv.process_id = pc_process_id;
 commit;
 vc_error_msg := 'Update Hedge Effectivenes';
@@ -1723,31 +1744,7 @@ select mbv.product_id,
     and mbv.product_id = cur_contango_dueto_qty.product_id;
  end loop;
  commit;
---
--- Update Contract Status and Inventory Status which is at the end of excel
---   
--- Contract Status Updation is not required as report is coming directly form CSS tab;e
---
--- Update Inventory Status Section
---
-      vc_error_msg := 'Update Inventory Status Section';
-for cur_inv_section in(
-select css.product_id,
-       sum(css.priced_arrived_qty + css.unpriced_arrived_qty +
-           css.priced_delivered_qty + css.unpriced_delivered_qty) total_inv_qty,
-       sum(css.priced_arrived_qty + css.priced_delivered_qty) priced_inv_qty,
-       sum(css.unpriced_arrived_qty + css.unpriced_delivered_qty) unpriced_inv_qty
-  from css_contract_status_summary css
- where css.process_id = pc_process_id
- group by css.product_id) loop
- update mbv_metal_balance_valuation mbv
- set mbv.total_inv_qty = cur_inv_section.total_inv_qty,
- mbv.priced_inv_qty = cur_inv_section.priced_inv_qty,
- mbv.unpriced_inv_qty = cur_inv_section.unpriced_inv_qty
- where mbv.process_id = pc_process_id
- and mbv.product_id = cur_inv_section.product_id;
- end loop;
-commit;
+
      vc_error_msg := 'Qty Total P and L Till Date';
   --
   -- Qty Total P and L Till Date(Closing Balance) 

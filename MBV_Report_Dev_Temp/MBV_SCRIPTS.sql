@@ -326,4 +326,96 @@ create table MBV_ALLOCATION_REPORT_HEADER
   PRODUCT_NAME                   VARCHAR2(200),
   OPENING_BALANCE_QTY            NUMBER(25,5));
 
+-- Create table
+create table MBV_DERIVATIVE_DIFF_REPORT
+(
+  PROCESS_ID                 VARCHAR2(15),
+  PROCESS_DATE               DATE,
+  CORPORATE_ID               VARCHAR2(15),
+  CORPORATE_NAME             VARCHAR2(100),
+  PRODUCT_ID                 VARCHAR2(15),
+  PRODUCT_NAME               VARCHAR2(200),
+  EXCHANGE_ID                VARCHAR2(15),
+  EXCHANGE_NAME              VARCHAR2(200),
+  INSTRUMENT_ID              VARCHAR2(15),
+  INSTRUMENT_NAME            VARCHAR2(200),
+  INTERNAL_DERIVATIVE_REF_NO VARCHAR2(10),
+  DERIVATIVE_REF_NO          VARCHAR2(30),
+  EXTERNAL_REF_NO            VARCHAR2(50),
+  TRADE_DATE                 DATE,
+  TRADE_TYPE                 VARCHAR2(4),
+  TRADE_QTY                  NUMBER(25,5),
+  TRADE_QTY_UNIT             VARCHAR2(50),
+  TRADE_QTY_UNIT_ID          VARCHAR2(15),
+  TRADE_PRICE                NUMBER(25,5),
+  TRADE_PRICE_UNIT           VARCHAR2(50),
+  TRADE_PRICE_UNIT_ID        VARCHAR2(50),
+  PROMPT_DATE                VARCHAR2(15),
+  VALUATION_PRICE            NUMBER(25,5),
+  VALUATION_PRICE_UNIT       VARCHAR2(50),
+  VALUATION_PRICE_UNIT_ID    VARCHAR2(50),
+  TRADE_VALUE_IN_TRADE_CCY   NUMBER(25,5),
+  MARKET_VALUE_IN_TRADE_CCY  NUMBER(25,5),
+  PNL_IN_TRADE_CCY           NUMBER(25,5),
+  PNL_IN_BASE_CCY            NUMBER(25,5),
+  FX_TRADE_TO_BASE_CCY       NUMBER(25,10),
+  MONTH_END_PRICE            NUMBER(25,5),
+  MONTH_END_PRICE_UNIT       VARCHAR2(50),
+  MONTH_END_PRICE_UNIT_ID    VARCHAR2(50),
+  MEP_VALUE_IN_BASE_CCY      NUMBER(25,5),
+  SETT_VALUE_IN_BASE_CCY     NUMBER(25,5),
+  FX_MEP_CCY_TO_BASE_CCY     NUMBER(25,10),
+  VALUE_DIFF_IN_BASE_CCY     NUMBER(25,5),
+  FX_SETT_CCY_TO_BASE_CCY    NUMBER(25,10),
+  BASE_CUR_ID                VARCHAR2(15),
+  BASE_CUR_CODE              VARCHAR2(15),
+  TP_CUR_ID                  VARCHAR2(15),
+  TP_CUR_CODE                VARCHAR2(50),
+  VP_CUR_ID                  VARCHAR2(15),
+  VP_CUR_CODE                VARCHAR2(50),
+  MEP_CUR_ID                 VARCHAR2(15),
+  MEP_CUR_CODE               VARCHAR2(50)
+);
+-- Add comments to the columns 
+comment on column MBV_DERIVATIVE_DIFF_REPORT.VALUE_DIFF_IN_BASE_CCY
+  is 'Calculated : difference between MEP_VALUE_IN_BASE_CCY,SETT_VALUE_IN_BASE_CCY';
+
+-- Add comments to the columns 
+comment on column MBV_DERIVATIVE_DIFF_REPORT.TRADE_VALUE_IN_TRADE_CCY
+  is 'From CDC';
+comment on column MBV_DERIVATIVE_DIFF_REPORT.MARKET_VALUE_IN_TRADE_CCY
+  is 'From CDC';
+comment on column MBV_DERIVATIVE_DIFF_REPORT.PNL_IN_TRADE_CCY
+  is 'From CDC';
+comment on column MBV_DERIVATIVE_DIFF_REPORT.PNL_IN_BASE_CCY
+  is 'From CDC';
+comment on column MBV_DERIVATIVE_DIFF_REPORT.FX_TRADE_TO_BASE_CCY
+  is 'From CDC';
+comment on column MBV_DERIVATIVE_DIFF_REPORT.MONTH_END_PRICE
+  is 'From Metals';
+comment on column MBV_DERIVATIVE_DIFF_REPORT.MONTH_END_PRICE_UNIT
+  is 'From Metals';
+comment on column MBV_DERIVATIVE_DIFF_REPORT.MONTH_END_PRICE_UNIT_ID
+  is 'From Metals';
+
+comment on column MBV_DERIVATIVE_DIFF_REPORT.MEP_VALUE_IN_BASE_CCY
+  is 'Month End Value in base currency'; 
+comment on column MBV_DERIVATIVE_DIFF_REPORT.FX_MEP_CCY_TO_BASE_CCY
+  is 'Corp Fx rate from MEP to base currency';
+comment on column MBV_DERIVATIVE_DIFF_REPORT.FX_SETT_CCY_TO_BASE_CCY
+  is 'Corp Fx rate from Settlement price to base currency';
+
+comment on column MBV_DERIVATIVE_DIFF_REPORT.TP_CUR_ID
+  is 'Trade Price Main Currency id';
+comment on column MBV_DERIVATIVE_DIFF_REPORT.TP_CUR_CODE
+  is 'Trade Price Main Currency code';
+comment on column MBV_DERIVATIVE_DIFF_REPORT.VP_CUR_ID
+  is 'Valuation Price Main Currency id';
+comment on column MBV_DERIVATIVE_DIFF_REPORT.VP_CUR_CODE
+  is 'Valuation Price Main Currency code';
+comment on column MBV_DERIVATIVE_DIFF_REPORT.MEP_CUR_ID
+  is 'Month end Price Main Currency id';
+comment on column MBV_DERIVATIVE_DIFF_REPORT.MEP_CUR_CODE
+  is 'Month end Price Main Currency code';
+
 
