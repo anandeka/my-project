@@ -532,10 +532,6 @@ Metal Balance Report related Corporate Script...        ::Raj, 3rd Jun 2013
            (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
          Values
            (rc.corp_id, '373', 'RFC373PHY04', 'RFP1050', '1');   
---        Insert into RPC_RF_PARAMETER_CONFIG
---           (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
---         Values
---           (rc.corp_id, '373', 'RFC373PHY04', 'RFP1051', 'multiple');   
 
     COMMIT;
   end loop;
