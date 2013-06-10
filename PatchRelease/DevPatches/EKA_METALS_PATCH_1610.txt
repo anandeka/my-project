@@ -1,0 +1,56 @@
+Patch No*          		:  EKA_METALS_PATCH_1610
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  10-Jun-2013 
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  79987, 79006
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Output Documents
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 129799
+Author: rajuga
+Date: 6:32:52 PM, Monday, June 10, 2013
+Message:
+Bug: 79006
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseDebitCreditNote.rpt
+
+==================================================================
+
+Revision: 129802
+Author: rajuga
+Date: 6:34:15 PM, Monday, June 10, 2013
+Message:
+Bug 79987 - Separate VAT Invoices shows amount in USD
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/VatDocument.rpt
+
+==================================================================
