@@ -1594,7 +1594,11 @@ update mbv_metal_balance_valuation mbv
        sales_unpriced_delivered_bm   = cur_qty_recon.sales_unpriced_delivered_bm,
        sales_unpriced_delivered_rm   = cur_qty_recon.sales_unpriced_delivered_rm,
        sales_priced_not_delivered_bm = cur_qty_recon.sales_priced_not_delivered_bm,
-       sales_priced_not_delivered_rm = cur_qty_recon.sales_priced_not_delivered_rm
+       sales_priced_not_delivered_rm = cur_qty_recon.sales_priced_not_delivered_rm,
+       priced_not_arrived_qty        = cur_qty_recon.priced_not_arrived_bm +
+                                       cur_qty_recon.priced_not_arrived_rm,
+       priced_not_delivered_qty      = cur_qty_recon.sales_priced_not_delivered_bm +
+                                       cur_qty_recon.sales_priced_not_delivered_rm
  where mbv.process_id = pc_process_id
    and mbv.product_id = cur_qty_recon.product_id;
  end loop;
@@ -1751,6 +1755,7 @@ select mbv.product_id,
   where  mbv.process_id = pc_process_id;
   commit;
   vc_error_msg := 'End of sp_calc_mbv_report';
+  
 exception
   when others then
     vobj_error_log.extend;
