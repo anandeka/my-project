@@ -1,0 +1,83 @@
+Patch No*          		:  EKA_METALS_PATCH_1611
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  10-Jun-2013 
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  MBV Reports
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 129829
+Author: jana
+Date: 7:21:23 PM, Monday, June 10, 2013
+Message:
+PFAM
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_455.sql
+
+
+Revision: 129831
+Author: jana
+Date: 7:23:49 PM, Monday, June 10, 2013
+Message:
+MBV
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_593.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_594_Boliden_Only.sql
+
+
+Revision: 129832
+Author: jana
+Date: 7:24:48 PM, Monday, June 10, 2013
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_120.sql
+
+
+Revision: 129833
+Author: jana
+Date: 7:26:07 PM, Monday, June 10, 2013
+Message:
+
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AllocationReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AllocationReportExcel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DerivativeDiffReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DerivativeDiffReportExcel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MetalBalanceValuationReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PhysicalDiffReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PhysicalDiffReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PhysicalPositionReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PhysicalPositionReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PriceFixationReport.rpt
+
+
