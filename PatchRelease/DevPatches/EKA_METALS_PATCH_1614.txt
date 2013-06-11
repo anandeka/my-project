@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_1614
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  11-Jun-2013 
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  79077
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Output Docs
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 129960
+Author: rajuga
+Date: 6:10:54 PM, Tuesday, June 11, 2013
+Message:
+Bug 79077 - Chnages in Self Assay and WnS document
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AssayDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/WeighingandSampling.rpt
+
+==================================================================
