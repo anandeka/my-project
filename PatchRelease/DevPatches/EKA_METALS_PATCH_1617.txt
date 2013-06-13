@@ -34,13 +34,20 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
+Revision: 130320
+Author: sriveenam
+Date: Thursday, June 13, 2013 4:14:58 PM
+Message:
+remove seq_name col from axm script
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_596.sql
+
 Revision: 130306
 Author: sriveenam
 Date: Thursday, June 13, 2013 3:53:30 PM
 Message:
 contract closure 
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_596.sql
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_121.sql
 
 
