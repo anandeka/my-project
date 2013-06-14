@@ -9631,8 +9631,7 @@ insert into csfm_cont_status_free_metal
    -- Populate CSS (Summary Information for MBV)
    --
 insert into css_contract_status_summary
-  (purchase_sales,
-   process_id,
+  (process_id,
    eod_trade_date,
    corporate_id,
    corporate_name,
@@ -9650,7 +9649,6 @@ insert into css_contract_status_summary
    qty_unit_id,
    qty_unit) with contract_status_summary as
   (select 
-          pcs.purchase_sales,   
           pcs.corporate_id,
           pcs.corporate_name,
           pcs.process_id,
@@ -9720,7 +9718,7 @@ insert into css_contract_status_summary
           pdm_productmaster            pdm,
           qum_quantity_unit_master     qum
     where pcs.process_id = pc_process_id
-      and pcs.product_id = pdm.product_id
+      and case when pcs.contract_type='BASEMETAL' then pcs.product_id else pcs.underlying_product_id end  = pdm.product_id
       and pdm.base_quantity_unit = qum.qty_unit_id
     group by pcs.corporate_id,
              pcs.corporate_name,
@@ -9736,8 +9734,7 @@ insert into css_contract_status_summary
              pcs.element_desc
              
    union all
-   select 'P',-- Assuming Free metal as only Purchase, If not we have to get the contract type from somewhere
-          csfm.corporate_id,
+   select csfm.corporate_id,
           csfm.corporate_name,
           csfm.process_id,
           csfm.eod_trade_date,
@@ -9777,7 +9774,6 @@ insert into css_contract_status_summary
              pdm.base_quantity_unit,
              qum.qty_unit)
   select 
-         css.purchase_sales,
          css.process_id,
          css.eod_trade_date,
          css.corporate_id,
@@ -9796,8 +9792,7 @@ insert into css_contract_status_summary
          css.qty_unit_id,
          css.qty_unit
     from contract_status_summary css
-   group by css.purchase_sales,
-            css.process_id,
+   group by css.process_id,
             css.eod_trade_date,
             css.corporate_id,
             css.corporate_name,
