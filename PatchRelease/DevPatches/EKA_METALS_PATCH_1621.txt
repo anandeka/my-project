@@ -35,3 +35,56 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
 
+Revision: 130471
+Author: janna
+Date: 1:40:32 PM, Friday, June 14, 2013
+Message:
+-- For MBV Price Fixation Report we need these AXS to display PF Ref Num
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_457.sql
+
+
+
+Revision: 130472
+Author: janna
+Date: 1:42:10 PM, Friday, June 14, 2013
+Message:
+MBV master Scripts changed
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_597.sql
+
+
+Revision: 130473
+Author: janna
+Date: 1:43:52 PM, Friday, June 14, 2013
+Message:
+MBV Corporate scripts
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_122.sql
+
+
+Revision: 130475
+Author: janna
+Date: 1:44:58 PM, Friday, June 14, 2013
+Message:
+MBV Menu movement
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_598_Boliden_Only.sql
+
+
+
+RPT files
+
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AllocationReport.rpt (Revision: 130478)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AllocationReportExcel.rpt (Revision: 130470)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DerivativeDiffReport.rpt (Revision: 130470)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/DerivativeDiffReportExcel.rpt(Revision: 130470)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MetalBalanceValuationReport.rpt(Revision: 130478)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PhysicalDiffReport.rpt(Revision: 130478)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PhysicalDiffReport_Excel.rpt(Revision: 130470)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PhysicalPositionReport.rpt(Revision: 130470)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PhysicalPositionReport_Excel.rpt(Revision: 130470)
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PriceFixationReport.rpt(Revision: 130470)
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PriceFixationReport_Excel.rpt(Revision: 130470)
+

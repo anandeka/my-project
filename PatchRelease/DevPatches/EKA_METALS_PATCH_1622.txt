@@ -35,3 +35,30 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* : EOD
 ==================================================================
 
+Revision: 130541
+Author: janna
+Date: 4:48:39 PM, Friday, June 14, 2013
+Message:
+GERC
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/142_DDL_EODDB_ALTER_SCRIPT.sql
+
+
+Revision: 130483
+Author: janna
+Date: 2:50:01 PM, Friday, June 14, 2013
+Message:
+MBV Related Changes Initial Version
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_mbv_report.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process_boliden.sql
+
+
+Revision: 130546
+Author: suresh.gottipati
+Date: 4:56:18 PM, Friday, June 14, 2013
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
