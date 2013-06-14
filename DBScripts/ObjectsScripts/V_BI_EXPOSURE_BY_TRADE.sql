@@ -89,6 +89,7 @@ select pcm.corporate_id,
    and pcpd.input_output = 'Input'
    and pcpd.product_id = pdm.product_id
    and pcm.is_active = 'Y'
+   and pcm.contract_status <> 'Cancelled'----------Added 
    and pcdi.is_active = 'Y'
    and poch.is_active = 'Y'
    and pocd.is_active = 'Y'
@@ -152,6 +153,7 @@ select pcm.corporate_id,
    and pcpd.input_output = 'Input'
    and pcpd.product_id = pdm.product_id
    and pcm.is_active = 'Y'
+   and pcm.contract_status <> 'Cancelled'----------Added 
    and pcdi.is_active = 'Y'
    and poch.is_active = 'Y'
    and pocd.is_active = 'Y'
@@ -212,6 +214,7 @@ select pcm.corporate_id,
    and pcpd.input_output = 'Input'
    and pcpd.product_id = pdm.product_id
    and pcm.is_active = 'Y'
+   and pcm.contract_status <> 'Cancelled'----------Added 
    and pcdi.is_active = 'Y'
    and poch.is_active = 'Y'
    and pocd.is_active = 'Y'
@@ -275,6 +278,7 @@ select pcm.corporate_id,
    and pcpd.input_output = 'Input'
    and pcpd.product_id = pdm.product_id
    and pcm.is_active = 'Y'
+   and pcm.contract_status <> 'Cancelled'----------Added 
    and pcdi.is_active = 'Y'
    and poch.is_active = 'Y'
    and pocd.is_active = 'Y'
@@ -338,6 +342,7 @@ select pcm.corporate_id,
    and pcpd.input_output = 'Input'
    and pcpd.product_id = pdm.product_id
    and pcm.is_active = 'Y'
+   and pcm.contract_status <> 'Cancelled'----------Added 
    and pcdi.is_active = 'Y'
    and poch.is_active = 'Y'
    and pocd.is_active = 'Y'
@@ -355,6 +360,7 @@ select pcm.corporate_id,
    and pocd.price_type not in ('Fixed')
    and pocd.qp_period_type = 'Event'
    and pofh.internal_gmr_ref_no is not null
+   and pofh.is_active = 'Y'--------------added for Bug 80208 
    and diqs.item_qty_unit_id = ucm.from_qty_unit_id
    and pdm.base_quantity_unit = ucm.to_qty_unit_id
    and ucm.is_active = 'Y'
@@ -404,6 +410,7 @@ select pcm.corporate_id,
    and qat.instrument_id = dim.instrument_id
    and qat.product_id = pdm.product_id
    and pcm.is_active = 'Y'
+   and pcm.contract_status <> 'Cancelled'----------Added 
    and pcdi.is_active = 'Y'
    and dipq.is_active = 'Y'
    and poch.is_active = 'Y'
@@ -458,6 +465,7 @@ select pcm.corporate_id,
    and ppfd.instrument_id = dim.instrument_id
    and qat.product_id = pdm.product_id
    and pcm.is_active = 'Y'
+   and pcm.contract_status <> 'Cancelled'----------Added 
    and pcdi.is_active = 'Y'
    and poch.is_active = 'Y'
    and pocd.is_active = 'Y'
@@ -474,6 +482,7 @@ select pcm.corporate_id,
    and pocd.qp_period_type not in ('Event')
    and pofh.pofh_id = pfd.pofh_id
    and pfd.is_active = 'Y'
+   and pofh.is_active = 'Y'--------------added for Bug 80208 
  group by pcm.corporate_id,
           pcm.contract_ref_no,
           pcm.internal_contract_ref_no,
@@ -534,6 +543,7 @@ select pcm.corporate_id,
    and ppfd.instrument_id = dim.instrument_id
    and qat.product_id = pdm.product_id
    and pcm.is_active = 'Y'
+   and pcm.contract_status <> 'Cancelled'----------Added 
    and pcdi.is_active = 'Y'
    and poch.is_active = 'Y'
    and pocd.is_active = 'Y'
@@ -548,6 +558,7 @@ select pcm.corporate_id,
    and ppfd.instrument_id = dim.instrument_id
    and pocd.price_type not in ('Fixed')
    and pocd.qp_period_type not in ('Event')
+   and pofh.is_active = 'Y'--------------added for Bug 80208 
    and pofh.qty_to_be_fixed - nvl(pofh.priced_qty, 0) > 0
 union all
 -- 10th variable contract event based with GMR created (price_fixed_qty)
@@ -597,6 +608,7 @@ select pcm.corporate_id,
    and ppfd.instrument_id = dim.instrument_id
    and qat.product_id = pdm.product_id
    and pcm.is_active = 'Y'
+   and pcm.contract_status <> 'Cancelled'----------Added 
    and pcdi.is_active = 'Y'
    and poch.is_active = 'Y'
    and pocd.is_active = 'Y'
@@ -610,6 +622,7 @@ select pcm.corporate_id,
    and ppfd.instrument_id = dim.instrument_id
    and pocd.price_type not in ('Fixed')
    and pocd.qp_period_type = 'Event'
+   and pofh.is_active = 'Y'--------------added for Bug 80208 
    and pofh.internal_gmr_ref_no is not null
 --11th variable contract event based with GMR created (un_fixed_qty)
 union all
@@ -658,6 +671,7 @@ select pcm.corporate_id,
    and ppfd.instrument_id = dim.instrument_id
    and qat.product_id = pdm.product_id
    and pcm.is_active = 'Y'
+   and pcm.contract_status <> 'Cancelled'----------Added 
    and pcdi.is_active = 'Y'
    and poch.is_active = 'Y'
    and pocd.is_active = 'Y'
@@ -737,6 +751,7 @@ select pcm.corporate_id,
    and ppfd.instrument_id = dim.instrument_id
    and qat.product_id = pdm.product_id
    and pcm.is_active = 'Y'
+   and pcm.contract_status <> 'Cancelled'----------Added 
    and pcdi.is_active = 'Y'
    and poch.is_active = 'Y'
    and pocd.is_active = 'Y'

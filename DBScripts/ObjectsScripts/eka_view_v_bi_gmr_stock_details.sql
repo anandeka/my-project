@@ -1,4 +1,31 @@
 CREATE OR REPLACE VIEW V_BI_GMR_STOCK_DETAILS AS
+with assay_dry_qty_ratio_info as
+(
+    select 
+        asm.ash_id, 
+        (sum(asm.net_weight* asm.dry_wet_qty_ratio)/sum(asm.net_weight))/100 dry_wet_ratio
+    from 
+        asm_assay_sublot_mapping asm
+    where asm.ash_id  in (
+                                        select ash.ash_id 
+                                        from 
+                                               grd_goods_record_detail     grd,
+                                               ash_assay_header            ash,
+                                               sam_stock_assay_mapping     sam
+                                         where 
+                                                 grd.internal_grd_ref_no = ash.internal_grd_ref_no
+                                           and ash.ash_id = sam.ash_id
+                                           and sam.is_latest_pricing_assay = 'Y'
+                                           and grd.internal_grd_ref_no = sam.internal_grd_ref_no
+                                           and grd.status = 'Active'
+                                           and grd.is_deleted = 'N'
+                                           and ash.is_active = 'Y'
+                                           and sam.is_active = 'Y'
+                                           and nvl(grd.tolling_stock_type, 'NA') in('None Tolling', 'MFT In Process Stock','Free Metal IP Stock',
+                                                                                                    'Delta MFT IP Stock','Delta FM IP Stock', 'RM In Process Stock', 'NA')
+    )          
+    group by asm.ash_id
+)  --To get Wet Qty to Dry Qty Ratio...        ::14th Jun, 2013        ..Raj
 select gmr.corporate_id,
        (case
          when nvl(grd.inventory_status, 'NA') in ('NA') then
@@ -301,25 +328,28 @@ SELECT gmr.corporate_id,
        grd.is_afloat,
        grd.inventory_status,
        --grd.total_qty,
-       pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
-                                               sam.ash_id,
-                                               grd.total_qty,
-                                               qum.qty_unit_id) total_qty,
+--       pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
+--                                               sam.ash_id,
+--                                               grd.total_qty,
+--                                               qum.qty_unit_id) total_qty,
+       grd.total_qty*adq.dry_wet_ratio total_qty ,
        --grd.current_qty,
-       (case
-         when grd.current_qty <> 0 then
-          pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
-                                                  sam.ash_id,
-                                                  grd.current_qty,
-                                                  qum.qty_unit_id)
-         else
-          0
-       end) current_qty,
+--       (case
+--         when grd.current_qty <> 0 then
+--          pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
+--                                                  sam.ash_id,
+--                                                  grd.current_qty,
+--                                                  qum.qty_unit_id)
+--         else
+--          0
+--       end) current_qty,
+       grd.current_qty*adq.dry_wet_ratio current_qty,
        --grd.qty,
-       pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
-                                               sam.ash_id,
-                                               grd.qty,
-                                               qum.qty_unit_id) qty,
+--       pkg_report_general.fn_get_assay_dry_qty(grd.product_id,
+--                                               sam.ash_id,
+--                                               grd.qty,
+--                                               qum.qty_unit_id) qty,
+       grd.qty*adq.dry_wet_ratio qty,
        qum.qty_unit,
        grd.qty_unit_id,
        pdm.base_quantity_unit base_qty_unit_id,
@@ -345,6 +375,7 @@ SELECT gmr.corporate_id,
   FROM gmr_goods_movement_record   gmr,
        grd_goods_record_detail     grd,
        ash_assay_header            ash,
+       assay_dry_qty_ratio_info adq,
        sam_stock_assay_mapping     sam,
        pdm_productmaster           pdm,
        qat_quality_attributes      qat,
@@ -357,6 +388,7 @@ SELECT gmr.corporate_id,
  WHERE gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
    and grd.internal_grd_ref_no = ash.internal_grd_ref_no
    and ash.ash_id = sam.ash_id
+   and ash.ash_id = adq.ash_id
    and sam.is_latest_pricing_assay = 'Y'
    and grd.internal_grd_ref_no = sam.internal_grd_ref_no
    and grd.product_id = pdm.product_id
