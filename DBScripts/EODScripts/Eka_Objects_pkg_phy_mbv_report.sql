@@ -315,6 +315,7 @@ create or replace package body pkg_phy_mbv_report is
          and pcm.contract_type = 'CONCENTRATES'
          and pfd.hedge_correction_date > vd_prev_eom_date
          and pfd.hedge_correction_date <= pd_trade_date
+         and pcm.is_pass_through ='N'
       union all
       select pc_process_id,
              pd_trade_date,
@@ -1750,7 +1751,7 @@ create or replace package body pkg_phy_mbv_report is
     --
     -- Update Quantity to be hedged
     -- 
-/*    update mbv_metal_balance_valuation mbv
+    update mbv_metal_balance_valuation mbv
        set mbv.qty_to_be_hedged = nvl((mbv.total_inv_qty +
                                   mbv.priced_not_arrived_bm +
                                   mbv.priced_not_arrived_rm -
@@ -1760,20 +1761,7 @@ create or replace package body pkg_phy_mbv_report is
                                   mbv.sales_unpriced_delivered_rm -
                                   mbv.sales_priced_not_delivered_bm -
                                   mbv.sales_priced_not_delivered_rm),0)
-     where mbv.process_id = pc_process_id;*/
--- Changed after discussion with Shiv
-for cur_qty_to_be_hedged in (   
- select mbvad.product_id,
-        sum(mbvad.purchase_qty - mbvad.sales_qty) qty_to_be_hedged
-   from mbv_allocation_report mbvad
-  where mbvad.process_id = pc_process_id
-    and mbvad.section_name = 'Physicals'
-  group by mbvad.product_id) loop
-  update mbv_metal_balance_valuation mbv
-     set mbv.qty_to_be_hedged = cur_qty_to_be_hedged.qty_to_be_hedged
-   where mbv.process_id = pc_process_id
-     and mbv.product_id = cur_qty_to_be_hedged.product_id;
-  end loop;
+     where mbv.process_id = pc_process_id;
 commit;
     vc_error_msg := 'Update Hedge Effectivenes';
     --
@@ -2436,7 +2424,7 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
        and pdm.is_active = 'Y'
        and vped.pcdi_id = pcdi.pcdi_id
        and vped.element_id = aml.attribute_id
-       and pcm.is_tolling_contract = 'N'
+       and pcm.is_pass_through = 'N'
        and mvp.pcdi_id = pcdi.pcdi_id
        and aml.attribute_id = mvp.element_id
        and pcs.element_id = mvp.element_id
@@ -2448,119 +2436,6 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
        and mvp.price_unit_id = ppu_pum.product_price_unit_id
        and diwap.pcdi_id(+) = pcdi.pcdi_id
        and diwap.element_id = pcs.element_id
-    union all --  external tolling contracts
-    select pcm.internal_contract_ref_no,
-           pcdi.pcdi_id,
-           pcdi.delivery_item_no,
-           pcm.contract_ref_no || '(' || pcdi.delivery_item_no || ')' contract_ref_no_del_item_no,
-           pcm.issue_date,
-           pcm.corporate_id,
-           akc.corporate_name,
-           akc.base_cur_id,
-           akc.base_currency_name,
-           aml.underlying_product_id product_id,
-           pdm.product_desc,
-           pcm.purchase_sales,
-           pcm.cp_id,
-           pcm.cp_name,
-           pcm.contract_type,
-           vped.instrument_id,
-           vped.instrument_name,
-           aml.attribute_id element_id,
-           aml.attribute_name element_name,
-           (case
-             when pcdi.delivery_period_type = 'Date' then
-              last_day(pcdi.delivery_to_date)
-             when pcdi.delivery_period_type = 'Month' then
-              last_day(to_date(to_char('01-' || pcdi.delivery_to_month || ' ' ||
-                                       pcdi.delivery_to_year),
-                               'dd-Mon-yyyy'))
-           end) delivery_arrival_date,
-           pcs.priced_not_arrived_qty,
-           pcs.payable_qty_unit_id,
-           pcs.payable_qty_unit_name,
-           mvp.price val_price,
-           mvp.price_unit_id val_price_unit_id,
-           mvp.price_unit_cur_id val_price_unit_cur_id,
-           mvp.price_unit_cur_code val_price_unit_cur_code,
-           mvp.price_unit_weight_unit_id val_price_unit_weight_unit_id,
-           mvp.price_unit_weight_unit val_price_unit_weight_unit,
-           mvp.price_unit_weight val_price_weight,
-           ppu_pum.price_unit_name val_price_unit_name,
-           tip.price month_end_price,
-           tip.price_unit_id month_end_price_unit_id,
-           pum.cur_id month_end_price_unit_cur_id,
-           cm.cur_code month_end_price_unit_cur_code,
-           pum.weight_unit_id mon_price_unit_weight_unit_id,
-           qum.qty_unit mon_price_unit_weight_unit,
-           pum.weight month_end_price_weight,
-           pum.price_unit_name month_end_price_unit_name,
-           diwap.weighted_avg_price,
-           diwap.wap_price_unit_id,
-           diwap.wap_price_unit_name,
-           diwap.wap_price_cur_id wap_price_cur_id,
-           diwap.wap_price_cur_code wap_price_cur_code,
-           diwap.wap_price_weight_unit_id wap_price_weight_unit_id,
-           diwap.wap_price_weight_unit wap_price_weight_unit,
-           diwap.wap_price_weight wap_price_weight
-      from pcm_physical_contract_main pcm,
-           pcdi_pc_delivery_item pcdi,
-           ak_corporate akc,
-           dipq_delivery_item_payable_qty dipq,
-           aml_attribute_master_list aml,
-           pdm_productmaster pdm,
-           v_pcdi_exchange_detail vped,
-           pcmte_pcm_tolling_ext pcmte,
-           (select *
-              from mbv_di_valuation_price mvp
-             where mvp.process_id = pc_process_id
-               and mvp.element_id is not null) mvp,
-           (select *
-              from pcs_purchase_contract_status pcs
-             where pcs.process_id = pc_process_id
-               and pcs.contract_type = 'CONCENTRATES'
-               and pcs.element_id is not null) pcs,
-           (select *
-              from diwap_di_weighted_avg_price diwap
-             where diwap.process_id = pc_process_id
-               and diwap.contractt_type = 'CONCENTRATES'
-               and diwap.element_id is not null) diwap,
-           tip_temp_instrument_price tip,
-           pum_price_unit_master pum,
-           qum_quantity_unit_master qum,
-           cm_currency_master cm,
-           v_ppu_pum ppu_pum
-     where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-       and pcm.process_id = pc_process_id
-       and pcdi.process_id = pc_process_id
-       and pcm.corporate_id = akc.corporate_id
-       and pcdi.pcdi_id = dipq.pcdi_id
-       and dipq.process_id = pc_process_id
-       and dipq.is_active = 'Y'
-       and pcm.is_active = 'Y'
-       and pcdi.is_active = 'Y'
-       and pcm.contract_type = 'CONCENTRATES'
-       and dipq.element_id = aml.attribute_id
-       and aml.is_active = 'Y'
-       and aml.underlying_product_id = pdm.product_id
-       and pdm.is_active = 'Y'
-       and vped.pcdi_id = pcdi.pcdi_id
-       and vped.element_id = aml.attribute_id
-       and pcm.is_tolling_contract = 'Y'
-       and pcm.internal_contract_ref_no = pcmte.int_contract_ref_no
-       and pcmte.is_pass_through = 'N'
-       and pcdi.pcdi_id = mvp.pcdi_id
-       and aml.attribute_id = mvp.element_id
-       and pcs.element_id = mvp.element_id
-       and pcs.pcdi_id = mvp.pcdi_id
-       and vped.instrument_id = tip.instrument_id
-       and tip.price_unit_id = pum.price_unit_id
-       and pum.weight_unit_id = qum.qty_unit_id
-       and pum.cur_id = cm.cur_id
-       and mvp.price_unit_id = ppu_pum.product_price_unit_id
-       and diwap.pcdi_id = pcdi.pcdi_id
-       and diwap.element_id = pcs.element_id
-    
     union all -- base metal contrtcts
     select pcm.internal_contract_ref_no,
            pcdi.pcdi_id,
@@ -3082,7 +2957,8 @@ end;
        price_in_base_ccy,
        amount,
        base_cur_id,
-       base_cur_name)
+       base_cur_name,
+       pcdi_id)
       select pc_process_id,
              pd_trade_date,
              pc_corporate_id,
@@ -3132,7 +3008,8 @@ end;
              end) * pfd.qty_fixed * pfd.user_price * nvl(pfd.fx_to_base, 1) *
              ucm.multiplication_factor amount,
              akc.base_cur_id,
-             akc.base_currency_name
+             akc.base_currency_name,
+             pcdi.pcdi_id
         from pcm_physical_contract_main pcm,
              pcdi_pc_delivery_item pcdi,
              poch_price_opt_call_off_header poch,
@@ -3187,6 +3064,7 @@ end;
          and pcm.contract_type = 'CONCENTRATES'
          and pfd.hedge_correction_date > vd_prev_eom_date
          and pfd.hedge_correction_date <= pd_trade_date
+         and pcm.is_pass_through ='N'
       union all
       select pc_process_id,
              pd_trade_date,
@@ -3237,7 +3115,8 @@ end;
              end) * pfd.qty_fixed * pfd.user_price * nvl(pfd.fx_to_base, 1) *
              ucm.multiplication_factor amount,
              akc.base_cur_id,
-             akc.base_currency_name
+             akc.base_currency_name,
+             pcdi.pcdi_id
         from pcm_physical_contract_main pcm,
              pcdi_pc_delivery_item pcdi,
              poch_price_opt_call_off_header poch,
