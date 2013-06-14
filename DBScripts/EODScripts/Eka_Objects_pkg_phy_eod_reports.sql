@@ -22730,9 +22730,10 @@ procedure sp_calc_treatment_charge(pc_corporate_id varchar2,
   vc_range_type                varchar2(20);
   vn_total_treatment_charge    number := 0;
   vc_add_now                   varchar2(1) := 'N'; -- Set to Y for Fixed when it falls in the slab range
-  vc_charge_type               varchar2(10);
-  vc_is_price_range_variable   varchar2(1) := 'N'; --Set to Y when TC is Price Range and Variable Type
+  vc_charge_type               varchar2(10); 
   vn_weight_conv_factor        number;
+  vn_total_base_tret_charge    number;
+  
 begin
   for cc in (select grd.internal_gmr_ref_no internal_gmr_ref_no,
                     grd.internal_grd_ref_no,
@@ -22856,6 +22857,9 @@ begin
                         and red.is_active = 'Y'
                         and tqd.is_active = 'Y'))
   loop
+  vn_base_tret_charge:=0;
+  vn_total_base_tret_charge:=0;
+  vc_range_type:=null;
     begin
       --
       -- Get the Price For the GMR
@@ -22943,7 +22947,7 @@ begin
                               -- Then we have to add it,
                               -- For Price Range , Variable we are existing, let this record
                               -- come at end after assay range calcualtion is over
-                               order by pcetc.charge_type
+                               order by pcth.range_type 
                               
                               )
       loop
@@ -22951,7 +22955,11 @@ begin
         vc_price_unit_id     := cur_tret_charge.price_unit_id;
         vc_tc_weight_unit_id := cur_tret_charge.weight_unit_id;
         vc_weight_type       := cur_tret_charge.weight_type;
+        if vc_range_type is null or vc_range_type=cur_tret_charge.range_type then
         vc_range_type        := cur_tret_charge.range_type;
+        else
+        vc_range_type        :='Multiple';
+        end if;
         vc_add_now           := 'N';
         vc_charge_type       := cur_tret_charge.charge_type;
         if cur_tret_charge.range_type = 'Price Range' then
@@ -22993,7 +23001,7 @@ begin
                vn_contract_price >= cur_tret_charge.range_min_value and
                vn_contract_price <= cur_tret_charge.range_max_value) then
               vn_treatment_charge := cur_tret_charge.treatment_charge;
-              vn_base_tret_charge := cur_tret_charge.treatment_charge;
+              vn_total_base_tret_charge := vn_total_base_tret_charge+cur_tret_charge.treatment_charge;
               vc_add_now          := 'Y';
             end if;
           elsif cur_tret_charge.charge_type = 'Variable' then
@@ -23020,6 +23028,7 @@ begin
                 vn_min_range        := 0;
                 vn_base_tret_charge := 0;
             end;
+            vn_total_base_tret_charge:=vn_total_base_tret_charge+vn_base_tret_charge;
             --according to the contract price , the price tier
             --will be find out, it may forward or back ward
             --Both vn_max_range and vn_min_range are same
@@ -23181,7 +23190,7 @@ begin
             vn_min_range        := cur_tret_charge.range_min_value;
             vn_typical_val      := cc.typical;
             vc_weight_type      := cur_tret_charge.weight_type;
-            vn_base_tret_charge := cur_tret_charge.treatment_charge;
+            vn_total_base_tret_charge := cur_tret_charge.treatment_charge;
             vc_add_now          := 'Y';
           end if;
         end if;
@@ -23190,8 +23199,7 @@ begin
         if cur_tret_charge.range_type = 'Price Range' and
            cur_tret_charge.charge_type = 'Variable' then
           vn_total_treatment_charge  := vn_total_treatment_charge +
-                                        vn_treatment_charge;
-          vc_is_price_range_variable := 'Y';
+                                        vn_treatment_charge; 
           exit;
         end if;
         --
@@ -23207,18 +23215,10 @@ begin
         end if;
       end loop;
     end;
-    if vn_base_tret_charge is null then
-      vn_base_tret_charge := 0;
-    end if;
-    --
-    -- Escalator / Desclator is applicable only for Variable Price Range
-    --
-    if vc_is_price_range_variable = 'Y' then
+  
       vn_esc_desc_tc_value := vn_total_treatment_charge -
-                              vn_base_tret_charge;
-    else
-      vn_esc_desc_tc_value := 0;
-    end if;
+                              vn_total_base_tret_charge;
+ 
   
     insert into getc_gmr_element_tc_charges
       (process_id,
@@ -23260,7 +23260,7 @@ begin
        vc_cur_id,
        vc_tc_weight_unit_id,
        vc_weight_type,
-       vn_base_tret_charge,
+       vn_total_base_tret_charge,
        vn_esc_desc_tc_value,
        vc_range_type,
        vc_charge_type,
@@ -23275,29 +23275,10 @@ begin
     end if;
     vn_base_tret_charge        := 0;
     vn_treatment_charge        := 0;
-    vn_total_treatment_charge  := 0;
-    vc_is_price_range_variable := 'N';
+    vn_total_treatment_charge  := 0;   
   end loop;
   commit;
-  --
-  -- Update Range Type to Multiple if it has both assay and price range TC defined
-  --
-  for cur_update in (select t.internal_gmr_ref_no,
-                            t.element_id,
-                            t.process_id
-                       from getc_gmr_element_tc_charges t
-                      where t.process_id = pc_process_id
-                        and t.range_type = 'Assay Range'
-                        and t.esc_desc_tc_value <> 0 -- We cannot have Assay Range with Escalator Desclator Value
-                        for update)
-  loop
-    update getc_gmr_element_tc_charges getc
-       set getc.range_type = 'Multiple'
-     where getc.process_id = pc_process_id
-       and getc.internal_gmr_ref_no = cur_update.internal_gmr_ref_no
-       and getc.element_id = cur_update.element_id;
-  end loop;
-  commit;
+ 
   --
   -- Update Main Currency and Sub Currency Factor
   --
@@ -23403,6 +23384,9 @@ procedure sp_calc_refining_charge(pc_corporate_id varchar2,
   vn_commit_count              number := 0;
   vc_range_over                varchar2(1) := 'N';
   vn_weight_conv_factor        number;
+  vc_add_now                   varchar2(1) := 'N'; -- Set to Y for Fixed when it falls in the slab range
+  vn_total_refine_charge       number := 0;
+  vc_range_type                varchar2(20); 
 begin
   --Get the Charge Details 
   for cc in (select gmr.internal_gmr_ref_no,
@@ -23529,6 +23513,8 @@ begin
   loop
     dbms_output.put_line(cc.internal_gmr_ref_no);
     dbms_output.put_line(cc.element_id);
+    vn_total_refine_charge:=0;
+    vc_range_type         :=null;
     --
     -- Get the Price For the GMR
     --
@@ -23689,7 +23675,7 @@ begin
              cur_ref_charge.range_max_op = '<=' and
              cc.typical >= cur_ref_charge.range_min_value and
              cc.typical <= cur_ref_charge.range_max_value) then
-            vn_refine_charge := cur_ref_charge.refining_charge_value;
+             vn_total_refine_charge := cur_ref_charge.refining_charge_value;
           end if;
         end loop;
       exception
@@ -23742,11 +23728,17 @@ begin
                                   and red.is_active = 'Y'
                                   and rqd.is_active = 'Y'
                                   and grh.is_active = 'Y'
-                                order by range_min_value)
+                                order by pcrh.range_type)
         loop
           vc_rc_weight_unit_id := cur_ref_charge.weight_unit_id;
           vc_cur_id            := cur_ref_charge.cur_id;
           vc_price_unit_id     := cur_ref_charge.price_unit_id;
+          if vc_range_type is null or vc_range_type=cur_ref_charge.range_type then
+          vc_range_type        := cur_ref_charge.range_type;
+           else
+           vc_range_type        :='Multiple';
+          end if;
+          vc_add_now           := 'N';
           if cur_ref_charge.range_type = 'Price Range' then
             vn_gmr_rc_charges := 0;
             -- If the CHARGE_TYPE is fixed then it will
@@ -23785,7 +23777,8 @@ begin
                  cur_ref_charge.range_max_op = '<=' and
                  vn_contract_price >= cur_ref_charge.range_min_value and
                  vn_contract_price <= cur_ref_charge.range_max_value) then
-                vn_refine_charge := cur_ref_charge.refining_charge;
+                 vn_refine_charge := cur_ref_charge.refining_charge;
+                 vc_add_now          := 'Y';
               end if;
             elsif cur_ref_charge.charge_type = 'Variable' then
               vc_range_over := 'N';
@@ -23973,14 +23966,29 @@ begin
               vn_max_range     := cur_ref_charge.range_max_value;
               vn_min_range     := cur_ref_charge.range_min_value;
               vn_typical_val   := cc.typical;
+              vc_add_now          := 'Y';
             end if;
           end if;
           --I will exit from the loop when it is tier base ,
           --as the inner loop is done the calculation.
           if cur_ref_charge.range_type = 'Price Range' and
              cur_ref_charge.charge_type = 'Variable' then
+              vn_total_refine_charge  := vn_total_refine_charge +
+                                        vn_refine_charge;
             exit;
           end if;
+          
+          --
+        -- Get the total only when it was in the range, skip otherwise
+        -- If it is Price range variable it adds above exits the loop
+        --
+        if (cur_ref_charge.range_type = 'Price Range' and
+           cur_ref_charge.charge_type = 'Fixed' and vc_add_now = 'Y') or
+           cur_ref_charge.range_type = 'Assay Range' and vc_add_now = 'Y' then
+          vn_total_refine_charge := vn_total_refine_charge +
+                                       vn_refine_charge;
+          vc_add_now                := 'N';
+        end if;
         end loop;
       exception
         when others then
@@ -23988,7 +23996,6 @@ begin
           vc_price_unit_id := null;
       end;
     end if;
-  
     insert into gerc_gmr_element_rc_charges
       (process_id,
        internal_gmr_ref_no,
@@ -24006,7 +24013,8 @@ begin
        rc_weight_unit_id,
        payable_qty,
        payable_qty_unit_id,
-       pay_cur_decimals)
+       pay_cur_decimals,
+       range_type)
     values
       (pc_process_id,
        cc.internal_gmr_ref_no,
@@ -24018,13 +24026,14 @@ begin
        vc_gmr_price_unit_id,
        vc_gmr_price_unit_cur_id,
        vc_price_unit_weight_unit_id,
-       vn_refine_charge,
+       vn_total_refine_charge,
        vc_cur_id,
        vc_cur_id,
        vc_rc_weight_unit_id,
        cc.payable_qty,
        cc.payable_qty_unit_id,
-       cc.pay_cur_decimals);
+       cc.pay_cur_decimals,
+       vc_range_type);
     vn_commit_count := vn_commit_count + 1;
     if vn_commit_count >= 500 then
       vn_commit_count := 0;
