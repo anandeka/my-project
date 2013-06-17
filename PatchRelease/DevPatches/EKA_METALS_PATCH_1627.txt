@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1627
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  17-Jun-2013 
+
+Bug / Enhancement*		:  Enhancement
+
+Bug ID*            		:  79050
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Output Doc
+
+Sub-Module  			 :  Output Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+====================================================================================================================================
+
+Revision: 130744
+Author: rajuga
+Date: 7:09:59 PM, Monday, June 17, 2013
+Message:
+Bug 79050 - The description field under "Cost" section in Service Invoice needs to be shown in Service Invoice Output document.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ServiceInvoice.rpt
+
+====================================================================================================================================
