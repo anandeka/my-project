@@ -1,0 +1,45 @@
+Patch No*          		:  EKA_METALS_PATCH_1623
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Srinivasan Murugesan
+ 
+Created on*        		:  17-Jun-2013 
+
+Bug / Enhancement*		:  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Scheduler Implementation - Pricing Process
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 130665
+Author: srinivasanmurugesan
+Date: Monday, June 17, 2013 10:17:28 AM
+Message:
+Default pricing process scheduler configurations.
+This is temp. script, its not required when UI or Scheduler based on DB configuration is build.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_600_Scheduler.sql
+
