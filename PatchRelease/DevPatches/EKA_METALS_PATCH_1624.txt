@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_1624
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Srinivasan Murugesan
+ 
+Created on*        		:  17-Jun-2013 
+
+Bug / Enhancement*		:  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Bulk Pricing Document
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 130670
+Author: srinivasanmurugesan
+Date: Monday, June 17, 2013 11:15:45 AM
+Message:
+Bulk pricing document for GMR, Tolling GMR and Pledge GMR
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_123.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_601.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_602.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATE_BULK_PRICING_DOCUMENT.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_458.sql
+
