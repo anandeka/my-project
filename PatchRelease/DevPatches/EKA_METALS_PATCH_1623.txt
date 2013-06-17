@@ -1,4 +1,4 @@
-Patch No*          		:  EKA_METALS_PATCH_1624
+Patch No*          		:  EKA_METALS_PATCH_1623
 
 Project / Product* 		:  METALS
 ==================================================================
@@ -15,7 +15,7 @@ Branch (DEV / REL)*		:  Dev
 
 Module / Feature Group:
 ==================================================================
-Module  		   	 :  Bulk Pricing Document
+Module  		   	 :  Scheduler Implementation - Pricing Process
 
 Sub-Module  			 :  N/A
  
@@ -34,15 +34,12 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
-Revision: 130670
+Revision: 130665
 Author: srinivasanmurugesan
-Date: Monday, June 17, 2013 11:15:45 AM
+Date: Monday, June 17, 2013 10:17:28 AM
 Message:
-Bulk pricing document for GMR, Tolling GMR and Pledge GMR
+Default pricing process scheduler configurations.
+This is temp. script, its not required when UI or Scheduler based on DB configuration is build.
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_123.sql
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_601.sql
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_602.sql
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATE_BULK_PRICING_DOCUMENT.sql
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_458.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_600_Scheduler.sql
 
