@@ -140,6 +140,7 @@ select iss.corporate_id,
    and cm_vat.cur_id(+) = ivd.vat_remit_cur_id
    and pcpd.input_output = 'Input'
    and nvl(iss.total_amount_to_pay, 0) <> 0
+   and iss.is_active='Y'
 ---2 Service invoices
 union all
 select iss.corporate_id,
@@ -246,3 +247,4 @@ select iss.corporate_id,
    and cm_vat.cur_id(+) = ivd.vat_remit_cur_id
    and nvl(iss.total_amount_to_pay, 0) <> 0
    and iss.internal_contract_ref_no is null
+   and iss.is_active='Y'
