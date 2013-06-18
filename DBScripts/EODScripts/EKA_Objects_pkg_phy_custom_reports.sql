@@ -5942,14 +5942,14 @@ create or replace package body pkg_phy_custom_reports is
                                     pcdi.delivery_to_year,'dd-Mon-yyyy'))
                                  end) delivery_to_date,
                                  -----
-                                 diqs.total_qty del_item_total_qty,
+                                 diqs.total_qty*pcbpd.qty_to_be_priced/100 del_item_total_qty,
                                  (case
                                    when pcm.purchase_sales = 'P' then
                                     (diqs.total_qty - diqs.final_invoiced_qty)
                                    when pcm.purchase_sales = 'S' then
                                     (-1) *
                                     (diqs.total_qty - diqs.final_invoiced_qty)
-                                 end) del_item_qty,
+                                 end) *pcbpd.qty_to_be_priced/100 del_item_qty,
                                  diqs.item_qty_unit_id di_qty_unit_id,
                                  qum_di.qty_unit di_qty_unit,
                                  cym.country_name || ' , ' || sm.state_name ||
@@ -5974,14 +5974,15 @@ create or replace package body pkg_phy_custom_reports is
                                  cpc_corporate_profit_center    cpc,
                                  diqs_delivery_item_qty_status  diqs,
                                  qum_quantity_unit_master       qum_di,
+                                 pcdiob_di_optional_basis       pcdiob,
                                  pcdb_pc_delivery_basis         pcdb,
                                  cym_countrymaster              cym,
                                  sm_state_master                sm,
                                  cim_citymaster                 cm_city,
                                  cm_currency_master             cm_base,
                                  poch_price_opt_call_off_header poch,
-                                 pocd_price_option_calloff_dtls pocd
-                          
+                                 pocd_price_option_calloff_dtls pocd,
+                                 pcbpd_pc_base_price_detail     pcbpd                        
                            where pcm.internal_contract_ref_no =
                                  pcdi.internal_contract_ref_no
                              and pcm.is_active = 'Y'
@@ -6001,8 +6002,12 @@ create or replace package body pkg_phy_custom_reports is
                              and diqs.is_active = 'Y'
                              and diqs.process_id = pc_process_id
                              and diqs.item_qty_unit_id = qum_di.qty_unit_id
-                             and pcm.internal_contract_ref_no =
-                                 pcdb.internal_contract_ref_no
+                            /* and pcm.internal_contract_ref_no =
+                                 pcdb.internal_contract_ref_no*/
+                             and pcdi.pcdi_id = pcdiob.pcdi_id
+                             and pcdiob.process_id = pc_process_id
+                             and pcdiob.is_active = 'Y'
+                             and pcdb.pcdb_id = pcdiob.pcdb_id
                              and pcdb.is_active = 'Y'
                              and pcdb.process_id = pc_process_id
                              and pcdb.country_id = cym.country_id
@@ -6018,7 +6023,10 @@ create or replace package body pkg_phy_custom_reports is
                              and diqs.total_qty - diqs.final_invoiced_qty > 0
                              and poch.is_active = 'Y'
                              and poch.poch_id = pocd.poch_id
-                             and pocd.is_active = 'Y')
+                             and pocd.is_active = 'Y'
+                             and pocd.pcbpd_id=pcbpd.pcbpd_id
+                             and pcbpd.process_id=pc_process_id
+                             and pcbpd.is_active='Y')
     
     loop
     
