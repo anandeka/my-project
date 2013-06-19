@@ -714,6 +714,21 @@ BEGIN
    
    END IF;
 
+   display_order := display_order + 1;
+   INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+           )
+    VALUES (docid, display_order, NULL, 'Premium',
+            'Premium', 'Y', NULL,
+            NULL, GETQUALITYLOCATIONPREMUIM (p_contractno), NULL,
+            NULL, 'N', 'N',
+            'N', 'FULL', 'N'
+           );
+
    BEGIN
       SELECT pcm.del_schedule_comments
         INTO deliveryschedulecomments
