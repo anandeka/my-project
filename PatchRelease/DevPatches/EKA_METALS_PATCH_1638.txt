@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1634
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Srinivasan Murugesan
+ 
+Created on*        		:  19-Jun-2013 
+
+Bug / Enhancement*		:  Enhancement
+
+Bug ID*            		:  Scheduler Master Script updated
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  PeriodEndPricing
+
+Sub-Module  			 :  Pricing - Scheduler
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+====================================================================================================================================
+Revision: 131080
+Author: srinivasanmurugesan
+Date: Wednesday, June 19, 2013 5:11:18 PM
+Message:
+Scheduler job criteria details updated
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_606_Scheduler Update.sql
+
