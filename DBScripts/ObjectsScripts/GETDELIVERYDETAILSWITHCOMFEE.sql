@@ -227,9 +227,7 @@ BEGIN
                AND mcc.quality_id = quality_rec.quality_id
                AND mcc.charge_name = 'Commercial Fee'
                AND mcc.is_active='Y'
- 	      	   AND (TO_DATE (MCC.FROM_DATE,'dd-Mon-YYYY') <=p_issue_date
-                    OR TO_DATE (MCC.TO_DATE,'dd-Mon-YYYY')>=p_issue_date
-                   );
+ 	           AND p_issue_date BETWEEN mcc.from_date AND mcc.TO_DATE;
 		 EXCEPTION
             WHEN NO_DATA_FOUND
             THEN
@@ -264,9 +262,8 @@ BEGIN
                AND mcc.quality_id = quality_rec.quality_id
                AND mcc.charge_name = 'Premium'
                AND mcc.is_active = 'Y'
-               AND (   TO_DATE (mcc.from_date, 'dd-Mon-YYYY') <= p_issue_date
-                    OR TO_DATE (mcc.TO_DATE, 'dd-Mon-YYYY') >= p_issue_date
-                   );
+               AND p_issue_date BETWEEN mcc.from_date AND mcc.TO_DATE;
+
          EXCEPTION
             WHEN NO_DATA_FOUND
             THEN
