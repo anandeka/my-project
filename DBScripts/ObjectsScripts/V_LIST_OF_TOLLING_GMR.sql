@@ -26,7 +26,7 @@ select gmr.corporate_id as corporate_id,
        shm.companyname as warehouse,
        shm.shed_name as shed_name,
        (case
-         when axm.action_id = 'RECORD_OUT_PUT_TOLLING' then
+         when axm.action_id IN ('RECORD_OUT_PUT_TOLLING','RECEIVE_MATERIAL_MODIFY') then
           (select f_string_aggregate(grd_rm.product_id)
              from grd_goods_record_detail grd_rm
             where grd_rm.tolling_stock_type = 'RM Out Process Stock'
@@ -45,7 +45,7 @@ select gmr.corporate_id as corporate_id,
           cp.product_id
        end) as product_id,
        (case
-         when axm.action_id = 'RECORD_OUT_PUT_TOLLING' then
+         when axm.action_id IN ('RECORD_OUT_PUT_TOLLING','RECEIVE_MATERIAL_MODIFY')then
           (select f_string_aggregate(pdm_in.product_desc)
              from grd_goods_record_detail grd_rm,
                   pdm_productmaster       pdm_in
@@ -70,7 +70,7 @@ select gmr.corporate_id as corporate_id,
           cp.product_name
        end) as product_name,
        (case
-         when axm.action_id = 'RECORD_OUT_PUT_TOLLING' then
+         when axm.action_id IN ('RECORD_OUT_PUT_TOLLING','RECEIVE_MATERIAL_MODIFY') then
           (select f_string_aggregate(grd_rm.quality_id)
              from grd_goods_record_detail grd_rm
             where grd_rm.tolling_stock_type = 'RM Out Process Stock'
@@ -89,7 +89,7 @@ select gmr.corporate_id as corporate_id,
           cp.quality_id
        end) as quality_id,
        (case
-         when axm.action_id = 'RECORD_OUT_PUT_TOLLING' then
+         when axm.action_id IN ('RECORD_OUT_PUT_TOLLING','RECEIVE_MATERIAL_MODIFY') then
           (select f_string_aggregate(qat_in.quality_name)
              from grd_goods_record_detail grd_rm,
                   qat_quality_attributes  qat_in
