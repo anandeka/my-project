@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_1632
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Abhishek Vijay
+ 
+Created on*        		:  19-Jun-2013 
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  79088
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Contract
+
+Sub-Module  			 :  Pricing
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+====================================================================================================================================
+
+Revision: 130984
+Author: abhishek.vijay
+Date: 10:50:44 AM, Wednesday, June 19, 2013
+Message:
+Add new column for valuation percentage 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_460.sql
+
+
+
