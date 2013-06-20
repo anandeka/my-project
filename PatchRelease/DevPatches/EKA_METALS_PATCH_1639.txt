@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1639
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar Reddy B
+ 
+Created on*        		:  20-Jun-2013 
+
+Bug / Enhancement*		:  bug
+
+Bug ID*            		:  76770
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  Output Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+====================================================================================================================================
+Revision: 131213
+Author: rajeshwar.reddy
+Date: 10:28:47, 20 June 2013
+Message:
+bug fix:76770  	Issue in container number on Provisional assay output doc for single GMR with multiple stocks 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_607.sql
+
