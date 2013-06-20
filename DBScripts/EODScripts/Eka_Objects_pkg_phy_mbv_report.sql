@@ -1000,12 +1000,15 @@ create or replace package body pkg_phy_mbv_report is
              instrument_name,
              pcdi_id,
              contract_type,
+             case when sum(pfrd.fixed_qty )= 0 then 0
+             else
              sum(case
                    when pfrd.purchase_sales = 'Purchase' then
                     pfrd.fixation_value
                    else
                     -1 * pfrd.fixation_value -- Sales data already stored with negative and hence * -1
-                 end) / sum(pfrd.fixed_qty ),
+                 end) / sum(pfrd.fixed_qty )
+             end ,
              pfrd.price_unit_id,
              pfrd.price_unit_name,
              cm.cur_id,
@@ -3350,5 +3353,5 @@ end;
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-end;
+end; 
 /
