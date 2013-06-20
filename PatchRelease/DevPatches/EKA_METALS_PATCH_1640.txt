@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1640
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  20-Jun-2013 
+
+Bug / Enhancement*		:  bug
+
+Bug ID*            		:  78499 
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  APP
+
+Sub-Module  			 :  APP
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+====================================================================================================================================
+Revision: 131346
+Author: suresh.gottipati
+Date: 7:11:55 PM, Thursday, June 20, 2013
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_pkg_price.sql
+
