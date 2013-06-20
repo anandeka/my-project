@@ -372,7 +372,7 @@ create or replace package body pkg_price is
                   
                 end;
               end if;
-            
+           
               if cur_pcdi_rows.is_daily_cal_applicable = 'N' and
                  cur_pcdi_rows.is_monthly_cal_applicable = 'Y' then
                 vd_prompt_date  := pkg_price.f_get_next_month_prompt_date(cur_pcdi_rows.delivery_calender_id,
@@ -394,6 +394,7 @@ create or replace package body pkg_price is
                     vc_market_quote_dr_id := null;
                 end;
               end if;
+              dbms_output.put_line('Prompt Date ::'||vd_quotes_date || ' DRID::'|| vc_market_quote_dr_id);              
               -- price 
               begin
                 select dqd.price *
@@ -413,6 +414,7 @@ create or replace package body pkg_price is
                    and dq.corporate_id = cur_pcdi_rows.corporate_id
                    and dq.is_deleted = 'N'
                    and dqd.is_deleted = 'N'
+                   and dqd.price is not null
                    and rownum < 2
                    and dq.trade_date =
                        (select max(dq.trade_date)
@@ -428,6 +430,7 @@ create or replace package body pkg_price is
                                cur_pcdi_rows.price_source_id
                            and dqd.price_unit_id =
                                cur_pcdi_rows.price_unit_id
+                           and dqd.price is not null
                            and dq.corporate_id = cur_pcdi_rows.corporate_id
                            and dq.is_deleted = 'N'
                            and dqd.is_deleted = 'N'
@@ -542,6 +545,7 @@ create or replace package body pkg_price is
                   vc_market_quote_dr_id := null;
               end;
             end if;
+              dbms_output.put_line('Prompt Date ::'||vd_quotes_date || ' DRID::'|| vc_market_quote_dr_id);            
             begin
               select dqd.price *
                      cur_not_called_off_rows.valuation_price_percentage,
@@ -558,6 +562,7 @@ create or replace package body pkg_price is
                  and dq.price_source_id = cur_pcdi_rows.price_source_id
                  and dqd.price_unit_id = cur_pcdi_rows.price_unit_id
                  and dq.corporate_id = cur_pcdi_rows.corporate_id
+                 and dqd.price is not null
                  and dq.is_deleted = 'N'
                  and dqd.is_deleted = 'N'
                  and rownum < 2
@@ -574,6 +579,7 @@ create or replace package body pkg_price is
                              cur_pcdi_rows.price_source_id
                          and dqd.price_unit_id = cur_pcdi_rows.price_unit_id
                          and dq.corporate_id = cur_pcdi_rows.corporate_id
+                         and dqd.price is not null
                          and dq.is_deleted = 'N'
                          and dqd.is_deleted = 'N'
                          and dq.trade_date <= pd_trade_date);
@@ -948,7 +954,7 @@ create or replace package body pkg_price is
                 vc_market_quote_dr_id := null;
             end;
           end if;
-        
+         dbms_output.put_line('Prompt Date ::'||vd_quotes_date || ' DRID::'|| vc_market_quote_dr_id);        
           begin
             select dqd.price * cur_gmr_ele_rows.valuation_price_percentage,
                    dqd.price_unit_id
@@ -963,6 +969,7 @@ create or replace package body pkg_price is
                and dq.price_source_id = cur_gmr_rows.price_source_id
                and dqd.price_unit_id = cur_gmr_rows.price_unit_id
                and dq.corporate_id = cur_gmr_rows.corporate_id
+               and dqd.price is not null
                and dq.is_deleted = 'N'
                and dqd.is_deleted = 'N'
                and rownum < 2
@@ -978,6 +985,7 @@ create or replace package body pkg_price is
                        and dq.price_source_id = cur_gmr_rows.price_source_id
                        and dqd.price_unit_id = cur_gmr_rows.price_unit_id
                        and dq.corporate_id = cur_gmr_rows.corporate_id
+                       and dqd.price is not null
                        and dq.is_deleted = 'N'
                        and dqd.is_deleted = 'N'
                        and dq.trade_date <= pd_trade_date);
@@ -1434,7 +1442,7 @@ create or replace package body pkg_price is
                     vc_market_quote_dr_id := null;
                 end;
               end if;
-            
+           dbms_output.put_line('Prompt Date ::'||vd_quotes_date || ' DRID::'|| vc_market_quote_dr_id);            
               begin
                 select dqd.price *
                        cur_called_off_rows.valuation_price_percentage,
@@ -1451,6 +1459,7 @@ create or replace package body pkg_price is
                    and dq.price_source_id = cur_pcdi_rows.price_source_id
                    and dqd.price_unit_id = cur_pcdi_rows.price_unit_id
                    and dq.corporate_id = cur_pcdi_rows.corporate_id
+                   and dqd.price is not null
                    and dq.is_deleted = 'N'
                    and dqd.is_deleted = 'N'
                    and rownum < 2
@@ -1468,6 +1477,7 @@ create or replace package body pkg_price is
                                cur_pcdi_rows.price_source_id
                            and dqd.price_unit_id =
                                cur_pcdi_rows.price_unit_id
+                           and dqd.price is not null
                            and dq.corporate_id = cur_pcdi_rows.corporate_id
                            and dq.is_deleted = 'N'
                            and dqd.is_deleted = 'N'
@@ -1477,6 +1487,7 @@ create or replace package body pkg_price is
                   vn_unfixed_val_price         := 0;
                   vc_unfixed_val_price_unit_id := null;
               end;
+              dbms_output.put_line('Unfixed qty valuation price : '||vn_unfixed_val_price);
               --
               -- If Both Fixed and Unfixed Quantities are there then we have two prices
               -- Fixed and Unfixed. Unfixed Convert into Fixed Price Using Corporate FX Rate
@@ -1583,7 +1594,7 @@ create or replace package body pkg_price is
                   vc_market_quote_dr_id := null;
               end;
             end if;
-          
+           dbms_output.put_line('Prompt Date ::'||vd_quotes_date || ' DRID::'|| vc_market_quote_dr_id);          
             begin
               select dqd.price *
                      cur_not_called_off_rows.valuation_price_percentage,
@@ -1600,6 +1611,7 @@ create or replace package body pkg_price is
                  and dq.price_source_id = cur_pcdi_rows.price_source_id
                  and dqd.price_unit_id = cur_pcdi_rows.price_unit_id
                  and dq.corporate_id = cur_pcdi_rows.corporate_id
+                 and dqd.price is not null
                  and dq.is_deleted = 'N'
                  and dqd.is_deleted = 'N'
                  and rownum < 2
@@ -1616,6 +1628,7 @@ create or replace package body pkg_price is
                              cur_pcdi_rows.price_source_id
                          and dqd.price_unit_id = cur_pcdi_rows.price_unit_id
                          and dq.corporate_id = cur_pcdi_rows.corporate_id
+                         and dqd.price is not null
                          and dq.is_deleted = 'N'
                          and dqd.is_deleted = 'N'
                          and dq.trade_date <= pd_trade_date);
@@ -1624,6 +1637,7 @@ create or replace package body pkg_price is
                 vn_unfixed_val_price         := 0;
                 vc_unfixed_val_price_unit_id := null;
             end;
+            dbms_output.put_line('Unfixed qty valuation price : '||vn_unfixed_val_price);
             vn_total_quantity       := cur_pcdi_rows.payable_qty;
             vn_qty_to_be_priced     := cur_not_called_off_rows.qty_to_be_priced;
             vn_total_contract_value := vn_total_contract_value +
@@ -1910,6 +1924,7 @@ create or replace package body pkg_price is
                 vc_market_quote_dr_id := null;
             end;
           end if;
+           dbms_output.put_line('Prompt Date ::'||vd_quotes_date || ' DRID::'|| vc_market_quote_dr_id);          
           begin
             select dqd.price * cur_gmr_ele_rows.valuation_price_percentage,
                    dqd.price_unit_id
@@ -1926,6 +1941,7 @@ create or replace package body pkg_price is
                and dq.corporate_id = cur_gmr_rows.corporate_id
                and dq.is_deleted = 'N'
                and dqd.is_deleted = 'N'
+               and dqd.price is not null
                and rownum < 2
                and dq.trade_date =
                    (select max(dq.trade_date)
@@ -1939,6 +1955,7 @@ create or replace package body pkg_price is
                        and dq.price_source_id = cur_gmr_rows.price_source_id
                        and dqd.price_unit_id = cur_gmr_rows.price_unit_id
                        and dq.corporate_id = cur_gmr_rows.corporate_id
+                       and dqd.price is not null
                        and dq.is_deleted = 'N'
                        and dqd.is_deleted = 'N'
                        and dq.trade_date <= pd_trade_date);
@@ -1947,6 +1964,7 @@ create or replace package body pkg_price is
               vn_unfixed_val_price         := 0;
               vc_unfixed_val_price_unit_id := null;
           end;
+          dbms_output.put_line('Unfixed qty valuation price : '||vn_unfixed_val_price);
           --
           -- If Both Fixed and Unfixed Quantities are there then we have two prices
           -- Fixed and Unfixed. Unfixed Convert into Fixed Price Using Corporate FX Rate
@@ -2237,6 +2255,7 @@ create or replace package body pkg_price is
                and dq.price_source_id = cur_gmr_rows.price_source_id
                and dqd.price_unit_id = cur_gmr_rows.price_unit_id
                and dq.corporate_id = cur_gmr_rows.corporate_id
+               and dqd.price is not null
                and dq.is_deleted = 'N'
                and dqd.is_deleted = 'N'
                and rownum < 2
@@ -2252,6 +2271,7 @@ create or replace package body pkg_price is
                        and dq.price_source_id = cur_gmr_rows.price_source_id
                        and dqd.price_unit_id = cur_gmr_rows.price_unit_id
                        and dq.corporate_id = cur_gmr_rows.corporate_id
+                       and dqd.price is not null
                        and dq.is_deleted = 'N'
                        and dqd.is_deleted = 'N'
                        and dq.trade_date <= pd_trade_date);
@@ -2260,7 +2280,7 @@ create or replace package body pkg_price is
               vn_unfixed_val_price         := 0;
               vc_unfixed_val_price_unit_id := null;
           end;
-        
+        dbms_output.put_line('Unfixed qty valuation price : '||vn_unfixed_val_price);
           --
           -- If Both Fixed and Unfixed Quantities are there then we have two prices
           -- Fixed and Unfixed. Unfixed Convert into Fixed Price Using Corporate FX Rate
@@ -2861,6 +2881,7 @@ create or replace package body pkg_price is
                 vc_market_quote_dr_id := null;
             end;
           end if;
+          dbms_output.put_line('Prompt Date ::'||vd_quotes_date || ' DRID::'|| vc_market_quote_dr_id);
           if cur_gmr_rows.is_daily_cal_applicable = 'N' and
              cur_gmr_rows.is_monthly_cal_applicable = 'Y' then
             vd_prompt_date  := f_get_next_month_prompt_date(cur_gmr_rows.delivery_calender_id,
@@ -2897,6 +2918,7 @@ create or replace package body pkg_price is
                and dqd.available_price_id = cur_gmr_rows.available_price_id
                and dq.price_source_id = cur_gmr_rows.price_source_id
                and dqd.price_unit_id = cur_gmr_rows.price_unit_id
+               and dqd.price is not null
                and dq.is_deleted = 'N'
                and dqd.is_deleted = 'N'
                and dq.corporate_id = cur_gmr_rows.corporate_id
@@ -2912,6 +2934,7 @@ create or replace package body pkg_price is
                        and dq.price_source_id = cur_gmr_rows.price_source_id
                        and dqd.price_unit_id = cur_gmr_rows.price_unit_id
                        and dq.corporate_id = cur_gmr_rows.corporate_id
+                       and dqd.price is not null
                        and dq.is_deleted = 'N'
                        and dqd.is_deleted = 'N'
                        and dq.trade_date <= pd_trade_date);
@@ -2920,6 +2943,7 @@ create or replace package body pkg_price is
               vn_unfixed_val_price         := 0;
               vc_unfixed_val_price_unit_id := null;
           end;
+          dbms_output.put_line('Unfixed qty valuation price : '||vn_unfixed_val_price);
           --
           -- If Both Fixed and Unfixed Quantities are there then we have two prices
           -- Fixed and Unfixed. Unfixed Convert into Fixed Price Using Corporate FX Rate
