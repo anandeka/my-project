@@ -1,0 +1,44 @@
+Patch No*          		:  EKA_METALS_PATCH_1641
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ravi Kumar B
+ 
+Created on*        		:  20-Jun-2013 
+
+Bug / Enhancement*		:  bug
+
+Bug ID*            		:  79374  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Profoma Invoice
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+====================================================================================================================================
+Revision: 131369
+Author: b.ravikumar
+Date: 8:19:54 PM, Thursday, June 20, 2013
+Message:
+Bug 79374 : Profoma Invoice Draft saving Issue.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_608.sql
+
