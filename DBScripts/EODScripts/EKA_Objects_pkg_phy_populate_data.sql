@@ -13041,7 +13041,7 @@ update process_spq spq
    where spq.dbd_id = gvc_dbd_id
      and not exists (select 1
             from dgrd_delivered_grd grd
-           where grd.internal_grd_ref_no = spq.internal_dgrd_ref_no
+           where grd.internal_dgrd_ref_no = spq.internal_dgrd_ref_no
              and grd.dbd_id = gvc_dbd_id
              and grd.status = 'Active')
              and spq.internal_grd_ref_no is null;             

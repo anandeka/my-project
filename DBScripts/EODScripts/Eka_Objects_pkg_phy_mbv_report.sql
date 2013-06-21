@@ -158,6 +158,12 @@ create or replace package body pkg_phy_mbv_report is
     vn_consumed_for_this_fixation number;
   
   begin
+  
+/*  New PFC for this Month full
+List of Balance Price Fixations from previous Month 1(if 2 get total qty and price avergae)
+List of Consumed Fixations for Realization  Month 1 or 2 
+List of Balance Price Fixations 1 or 2
+*/
     --
     -- Previous EOM ID
     --
@@ -180,6 +186,85 @@ create or replace package body pkg_phy_mbv_report is
       when others then
         null;
     end;
+        --
+        -- List of Balance Price Fixations from previous Month
+        --
+       insert into pfrhe_pfrh_extension
+         (process_id,
+          eod_trade_date,
+          corporate_id,
+          corporate_name,
+          product_id,
+          product_name,
+          purchase_sales,
+          fixed_qty,
+          weighted_avg_price,
+          from_section_name,
+          section_name,
+          consumed_qty,
+          fixation_value)
+         select pc_process_id,
+                pd_trade_date,
+                pfrhe.corporate_id,
+                pfrhe.corporate_name,
+                pfrhe.product_id,
+                pfrhe.product_name,
+                pfrhe.purchase_sales,
+                sum(fixed_qty),
+                sum(fixed_qty * weighted_avg_price) / sum(fixed_qty),
+                'NA',
+                'List of Balance Price Fixations from previous Month',
+                0 consumed_qty, -- Not applicable
+                0 -- This has to be consumed qty * WAP
+           from pfrhe_pfrh_extension pfrhe
+          where pfrhe.process_id = vc_previous_eom_id
+          and pfrhe.section_name ='List of Balance Price Fixations'
+        group by pfrhe.corporate_id,
+                pfrhe.corporate_name,
+                pfrhe.product_id,
+                pfrhe.product_name,
+                pfrhe.purchase_sales;
+        commit;
+       --
+       -- Same above data into Consumption Section 
+       -- 
+       insert into pfrhe_pfrh_extension
+         (process_id,
+          eod_trade_date,
+          corporate_id,
+          corporate_name,
+          product_id,
+          product_name,
+          purchase_sales,
+          fixed_qty,
+          weighted_avg_price,
+          from_section_name,
+          section_name,
+          consumed_qty,
+          fixation_value)
+         select pc_process_id,
+                pd_trade_date,
+                pfrhe.corporate_id,
+                pfrhe.corporate_name,
+                pfrhe.product_id,
+                pfrhe.product_name,
+                pfrhe.purchase_sales,
+                sum(fixed_qty),
+                sum(fixed_qty * weighted_avg_price) / sum(fixed_qty),
+                'List of Balance Price Fixations from previous Month',
+                'List of Consumed Fixations for Realization',
+                0 consumed_qty, -- Will Update later
+                0 -- This has to be consumed qty * WAP
+           from pfrhe_pfrh_extension pfrhe
+          where pfrhe.process_id = pc_process_id
+          and pfrhe.section_name ='List of Balance Price Fixations'
+        group by pfrhe.corporate_id,
+                pfrhe.corporate_name,
+                pfrhe.product_id,
+                pfrhe.product_name,
+                pfrhe.purchase_sales;
+    vc_error_msg := 'New PFC for this Month';
+          
     --
     -- New PFC for this Month
     --
@@ -292,7 +377,7 @@ create or replace package body pkg_phy_mbv_report is
          and pofh.pofh_id = pfd.pofh_id
          and pfd.pfd_id = pfam.pfd_id
          and pfam.internal_action_ref_no = axs.internal_action_ref_no(+)
-         and pocd.element_id = aml.attribute_id
+        and poch.element_id = aml.attribute_id
          and vped.pcdi_id = pcdi.pcdi_id
          and vped.element_id = aml.attribute_id(+)
          and aml.underlying_product_id = pdm_aml.product_id
@@ -411,13 +496,138 @@ create or replace package body pkg_phy_mbv_report is
          and pfd.hedge_correction_date > vd_prev_eom_date
          and pfd.hedge_correction_date <= pd_trade_date;
     commit;
+    vc_error_msg := 'Add Free Metal';
     --
+    -- Add Free Metal
+    --
+ insert into pfrd_price_fix_report_detail
+   (process_id,
+    eod_trade_date,
+    section_name,
+    purchase_sales,
+    corporate_id,
+    corporate_name,
+    product_id,
+    product_name,
+    element_id,
+    instrument_id,
+    instrument_name,
+    cp_id,
+    cp_name,
+    internal_contract_ref_no,
+    delivery_item_no,
+    contract_type,
+    pcdi_id,
+    contract_ref_no_del_item_no,
+    price_fixed_date,
+    internal_action_ref_no,
+    pfd_id,
+    is_new_pfc,
+    pf_ref_no,
+    fixed_qty,
+    fixed_unit_base_qty_factor,
+    price,
+    price_unit_id,
+    price_unit_cur_id,
+    price_unit_cur_code,
+    price_unit_weight_unit_id,
+    price_unit_weight_unit,
+    price_unit_weight,
+    price_unit_name,
+    fx_price_to_base_cur,
+    price_in_base_cur,
+    consumed_qty,
+    fixation_value,
+    base_qty_unit_id,
+    base_qty_unit,
+    is_free_metal)
+   select pc_process_id process_id,
+          pd_trade_date eod_trade_date,
+          'New PFC for this Month' section_name,
+          'Purchase' purchase_sales,
+          akc.corporate_id,
+          akc.corporate_name,
+          pdm.product_id,
+          pdm.product_desc,
+          aml.attribute_id element_id,
+          null instrument_id,
+          null instrument_name,
+          phd.profileid cp_id,
+          phd.companyname cp_name,
+          null internal_contract_ref_no,
+          null delivery_item_no,
+          'P' contract_type,
+          null pcdi_id,
+          null contract_ref_no_del_item_no,
+          fmpfh.finalize_date price_fixed_date,
+          axs.internal_action_ref_no,
+          fmed.fmed_id pfd_id,
+          'Y' is_new_pfc,
+          axs.action_ref_no pf_ref_no,
+          nvl(fmpfh.priced_qty, 0) * ucm.multiplication_factor fixed_qty,
+          ucm.multiplication_factor fixed_unit_base_qty_factor,
+          fmed.provisional_price price,
+          fmed.price_unit_id,
+          ppu.cur_id price_unit_cur_id,
+          cm.cur_code price_unit_cur_code,
+          qum.qty_unit_id price_unit_weight_unit_id,
+          qum.qty_unit price_unit_weight_unit,
+          ppu.weight price_unit_weight,
+          ppu.price_unit_name,
+          fmpfh.avg_fx fx_price_to_base_cur,
+          fmed.provisional_price * nvl(fmpfh.avg_fx, 1) price_in_base_cur,
+          0 consumed_qty,
+          fmed.provisional_price * nvl(fmpfh.avg_fx, 1) *
+          nvl(fmpfh.priced_qty, 0) * ucm.multiplication_factor fixation_value,
+          pdm.base_quantity_unit base_qty_unit_id,
+          qum_pdm.qty_unit base_qty_unit,
+          'Y' is_free_metal
+     from fmuh_free_metal_utility_header fmuh,
+          fmed_free_metal_elemt_details  fmed,
+          fmpfh_price_fixation_header    fmpfh,
+          ak_corporate                   akc,
+          qum_quantity_unit_master       qum,
+          phd_profileheaderdetails       phd,
+          aml_attribute_master_list      aml,
+          pdm_productmaster              pdm,
+          axs_action_summary             axs,
+          ucm_unit_conversion_master     ucm,
+          v_ppu_pum                      ppu,
+          cm_currency_master             cm,
+          qum_quantity_unit_master       qum_ppu,
+          qum_quantity_unit_master       qum_pdm
+    where fmuh.fmuh_id = fmed.fmuh_id
+      and fmed.fmed_id = fmpfh.fmed_id
+      and fmed.element_id = fmpfh.element_id
+      and fmuh.is_active = 'Y'
+      and fmed.is_active = 'Y'
+      and fmpfh.is_active = 'Y'
+      and fmuh.corporate_id = akc.corporate_id
+      and fmed.qty_unit_id = qum.qty_unit_id
+      and phd.profileid = fmuh.smelter_id
+      and fmed.element_id = aml.attribute_id
+      and aml.underlying_product_id = pdm.product_id
+      and fmuh.internal_action_ref_no = axs.internal_action_ref_no
+      and axs.corporate_id = pc_corporate_id
+      and ucm.from_qty_unit_id = fmed.qty_unit_id
+      and ucm.to_qty_unit_id = pdm.base_quantity_unit
+      and ucm.is_active = 'Y'
+      and ppu.product_price_unit_id = fmed.price_unit_id
+      and ppu.cur_id = cm.cur_id
+      and ppu.weight_unit_id = qum_ppu.qty_unit_id
+      and qum_pdm.qty_unit_id = pdm.base_quantity_unit
+      and axs.eff_date >= vd_prev_eom_date
+      and axs.eff_date < = pd_trade_date
+      and axs.process = 'EOM';
+   commit;
+        
     -- Need to insert PFRH here and Update the realized qty, since we have to use the 
     -- Realized qty per product and distribute it across price fixations in asecnding order
     -- for the New PFC This Month records
     --
     -- Insert Header Raw Data
     --
+    vc_error_msg := 'Insert Header Raw Data';
      insert into pfrh_price_fix_report_header
           (process_id,
            eod_trade_date,
@@ -425,8 +635,6 @@ create or replace package body pkg_phy_mbv_report is
            corporate_name,
            product_id,
            product_name,
-           instrument_id,
-           instrument_name,
            priced_arrived_qty,
            priced_delivered_qty,
            realized_qty,
@@ -451,8 +659,6 @@ create or replace package body pkg_phy_mbv_report is
                  pfrd.corporate_name,
                  pfrd.product_id,
                  pfrd.product_name,
-                 pfrd.instrument_id,
-                 pfrd.instrument_name,
                  0 priced_arrived_qty,
                  0 priced_delivered_qty,
                  0 realized_qty,
@@ -483,19 +689,182 @@ create or replace package body pkg_phy_mbv_report is
                     pfrd.corporate_name,
                     pfrd.product_id,
                     pfrd.product_name,
-                    pfrd.instrument_id,
-                    pfrd.instrument_name,
                     pfrd.base_qty_unit_id,
                     pfrd.base_qty_unit,
                     cm.decimals,
                     qum.decimals;
         commit;
         
-          --
+ vc_error_msg := 'Open Purchase And Sales Price Fixation Qty';             
+        --
+        -- PFRH Aggregated available data from PFRD
+        --
+        for cur_pf_qty in (
+            select pfrd.product_id,
+                   sum(nvl(case
+                           when pfrd.purchase_sales = 'Purchase' then
+                            pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor
+                           else
+                            0
+                         end,
+                         0)) open_purchase_price_fix_qty,
+                 sum(nvl(case
+                           when pfrd.purchase_sales = 'Sales' then
+                            pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor
+                           else
+                            0
+                         end,
+                         0)) open_sales_price_fix_qty,
+                round(case when  sum(nvl(case
+                           when pfrd.purchase_sales = 'Purchase' then
+                            pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor
+                           else
+                            0
+                         end,
+                         0)) = 0 then 0 
+                else
+                         sum(case
+                           when pfrd.purchase_sales = 'Purchase' then pfrd.fixation_value else 0 end) / 
+                          sum(nvl(case
+                           when pfrd.purchase_sales = 'Purchase' then
+                            pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor
+                           else
+                            0
+                            end,
+                0)) end,4) wap_purchase_price_fixations,
+                round(case when   sum(nvl(case
+                           when pfrd.purchase_sales = 'Sales' then
+                            pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor
+                           else
+                            0
+                         end,
+                         0)) = 0 then 0 
+                else
+                         sum( case
+                           when pfrd.purchase_sales = 'Sales' then pfrd.fixation_value * -1 else 0 end ) / 
+                          sum(nvl(case
+                           when pfrd.purchase_sales = 'Sales' then
+                            pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor
+                           else
+                            0
+                         end,
+                0)) end,4) wap_sales_price_fixations,
+                sum(nvl(case
+                            when pfrd.purchase_sales = 'Purchase' then
+                             pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor
+                            else
+                             0
+                          end,
+                          0)) purchase_price_fix_qty,
+                  sum(nvl(case
+                            when pfrd.purchase_sales = 'Sales' then
+                             pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor
+                            else
+                             0
+                          end,
+                          0)) sales_price_fix_qty,
+                   ppu.product_price_unit_id wap_price_unit_id,
+                   ppu.price_unit_name       wap_price_unit_name,
+                   cm.cur_id                 wap_price_cur_id,
+                   cm.cur_code               wap_price_cur_code,
+                   qum.qty_unit_id           wap_price_weight_unit_id,
+                   qum.qty_unit              wap_price_weight_unit,
+                   ppu.weight                wap_price_weight
+              from pfrd_price_fix_report_detail pfrd,
+                   v_ppu_pum                    ppu,
+                   qum_quantity_unit_master     qum,
+                   cm_currency_master           cm,
+                   ak_corporate                 akc
+             where pfrd.process_id = pc_process_id
+               and pfrd.section_name = 'New PFC for this Month'
+               and pfrd.product_id = ppu.product_id
+               and pfrd.corporate_id = akc.corporate_id
+               and ppu.cur_id = akc.base_cur_id
+               and ppu.cur_id = cm.cur_id
+               and ppu.weight_unit_id = qum.qty_unit_id
+               and ppu.weight_unit_id = pfrd.base_qty_unit_id
+             group by pfrd.product_id,
+                      ppu.product_price_unit_id,
+                      ppu.price_unit_name,
+                      cm.cur_id,
+                      cm.cur_code,
+                      qum.qty_unit_id,
+                      qum.qty_unit,
+                      ppu.weight)
+        loop
+          update pfrh_price_fix_report_header pfrh
+             set pfrh.purchase_price_fix_qty   = cur_pf_qty.open_purchase_price_fix_qty,
+                 pfrh.sales_price_fixation_qty = cur_pf_qty.open_sales_price_fix_qty,
+                 pfrh.wap_purchase_price_fixations = cur_pf_qty.wap_purchase_price_fixations,
+                 pfrh.wap_sales_price_fixations = cur_pf_qty.wap_sales_price_fixations,
+                 pfrh.wap_price_unit_id = cur_pf_qty.wap_price_unit_id,
+                 pfrh.wap_price_unit_name = cur_pf_qty.wap_price_unit_name,
+                 pfrh.wap_price_cur_id = cur_pf_qty.wap_price_cur_id,
+                 pfrh.wap_price_cur_code = cur_pf_qty.wap_price_cur_code,
+                 pfrh.wap_price_weight_unit_id = cur_pf_qty.wap_price_weight_unit_id,
+                 pfrh.wap_price_weight_unit = cur_pf_qty.wap_price_weight_unit,
+                 pfrh.wap_price_weight = cur_pf_qty.wap_price_weight,
+                 pfrh.price_fix_qty_purchase_new = cur_pf_qty.purchase_price_fix_qty,
+                 pfrh.price_fix_qty_sales_new = cur_pf_qty.sales_price_fix_qty
+           where pfrh.process_id = pc_process_id
+             and pfrh.product_id = cur_pf_qty.product_id;
+        end loop;
+        commit;        
+        
+   --
+   -- Put New PFC This month to PFTHE, required for consumption record
+   --
+    
+    insert into pfrhe_pfrh_extension
+      (process_id,
+       eod_trade_date,
+       corporate_id,
+       corporate_name,
+       product_id,
+       product_name,
+       purchase_sales,
+       fixed_qty,
+       weighted_avg_price,
+       from_section_name,
+       section_name,
+       consumed_qty,
+       fixation_value)
+      select pfrh.process_id,
+             pfrh.eod_trade_date,
+             pfrh.corporate_id,
+             pfrh.corporate_name,
+             pfrh.product_id,
+             pfrh.product_name,
+             'Purchase',
+             pfrh.price_fix_qty_purchase_new,
+             pfrh.wap_purchase_price_fixations,
+             'New PFC for this Month',
+             'List of Consumed Fixations for Realization',
+             0,
+             pfrh.price_fix_qty_purchase_new * pfrh.wap_purchase_price_fixations
+        from pfrh_price_fix_report_header pfrh
+       where pfrh.process_id = pc_process_id
+      union all
+      select pfrh.process_id,
+             pfrh.eod_trade_date,
+             pfrh.corporate_id,
+             pfrh.corporate_name,
+             pfrh.product_id,
+             pfrh.product_name,
+             'Sales',
+             pfrh.price_fix_qty_sales_new,
+             pfrh.wap_sales_price_fixations,
+             'New PFC for this Month',
+             'List of Consumed Fixations for Realization',
+             0,
+             pfrh.price_fix_qty_sales_new * pfrh.wap_sales_price_fixations
+        from pfrh_price_fix_report_header pfrh
+       where pfrh.process_id = pc_process_id;
+        vc_error_msg := 'Update Previous Month Realized Qty';
+        --
         -- Update Previous Month Realized Qty, Price Fixation Qty OB for Purchase and Sales
         --
         for cur_pfhr_prev_real_qty in (select pfrh_prev.product_id,
-                                              pfrh_prev.instrument_id,
                                               pfrh_prev.realized_qty realized_qty_prev_month,
                                               pfrh_prev.price_fix_qty_purchase_new price_fix_qty_purchase_ob,
                                               pfrh_prev.price_fix_qty_sales_new price_fix_qty_sales_ob
@@ -510,7 +879,7 @@ create or replace package body pkg_phy_mbv_report is
              and pfrh.product_id = cur_pfhr_prev_real_qty.product_id;
         end loop;
         commit;
-        
+        vc_error_msg := 'Update Priced and Arrived Qty and Priced and Delivered Qty';     
         --
         -- Update Priced and Arrived Qty and Priced and Delivered Qty
         -- 
@@ -535,521 +904,156 @@ create or replace package body pkg_phy_mbv_report is
         -- Update Realized Qty Current Month = (Realized Qty - Realized Qty Last EOM)
         --
         update pfrh_price_fix_report_header pfrh
-        set pfrh.realized_qty_current_month = pfrh.realized_qty - pfrh.realized_qty_prev_month
+           set pfrh.realized_qty_current_month = pfrh.realized_qty -
+                                                 pfrh.realized_qty_prev_month
          where pfrh.process_id = pc_process_id;
          commit;
         --
-        -- Update consumed qty for the above data from Purchase / Sales Contract Status which is
-        -- already updated in PFRH column realized_qty_current_month
-        --
-        for cur_consumed_qty in (select pfrh.product_id,
-                                       pfrh.realized_qty_current_month consumed_qty
-                                   from pfrh_price_fix_report_header pfrh
-                                  where pfrh.process_id = pc_process_id
-                                  and pfrh.realized_qty_current_month > 0)
-        loop
-          vn_qty_to_consume := cur_consumed_qty.consumed_qty ;
-        -- Consume in ascending order of Price Fixations done
-        for cur_fixation in (select pfrd.fixed_qty,
-                                    to_number(pfrd.pfd_id) pfd_id
-                               from pfrd_price_fix_report_detail pfrd
-                              where pfrd.process_id = pc_process_id
-                                and pfrd.product_id =
-                                    cur_consumed_qty.product_id
-                                    and pfrd.section_name ='New PFC for this Month'
-                              order by to_number(pfrd.pfd_id))
-        loop
-        
-        If vn_qty_to_consume <  cur_fixation.fixed_qty then
-            vn_consumed_for_this_fixation := vn_qty_to_consume;
-        else
-            vn_consumed_for_this_fixation := cur_fixation.fixed_qty;
-        end if;
-        
-            update pfrd_price_fix_report_detail pfrd
-               set pfrd.consumed_qty = vn_consumed_for_this_fixation
-             where pfrd.process_id = pc_process_id
-               and pfrd.product_id = cur_consumed_qty.product_id
-               and pfrd.pfd_id = cur_fixation.pfd_id;
-            vn_qty_to_consume := vn_qty_to_consume - cur_fixation.fixed_qty;
-          if vn_qty_to_consume <= 0 then -- Everything is consumed for this Product
-            exit;
-          end if;
-        end loop;
-      end loop;
-      commit;
-        --
         -- List of Consumed Fixations for Realization
         --
-        insert into pfrd_price_fix_report_detail
-          (process_id,
-           eod_trade_date,
-           section_name,
-           purchase_sales,
-           corporate_id,
-           corporate_name,
-           product_id,
-           product_name,
-           instrument_id,
-           instrument_name,
-           cp_id,
-           cp_name,
-           pcdi_id,
-           internal_contract_ref_no,
-           delivery_item_no,
-           contract_ref_no_del_item_no,
-           price_fixed_date,
-           is_new_pfc,
-           internal_action_ref_no,
-           pf_ref_no,
-           fixed_qty,
-           price,
-           price_unit_id,
-           price_unit_cur_id,
-           price_unit_cur_code,
-           price_unit_weight_unit_id,
-           price_unit_weight_unit,
-           price_unit_weight,
-           price_unit_name,
-           fx_price_to_base_cur,
-           price_in_base_cur,
-           consumed_qty,
-           fixation_value,
-           pfd_id,
-           element_id,
-           contract_type,
-           base_qty_unit_id,
-           base_qty_unit)
-          select pc_process_id,
-                 pd_trade_date,
-                 'List of Consumed Fixations for Realization' section_name,
-                 purchase_sales,
-                 corporate_id,
-                 corporate_name,
-                 product_id,
-                 product_name,
-                 instrument_id,
-                 instrument_name,
-                 cp_id,
-                 cp_name,
-                 pcdi_id,
-                 internal_contract_ref_no,
-                 delivery_item_no,
-                 contract_ref_no_del_item_no,
-                 price_fixed_date,
-                 'N', --is_new_pfc,    
-                 internal_action_ref_no,
-                 pf_ref_no,
-                 pfrd.consumed_qty,
-                 price,
-                 price_unit_id,
-                 price_unit_cur_id,
-                 price_unit_cur_code,
-                 price_unit_weight_unit_id,
-                 price_unit_weight_unit,
-                 price_unit_weight,
-                 price_unit_name,
-                 fx_price_to_base_cur,
-                 price_in_base_cur,
-                 0 consumed_qty, -- Not applicable for this section
-                 (case
-                   when purchase_sales = 'P' then
-                    1
-                   else
-                    (-1)
-                 end) * (consumed_qty) * price_in_base_cur *
-                 fixed_unit_base_qty_factor,
-                 pfd_id,
-                 element_id,
-                 contract_type,
-                 base_qty_unit_id,
-                 base_qty_unit
-            from pfrd_price_fix_report_detail pfrd
-           where pfrd.process_id = pc_process_id
-             and pfrd.consumed_qty > 0
-             and pfrd.section_name = 'New PFC for this Month';
-           commit;
+        vc_error_msg := 'List of Consumed Fixations for Realization';
+        --
+        -- Purchase First 
+        --
+        for cur_pfrh in(     
+        select pfrh.product_id,
+               pfrh.realized_qty_current_month consumed_qty
+          from pfrh_price_fix_report_header pfrh
+         where pfrh.process_id = pc_process_id
+           and pfrh.realized_qty_current_month > 0) loop
+        vn_qty_to_consume := cur_pfrh.consumed_qty ;  
+        for cur_consumed in(                                
+        select *
+          from pfrhe_pfrh_extension pfrhe
+         where pfrhe.process_id = pc_process_id
+           and pfrhe.purchase_sales = 'Purchase'
+           and pfrhe.product_id = cur_pfrh.product_id
+         order by pfrhe.from_section_name) loop -- Balance First and New Next
+        If vn_qty_to_consume <  cur_consumed.fixed_qty then
+            vn_consumed_for_this_fixation := vn_qty_to_consume;
+        else
+            vn_consumed_for_this_fixation := cur_consumed.fixed_qty;
+        end if;
+        update pfrhe_pfrh_extension pfrhe
+           set pfrhe.consumed_qty = vn_consumed_for_this_fixation
+         where pfrhe.process_id = pc_process_id
+           and pfrhe.product_id = cur_consumed.product_id
+           and pfrhe.from_section_name = cur_consumed.from_section_name 
+           and pfrhe.purchase_sales =cur_consumed.purchase_sales;-- add other where clauses
+            vn_qty_to_consume := vn_qty_to_consume - cur_consumed.fixed_qty ;--+ cur_fixation.prev_consumed_qty;
+            -- 
+          if vn_qty_to_consume <= 0 then -- Everything is consumed for this Product
+           exit;
+          end if;
+        end loop;
+        end loop;
+--
+-- Sales Next
+--       
+for cur_pfrh in(     
+        select pfrh.product_id,
+               pfrh.realized_qty_current_month consumed_qty
+          from pfrh_price_fix_report_header pfrh
+         where pfrh.process_id = pc_process_id
+           and pfrh.realized_qty_current_month > 0) loop
+        vn_qty_to_consume := cur_pfrh.consumed_qty ;  
+        for cur_consumed in(                                
+        select *
+          from pfrhe_pfrh_extension pfrhe
+         where pfrhe.process_id = pc_process_id
+           and pfrhe.purchase_sales = 'Sales'
+           and pfrhe.product_id = cur_pfrh.product_id
+         order by pfrhe.from_section_name) loop -- Balance First and New Next
+        If vn_qty_to_consume <  cur_consumed.fixed_qty then
+            vn_consumed_for_this_fixation := vn_qty_to_consume;
+        else
+            vn_consumed_for_this_fixation := cur_consumed.fixed_qty;
+        end if;
+        update pfrhe_pfrh_extension pfrhe
+           set pfrhe.consumed_qty = vn_consumed_for_this_fixation
+         where pfrhe.process_id = pc_process_id
+           and pfrhe.product_id = cur_consumed.product_id
+           and pfrhe.from_section_name = cur_consumed.from_section_name 
+           and pfrhe.purchase_sales =cur_consumed.purchase_sales;-- add other where clauses
+            vn_qty_to_consume := vn_qty_to_consume - cur_consumed.fixed_qty ;--+ cur_fixation.prev_consumed_qty;
+            -- 
+          if vn_qty_to_consume <= 0 then -- Everything is consumed for this Product
+           exit;
+          end if;
+        end loop;
+        end loop;        
         -- 
         -- List of Balance Price Fixations
         --
-        insert into pfrd_price_fix_report_detail
-          (process_id,
-           eod_trade_date,
-           section_name,
-           purchase_sales,
-           corporate_id,
-           corporate_name,
-           product_id,
-           product_name,
-           instrument_id,
-           instrument_name,
-           cp_id,
-           cp_name,
-           pcdi_id,
-           internal_contract_ref_no,
-           delivery_item_no,
-           contract_ref_no_del_item_no,
-           price_fixed_date,
-           is_new_pfc,
-           internal_action_ref_no,
-           pf_ref_no,
-           fixed_qty,
-           price,
-           price_unit_id,
-           price_unit_cur_id,
-           price_unit_cur_code,
-           price_unit_weight_unit_id,
-           price_unit_weight_unit,
-           price_unit_weight,
-           price_unit_name,
-           fx_price_to_base_cur,
-           price_in_base_cur,
-           consumed_qty,
-           fixation_value,
-           pfd_id,
-           element_id,
-           contract_type,
-           fixed_unit_base_qty_factor,
-           base_qty_unit_id,
-           base_qty_unit)
-          select pc_process_id,
-                 pd_trade_date,
-                 'List of Balance Price Fixations' section_name,
-                 purchase_sales,
-                 corporate_id,
-                 corporate_name,
-                 product_id,
-                 product_name,
-                 instrument_id,
-                 instrument_name,
-                 cp_id,
-                 cp_name,
-                 pcdi_id,
-                 internal_contract_ref_no,
-                 delivery_item_no,
-                 contract_ref_no_del_item_no,
-                 price_fixed_date,
-                 'N', --is_new_pfc,    
-                 internal_action_ref_no,
-                 pf_ref_no,
-                 fixed_qty - consumed_qty,
-                 price,
-                 price_unit_id,
-                 price_unit_cur_id,
-                 price_unit_cur_code,
-                 price_unit_weight_unit_id,
-                 price_unit_weight_unit,
-                 price_unit_weight,
-                 price_unit_name,
-                 fx_price_to_base_cur,
-                 price_in_base_cur,
-                 0 consumed_qty, -- Not applicable for this section
-                 (case
-                   when purchase_sales = 'Purchase' then
-                    1
-                   else
-                    (-1)
-                 end) * (fixed_qty - consumed_qty) * price_in_base_cur *
-                 fixed_unit_base_qty_factor,
-                 pfd_id,
-                 element_id,
-                 contract_type,
-                 fixed_unit_base_qty_factor,
-                 base_qty_unit_id,
-                 base_qty_unit
-            from pfrd_price_fix_report_detail pfrd
-           where pfrd.process_id = pc_process_id
-             and (pfrd.fixed_qty - pfrd.consumed_qty) <> 0
-             and pfrd.section_name = 'New PFC for this Month';
-             commit;
+        vc_error_msg := 'List of Balance Price Fixations';
+
+insert into pfrhe_pfrh_extension
+  (process_id,
+   eod_trade_date,
+   corporate_id,
+   corporate_name,
+   product_id,
+   product_name,
+   purchase_sales,
+   fixed_qty,
+   weighted_avg_price,
+   from_section_name,
+   section_name,
+   consumed_qty,
+   fixation_value)
+  select process_id,
+         eod_trade_date,
+         corporate_id,
+         corporate_name,
+         product_id,
+         product_name,
+         purchase_sales,
+         fixed_qty,
+         weighted_avg_price,
+         from_section_name,
+         'List of Balance Price Fixations',
+         consumed_qty,
+         fixation_value
+    from pfrhe_pfrh_extension pfrhe
+   where pfrhe.process_id = pc_process_id
+     and pfrhe.section_name = 'List of Consumed Fixations for Realization'
+     and pfrhe.fixed_qty - pfrhe.consumed_qty > 0;
+     commit;
+        vc_error_msg := 'Update Realized Value PFRH';
+     --
+     -- Update Fixation Value = Realized Value = Consumed Qty * WAP in PFRHE
+     --
+     update pfrhe_pfrh_extension pfrhe
+        set pfrhe.fixation_value = pfrhe.consumed_qty *
+                                   pfrhe.weighted_avg_price
+      where pfrhe.process_id = pc_process_id;
+     commit;
+     
+        vc_error_msg := 'Update Realized Value';  
         --
-        -- List of Balance Price Fixations from previous Month
+        -- Update Realized Value (Consumed Qty * WAP)
         --
-        insert into pfrd_price_fix_report_detail
-          (process_id,
-           eod_trade_date,
-           section_name,
-           purchase_sales,
-           corporate_id,
-           corporate_name,
-           product_id,
-           product_name,
-           instrument_id,
-           instrument_name,
-           cp_id,
-           cp_name,
-           pcdi_id,
-           internal_contract_ref_no,
-           delivery_item_no,
-           contract_ref_no_del_item_no,
-           price_fixed_date,
-           is_new_pfc,
-           internal_action_ref_no,
-           pf_ref_no,
-           fixed_qty,
-           price,
-           price_unit_id,
-           price_unit_cur_id,
-           price_unit_cur_code,
-           price_unit_weight_unit_id,
-           price_unit_weight_unit,
-           price_unit_weight,
-           price_unit_name,
-           fx_price_to_base_cur,
-           price_in_base_cur,
-           consumed_qty,
-           fixation_value,
-           pfd_id,
-           element_id,
-           contract_type,
-           fixed_unit_base_qty_factor,
-           base_qty_unit_id,
-           base_qty_unit)
-          select pc_process_id,
-                 pd_trade_date,
-                 'List of Balance Price Fixations from previous Month' section_name,
-                 purchase_sales,
-                 corporate_id,
-                 corporate_name,
-                 product_id,
-                 product_name,
-                 instrument_id,
-                 instrument_name,
-                 cp_id,
-                 cp_name,
-                 pcdi_id,
-                 internal_contract_ref_no,
-                 delivery_item_no,
-                 contract_ref_no_del_item_no,
-                 price_fixed_date,
-                 is_new_pfc,
-                 internal_action_ref_no,
-                 pf_ref_no,
-                 fixed_qty,
-                 price,
-                 price_unit_id,
-                 price_unit_cur_id,
-                 price_unit_cur_code,
-                 price_unit_weight_unit_id,
-                 price_unit_weight_unit,
-                 price_unit_weight,
-                 price_unit_name,
-                 fx_price_to_base_cur,
-                 price_in_base_cur,
-                 consumed_qty,
-                 fixation_value,
-                 pfd_id,
-                 element_id,
-                 contract_type,
-                 fixed_unit_base_qty_factor,
-                 base_qty_unit_id,
-                 base_qty_unit
-            from pfrd_price_fix_report_detail pfrd
-           where pfrd.process_id = vc_previous_eom_id
-             and pfrd.section_name = 'List of Balance Price Fixations';
-        commit;
-        
-        --
-        -- Update Realized Value
-        --
-        for cur_realized_value in (select pfrd.product_id,
-                                          sum(pfrd.fixation_value) fixation_value
-                                     from pfrd_price_fix_report_detail pfrd
-                                    where pfrd.process_id = pc_process_id
-                                      and pfrd.section_name = 'List of Consumed Fixations For Realization'
-                                    group by pfrd.product_id)
-        loop
+        for cur_realized_value in (
+            select pfrhe.product_id,
+                   sum(case
+                         when pfrhe.purchase_sales = 'Sales' then
+                          1
+                         else
+                          -1
+                       end * pfrhe.consumed_qty * pfrhe.weighted_avg_price
+                       ) fixation_value
+              from pfrhe_pfrh_extension pfrhe
+             where pfrhe.process_id = pc_process_id
+               and pfrhe.section_name =
+                   'List of Consumed Fixations for Realization'
+             group by pfrhe.product_id) loop
           update pfrh_price_fix_report_header pfrh
              set pfrh.realized_value = cur_realized_value.fixation_value
            where pfrh.process_id = pc_process_id
              and pfrh.product_id = cur_realized_value.product_id;
         end loop;
         commit;
-        --
-        -- Open Purchase And Sales Price Fixation Qty
-        --
-        for cur_pf_qty in (
-        select    pfrd.product_id,
-                  sum(nvl(case
-                            when pfrd.purchase_sales = 'Purchase' then
-                             pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor
-                            else
-                             0
-                          end,
-                          0)) open_purchase_price_fix_qty,
-                  sum(nvl(case
-                            when pfrd.purchase_sales = 'Sales' then
-                             pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor
-                            else
-                             0
-                          end,
-                          0)) open_sales_price_fix_qty,
-                 round(case when  sum(nvl(case
-                            when pfrd.purchase_sales = 'Purchase' then
-                             pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor
-                            else
-                             0
-                          end,
-                          0)) = 0 then 0 
-                 else
-                          sum(case
-                            when pfrd.purchase_sales = 'Purchase' then pfrd.fixation_value else 0 end) / 
-                           sum(nvl(case
-                            when pfrd.purchase_sales = 'Purchase' then
-                             pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor
-                            else
-                             0
-                             end,
-                 0)) end,4) wap_purchase_price_fixations,
-                 round(case when   sum(nvl(case
-                            when pfrd.purchase_sales = 'Sales' then
-                             pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor
-                            else
-                             0
-                          end,
-                          0)) = 0 then 0 
-                 else
-                          sum( case
-                            when pfrd.purchase_sales = 'Sales' then pfrd.fixation_value * -1 else 0 end ) / 
-                           sum(nvl(case
-                            when pfrd.purchase_sales = 'Sales' then
-                             pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor
-                            else
-                             0
-                          end,
-                 0)) end,4) wap_sales_price_fixations                                 
-                 from pfrd_price_fix_report_detail pfrd
-                 where pfrd.process_id = pc_process_id
-                 and pfrd.section_name = 'List of Balance Price Fixations'
-                 group by pfrd.product_id)
-        loop
-          update pfrh_price_fix_report_header pfrh
-             set pfrh.purchase_price_fix_qty   = cur_pf_qty.open_purchase_price_fix_qty,
-                 pfrh.sales_price_fixation_qty = cur_pf_qty.open_sales_price_fix_qty,
-                 pfrh.wap_purchase_price_fixations = cur_pf_qty.wap_purchase_price_fixations,
-                 pfrh.wap_sales_price_fixations = cur_pf_qty.wap_sales_price_fixations
-           where pfrh.process_id = pc_process_id
-             and pfrh.product_id = cur_pf_qty.product_id;
-        end loop;
-        commit;
-        --
-        -- New Purchase and Sales New PF Qty
-        --
-        for cur_fix_qty in (
-            select pfrd.product_id,
-                   sum(nvl(case
-                             when pfrd.purchase_sales = 'Purchase' then
-                              pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor
-                             else
-                              0
-                           end,
-                           0)) purchase_price_fix_qty,
-                   sum(nvl(case
-                             when pfrd.purchase_sales = 'Sales' then
-                              pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor
-                             else
-                              0
-                           end,
-                           0)) sales_price_fix_qty
-              from pfrd_price_fix_report_detail pfrd
-             where pfrd.process_id = pc_process_id
-               and pfrd.section_name = 'New PFC for this Month'
-             group by pfrd.product_id)
-        loop
-          update pfrh_price_fix_report_header pfrh
-             set pfrh.price_fix_qty_purchase_new = cur_fix_qty.purchase_price_fix_qty,
-             pfrh.price_fix_qty_sales_new = cur_fix_qty.sales_price_fix_qty
-           where pfrh.process_id = pc_process_id
-             and pfrh.product_id = cur_fix_qty.product_id;
-        end loop;
-        commit;
       
-        --
-        -- Populate DI level Weighted Price in DIWAP_DI_WEIGHTED_AVG_PRICE
-        --
-    insert into diwap_di_weighted_avg_price
-      (process_id,
-       eod_trade_date,
-       purchase_sales,
-       corporate_id,
-       corporate_name,
-       product_id,
-       product_name,
-       instrument_id,
-       instrument_name,
-       pcdi_id,
-       contractt_type,
-       weighted_avg_price,
-       wap_price_unit_id,
-       wap_price_unit_name,
-       wap_price_cur_id,
-       wap_price_cur_code,
-       wap_price_weight_unit_id,
-       wap_price_weight_unit,
-       wap_price_weight,
-       element_id,
-       element_name)
-      select process_id,
-             eod_trade_date,
-             purchase_sales,
-             corporate_id,
-             corporate_name,
-             pfrd.product_id,
-             product_name,
-             instrument_id,
-             instrument_name,
-             pcdi_id,
-             contract_type,
-             case when sum(pfrd.fixed_qty )= 0 then 0
-             else
-             sum(case
-                   when pfrd.purchase_sales = 'Purchase' then
-                    pfrd.fixation_value
-                   else
-                    -1 * pfrd.fixation_value -- Sales data already stored with negative and hence * -1
-                 end) / sum(pfrd.fixed_qty )
-             end ,
-             pfrd.price_unit_id,
-             pfrd.price_unit_name,
-             cm.cur_id,
-             cm.cur_code,
-             qum.qty_unit_id,
-             qum.qty_unit,
-             ppu.weight,
-             pfrd.element_id,
-             aml.attribute_name element_name
-        from pfrd_price_fix_report_detail pfrd,
-             aml_attribute_master_list    aml,
-             v_ppu_pum                    ppu,
-             cm_currency_master           cm,
-             qum_quantity_unit_master     qum
-       where pfrd.process_id = pc_process_id
-         and pfrd.element_id = aml.attribute_id(+)
-         and pfrd.price_unit_id = ppu.product_price_unit_id
-         and ppu.cur_id = cm.cur_id
-         and ppu.weight_unit_id = qum.qty_unit_id
-         and pfrd.section_name = 'New PFC for this Month'
-         and pfrd.fixed_qty * pfrd.fixed_unit_base_qty_factor <> 0
-       group by process_id,
-                eod_trade_date,
-                purchase_sales,
-                corporate_id,
-                corporate_name,
-                pfrd.product_id,
-                product_name,
-                instrument_id,
-                instrument_name,
-                pcdi_id,
-                contract_type,
-                pfrd.price_unit_id,
-                pfrd.price_unit_name,
-                cm.cur_id,
-                cm.cur_code,
-                qum.qty_unit_id,
-                qum.qty_unit,
-                ppu.weight,
-                pfrd.element_id,
-                aml.attribute_name;
     commit;
   exception
     when others then
@@ -1174,6 +1178,7 @@ create or replace package body pkg_phy_mbv_report is
                                          vc_sp_main_cur_code,
                                          vn_sp_sub_cur_id_factor,
                                          vn_sp_cur_decimals);
+      vc_error_msg := 'Conversion 1';
       if vc_sp_main_cur_id <> mbv_ddr_rows.base_cur_id then
         vn_fx_rate_sett_to_base_ccy := pkg_general.f_get_converted_currency_amt(pc_corporate_id,
                                                                                 vc_sp_main_cur_id,
@@ -1183,6 +1188,7 @@ create or replace package body pkg_phy_mbv_report is
       else
         vn_fx_rate_sett_to_base_ccy := 1;
       end if;
+      vc_error_msg := 'Conversion 2';
       if vc_mep_main_cur_id <> mbv_ddr_rows.base_cur_id then
         vn_fx_rate_mep_to_base_ccy := pkg_general.f_get_converted_currency_amt(pc_corporate_id,
                                                                                vc_mep_main_cur_id,
@@ -1192,6 +1198,7 @@ create or replace package body pkg_phy_mbv_report is
       else
         vn_fx_rate_mep_to_base_ccy := 1;
       end if;
+      vc_error_msg := 'Conversion 3';
       if mbv_ddr_rows.quantity_unit_id <>
          mbv_ddr_rows.mep_price_weight_unit_id then
         select pkg_general.f_get_converted_quantity(mbv_ddr_rows.derivative_prodct_id,
@@ -1203,7 +1210,7 @@ create or replace package body pkg_phy_mbv_report is
       else
         vn_temp_qty_factor := mbv_ddr_rows.open_quantity;
       end if;
-    
+      vc_error_msg := 'Conversion 4';
       if mbv_ddr_rows.mep_price_cur_id <> mbv_ddr_rows.base_cur_id then
         select pkg_general.f_get_converted_currency_amt(pc_corporate_id,
                                                         mbv_ddr_rows.mep_price_cur_id,
@@ -1215,12 +1222,12 @@ create or replace package body pkg_phy_mbv_report is
       else
         vn_temp_currency_factor := 1;
       end if;
-    
+      vc_error_msg := 'MEP Value in Base';
       vn_mep_value_in_base_cur  := ((mbv_ddr_rows.month_end_price /
                                    nvl(mbv_ddr_rows.mep_price_weight, 1)) *
                                    vn_temp_currency_factor) *
                                    (vn_temp_qty_factor);
-      
+      vc_error_msg := 'Conversion 5';
       if mbv_ddr_rows.quantity_unit_id <>
          mbv_ddr_rows.sett_price_weight_unit_id then
         select pkg_general.f_get_converted_quantity(mbv_ddr_rows.derivative_prodct_id,
@@ -1232,6 +1239,7 @@ create or replace package body pkg_phy_mbv_report is
       else
         vn_temp_qty_factor := mbv_ddr_rows.open_quantity;
       end if;
+      vc_error_msg := 'Conversion 6';
       if mbv_ddr_rows.sett_price_cur_id <> mbv_ddr_rows.base_cur_id then
         select pkg_general.f_get_converted_currency_amt(pc_corporate_id,
                                                         mbv_ddr_rows.sett_price_cur_id,
@@ -1242,7 +1250,9 @@ create or replace package body pkg_phy_mbv_report is
           from dual;
       else
         vn_temp_currency_factor := 1;
-      end if;                             
+      end if;   
+      vc_error_msg := 'Settlement value in Base Currency';
+                                
       vn_sett_value_in_base_cur := ((mbv_ddr_rows.settlement_price /
                                    nvl(mbv_ddr_rows.sett_price_weight, 1)) *
                                    vn_temp_currency_factor) *
@@ -1258,7 +1268,7 @@ create or replace package body pkg_phy_mbv_report is
         vn_value_diff_in_base_ccy := vn_mep_value_in_base_cur -
                                      vn_sett_value_in_base_cur;
       end if;
-    
+     vc_error_msg := 'Before Insert';
       insert into mbv_derivative_diff_report
         (process_id,
          process_date,
@@ -1353,6 +1363,7 @@ create or replace package body pkg_phy_mbv_report is
          vn_value_diff_in_base_ccy,
          vn_fx_rate_mep_to_base_ccy,
          vn_fx_rate_sett_to_base_ccy);
+ vc_error_msg := 'After Insert';         
     end loop;
     commit;
     vc_error_msg := 'End';
@@ -1863,7 +1874,7 @@ commit;
 -- Priced Inventory P and L
 --
 update mbv_metal_balance_valuation mbv
-set mbv.unr_phy_priced_inv_pnl = ( mbv.month_end_price - phy_unr_price_inv_price) * mbv.total_inv_qty
+set mbv.unr_phy_priced_inv_pnl = ( mbv.month_end_price - phy_unr_price_inv_price) * mbv.priced_inv_qty
    where mbv.process_id = pc_process_id;
    commit;
 --
@@ -1872,18 +1883,18 @@ set mbv.unr_phy_priced_inv_pnl = ( mbv.month_end_price - phy_unr_price_inv_price
 --
 for cur_mbvp in(
 select mbvp.product_id,
-       sum(case
+       nvl(sum(case
              when mbvp.purchase_sales = 'P' then
               mbvp.unrealized_pnl_in_base_cur
              else
               0
-           end) unr_phy_priced_na_pnl,
-       sum(case
+           end),0) unr_phy_priced_na_pnl,
+       nvl(sum(case
              when mbvp.purchase_sales = 'S' then
               mbvp.unrealized_pnl_in_base_cur
              else
               0
-           end) unr_phy_priced_nd_pnl
+           end),0) unr_phy_priced_nd_pnl
   from mbv_phy_postion_diff_report mbvp
  where mbvp.process_id = pc_process_id
  group by mbvp.product_id) loop
@@ -1903,7 +1914,22 @@ commit;
        set mbv.phy_realized_cb_pnl = mbv.phy_realized_ob_pnl + mbv.phy_realized_pnl
      where mbv.process_id = pc_process_id;
     commit;
-    vc_error_msg := 'End of sp_calc_mbv_report';
+    
+--
+-- Update Metal Debt Quantity 
+--    
+for cur_md_debt in(
+select md.product_id, md.debt_qty from md_metal_debt md
+where md.process_id = pc_process_id) loop
+update mbv_metal_balance_valuation mbv
+set mbv.metal_debt_qty = cur_md_debt.debt_qty
+ where mbv.process_id = pc_process_id
+ and mbv.product_id = cur_md_debt.product_id;
+ end loop;
+ commit;
+vc_error_msg := 'End of sp_calc_mbv_report';
+    
+    
   exception
     when others then
       vobj_error_log.extend;
@@ -1966,7 +1992,6 @@ commit;
              pum_price_unit_master          pum,
              pdd_product_derivative_def     pdd,
              v_ppu_pum                      ppu
-      
        where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
          and pcm.process_id = pc_process_id
          and pcm.contract_status = 'In Position'
@@ -2377,14 +2402,19 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
            qum.qty_unit mon_price_unit_weight_unit,
            pum.weight month_end_price_weight,
            pum.price_unit_name month_end_price_unit_name,
-           diwap.weighted_avg_price,
-           diwap.wap_price_unit_id,
-           diwap.wap_price_unit_name,
-           diwap.wap_price_cur_id wap_price_cur_id,
-           diwap.wap_price_cur_code wap_price_cur_code,
-           diwap.wap_price_weight_unit_id wap_price_weight_unit_id,
-           diwap.wap_price_weight_unit wap_price_weight_unit,
-           diwap.wap_price_weight wap_price_weight
+           case
+             when pcm.purchase_sales = 'P' then
+              pfrh.wap_purchase_price_fixations
+             else
+              pfrh.wap_sales_price_fixations
+           end weighted_avg_price,
+           pfrh.wap_price_unit_id,
+           pfrh.wap_price_unit_name,
+           pfrh.wap_price_cur_id wap_price_cur_id,
+           pfrh.wap_price_cur_code wap_price_cur_code,
+           pfrh.wap_price_weight_unit_id wap_price_weight_unit_id,
+           pfrh.wap_price_weight_unit wap_price_weight_unit,
+           pfrh.wap_price_weight wap_price_weight
       from pcm_physical_contract_main pcm,
            pcdi_pc_delivery_item pcdi,
            ak_corporate akc,
@@ -2400,12 +2430,9 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
               from pcs_purchase_contract_status pcs
              where pcs.process_id = pc_process_id
                and pcs.contract_type = 'CONCENTRATES'
-               and pcs.element_id is not null) pcs,
-           (select *
-              from diwap_di_weighted_avg_price diwap
-             where diwap.process_id = pc_process_id
-               and diwap.contractt_type = 'CONCENTRATES'
-               and diwap.element_id is not null) diwap,
+               and pcs.element_id is not null
+               and pcs.priced_not_arrived_qty <> 0) pcs,
+           pfrh_price_fix_report_header pfrh,
            tip_temp_instrument_price tip,
            pum_price_unit_master pum,
            qum_quantity_unit_master qum,
@@ -2437,9 +2464,9 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
        and pum.weight_unit_id = qum.qty_unit_id
        and pum.cur_id = cm.cur_id
        and mvp.price_unit_id = ppu_pum.product_price_unit_id
-       and diwap.pcdi_id(+) = pcdi.pcdi_id
-       and diwap.element_id = pcs.element_id
-    union all -- base metal contrtcts
+       and pfrh.process_id = pc_process_id
+       and pfrh.product_id = aml.underlying_product_id
+    union all -- base metal contracts
     select pcm.internal_contract_ref_no,
            pcdi.pcdi_id,
            pcdi.delivery_item_no,
@@ -2486,14 +2513,19 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
            qum.qty_unit mon_price_unit_weight_unit,
            pum.weight month_end_price_weight,
            pum.price_unit_name month_end_price_unit_name,
-           diwap.weighted_avg_price,
-           diwap.wap_price_unit_id,
-           diwap.wap_price_unit_name,
-           null wap_price_cur_id,
-           null wap_price_cur_code,
-           null wap_price_weight_unit_id,
-           null wap_price_weight_unit,
-           null wap_price_weight
+           case
+             when pcm.purchase_sales = 'P' then
+              pfrh.wap_purchase_price_fixations
+             else
+              pfrh.wap_sales_price_fixations
+           end weighted_avg_price,
+           pfrh.wap_price_unit_id,
+           pfrh.wap_price_unit_name,
+           pfrh.wap_price_cur_id wap_price_cur_id,
+           pfrh.wap_price_cur_code wap_price_cur_code,
+           pfrh.wap_price_weight_unit_id wap_price_weight_unit_id,
+           pfrh.wap_price_weight_unit wap_price_weight_unit,
+           pfrh.wap_price_weight wap_price_weight
       from pcm_physical_contract_main pcm,
            pcdi_pc_delivery_item pcdi,
            ak_corporate akc,
@@ -2508,12 +2540,9 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
               from pcs_purchase_contract_status pcs
              where pcs.process_id = pc_process_id
                and pcs.contract_type = 'BASEMETAL'
-               and pcs.element_id is null) pcs,
-           (select *
-              from diwap_di_weighted_avg_price diwap
-             where diwap.process_id = pc_process_id
-               and diwap.contractt_type = 'BASEMETAL'
-               and diwap.element_id is null) diwap,
+               and pcs.element_id is null
+               and pcs.priced_not_arrived_qty <> 0) pcs,
+           pfrh_price_fix_report_header pfrh,
            tip_temp_instrument_price tip,
            pum_price_unit_master pum,
            qum_quantity_unit_master qum,
@@ -2538,8 +2567,8 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
        and pum.weight_unit_id = qum.qty_unit_id
        and pum.cur_id = cm.cur_id
        and mvp.price_unit_id = ppu_pum.product_price_unit_id
-       and diwap.pcdi_id = pcs.pcdi_id;
-  --vn_con_price_in_base_cur number(25, 5);
+       and pfrh.process_id = pc_process_id
+       and pfrh.product_id = pcpd.product_id;
   vn_val_price_in_base_cur number(25, 5);
   vn_med_price_in_base_cur number(25, 5);
   --month end price main currency details
@@ -2592,6 +2621,7 @@ begin
                                        vc_vp_main_cur_code,
                                        vn_vp_sub_cur_id_factor,
                                        vn_vp_cur_decimals);
+    vc_error_msg :='Exchange Rate Contract To Base';
     if vc_con_main_cur_id <> cur_diff_rows.base_cur_id then
       vn_fx_rate_con_to_base_ccy := pkg_general.f_get_converted_currency_amt(pc_corporate_id,
                                                                              vc_con_main_cur_id,
@@ -2601,6 +2631,7 @@ begin
     else
       vn_fx_rate_con_to_base_ccy := 1;
     end if;
+    vc_error_msg :='Exchange Rate M2M To Base';
     if vc_vp_main_cur_id <> cur_diff_rows.base_cur_id then
       vn_fx_rate_val_to_base_ccy := pkg_general.f_get_converted_currency_amt(pc_corporate_id,
                                                                              vc_vp_main_cur_id,
@@ -2610,6 +2641,7 @@ begin
     else
       vn_fx_rate_val_to_base_ccy := 1;
     end if;
+    vc_error_msg :='Exchange Rate MEP To Base';
     if vc_mep_main_cur_id <> cur_diff_rows.base_cur_id then
       vn_fx_rate_mep_to_base_ccy := pkg_general.f_get_converted_currency_amt(pc_corporate_id,
                                                                              vc_mep_main_cur_id,
@@ -2634,7 +2666,7 @@ begin
       vn_price_diffin_base_ccy := vn_med_price_in_base_cur -
                                   vn_val_price_in_base_cur;
     end if;
-  
+    vc_error_msg :='Quantity Conversion From Payable to WAP';
     if cur_diff_rows.payable_qty_unit_id <>
        cur_diff_rows.wap_price_weight_unit_id then
     
@@ -2648,6 +2680,7 @@ begin
     else
       vn_temp_qty_factor := cur_diff_rows.priced_not_arrived_qty;
     end if;
+    vc_error_msg :='Exchange Rate From WAP to Base';    
     if cur_diff_rows.wap_price_cur_id <> cur_diff_rows.base_cur_id then
       select pkg_general.f_get_converted_currency_amt(pc_corporate_id,
                                                       cur_diff_rows.wap_price_cur_id,
@@ -2663,7 +2696,7 @@ begin
                                 nvl(cur_diff_rows.wap_price_weight, 1)) *
                                 vn_temp_currency_factor) *
                                 (vn_temp_qty_factor);
-  
+    vc_error_msg :='Quantity Conversion From Payable to MEP';
     if cur_diff_rows.payable_qty_unit_id <>
        cur_diff_rows.mon_price_unit_weight_unit_id then
     
@@ -2677,7 +2710,7 @@ begin
     else
       vn_temp_qty_factor := cur_diff_rows.priced_not_arrived_qty;
     end if;
-  
+    vc_error_msg :='Exchange Rate from MEP to Base ';  
     if cur_diff_rows.month_end_price_unit_cur_id <>
        cur_diff_rows.base_cur_id then
       select pkg_general.f_get_converted_currency_amt(pc_corporate_id,
@@ -2690,12 +2723,12 @@ begin
     else
       vn_temp_currency_factor := 1;
     end if;
-  
+    vc_error_msg :='MEP Value in Base';
     vn_mep_value_in_base_cur := ((cur_diff_rows.month_end_price /
                                 nvl(cur_diff_rows.month_end_price_weight,
                                       1)) * vn_temp_currency_factor) *
                                 (vn_temp_qty_factor);
-  
+    vc_error_msg :='Exchange Rate from Payable to M2M';
     if cur_diff_rows.payable_qty_unit_id <>
        cur_diff_rows.val_price_unit_weight_unit_id then
     
@@ -2709,7 +2742,7 @@ begin
     else
       vn_temp_qty_factor := cur_diff_rows.priced_not_arrived_qty;
     end if;
-  
+     vc_error_msg :='Exchange Rate from Valuation to M2M'; 
     if cur_diff_rows.val_price_unit_cur_id <> cur_diff_rows.base_cur_id then
       select pkg_general.f_get_converted_currency_amt(pc_corporate_id,
                                                       cur_diff_rows.val_price_unit_cur_id,
@@ -2721,7 +2754,7 @@ begin
     else
       vn_temp_currency_factor := 1;
     end if;
-  
+    vc_error_msg :='Valuation Value in Base Currency'; 
     vn_val_value_in_base_cur := ((cur_diff_rows.val_price /
                                 nvl(cur_diff_rows.val_price_weight, 1)) *
                                 vn_temp_currency_factor) *
@@ -2740,7 +2773,7 @@ begin
       vn_unreal_pnl_in_base_ccy := vn_con_value_in_base_cur -
                                    vn_val_value_in_base_cur;
     end if;
-  
+    vc_error_msg :='Befor Insert'; 
     insert into mbv_phy_postion_diff_report
       (process_id,
        eod_trade_date,
@@ -2908,6 +2941,7 @@ end;
     vc_error_msg       varchar2(100);
   
   begin
+  vc_error_msg :='Start of Allocation Report';
     begin
       select tdc.trade_date
         into vd_prev_eom_date
@@ -2924,7 +2958,7 @@ end;
       when no_data_found then
         vd_prev_eom_date := to_date('01-Jan-2000', 'dd-Mon-yyyy');
     end;
-  
+    vc_error_msg :='Start of Physicals';
     -- for physicals
     insert into mbv_allocation_report
       (process_id,
@@ -3044,7 +3078,7 @@ end;
          and pofh.internal_gmr_ref_no = gmr.internal_gmr_ref_no(+)
          and pfd.pfd_id = pfam.pfd_id
          and pfam.internal_action_ref_no = axs.internal_action_ref_no(+)
-         and pocd.element_id = aml.attribute_id
+         and poch.element_id = aml.attribute_id
          and vped.pcdi_id = pcdi.pcdi_id
          and vped.element_id = aml.attribute_id(+)
          and aml.underlying_product_id = pdm_aml.product_id
@@ -3136,7 +3170,6 @@ end;
              v_pcdi_exchange_detail vped,
              pcpd_pc_product_definition pcpd,
              pdm_productmaster pdm,
-             
              v_ppu_pum                  ppu,
              cm_currency_master         cm,
              qum_quantity_unit_master   qum,
@@ -3175,8 +3208,8 @@ end;
          and pcm.contract_type = 'BASEMETAL'
          and pfd.hedge_correction_date > vd_prev_eom_date
          and pfd.hedge_correction_date <= pd_trade_date;
-  
     commit;
+    vc_error_msg :='Start of Derivatives';
     -- derivatives
     insert into mbv_allocation_report
       (process_id,
@@ -3269,6 +3302,133 @@ end;
          and dpd.process_id = pc_process_id;
     commit;
     --- 
+    -- Free Metal
+    --
+    vc_error_msg :='Free Metal';
+    insert into mbv_allocation_report
+      (process_id,
+       eod_trade_date,
+       corporate_id,
+       corporate_name,
+       section_name,
+       cp_id,
+       cp_name,
+       product_id,
+       product_desc,
+       instrument_id,
+       instrument_name,
+       internal_contract_ref_no,
+       delivery_item_no,
+       gmr_ref_no,
+       internal_gmr_ref_no,
+       pf_ref_no,
+       external_ref_no,
+       derivative_ref_no,
+       purchase_qty,
+       sales_qty,
+       qty_unit_id,
+       qty_unit,
+       price,
+       price_unit_id,
+       price_unit_cur_id,
+       price_unit_cur_code,
+       price_unit_weight_unit_id,
+       price_unit_weight_unit,
+       price_unit_weight,
+       price_unit_name,
+       prompt_month_year,
+       fx_rate_price_to_base,
+       price_in_base_ccy,
+       price_fixed_date,
+       amount,
+       base_cur_id,
+       base_cur_name,
+       pcdi_id)
+    select pc_process_id process_id,
+       pd_trade_date eod_trade_date,
+       fmuh.corporate_id,
+       akc.corporate_name,
+       'Physicals' section_name,
+       phd.profileid cp_id,
+       phd.companyname cp_name,
+       pdm.product_id,
+       pdm.product_desc,
+       null instrument_id,
+       null instrument_name,
+       null internal_contract_ref_no,
+       null delivery_item_no,
+       null gmr_ref_no,
+       null internal_gmr_ref_no,
+       axs.action_ref_no pf_ref_no,
+       null external_ref_no,
+       null derivative_ref_no,
+       fmpfh.priced_qty * ucm.multiplication_factor purchase_qty,
+       0 sales_qty,
+       fmed.qty_unit_id,
+       qum.qty_unit,
+       fmed.provisional_price price,
+       fmed.price_unit_id,
+       cm.cur_id,
+       cm.cur_code,
+       qum.qty_unit_id,
+       qum.qty_unit,
+       ppu.weight,
+       ppu.price_unit_name,
+       null prompt_month_year,
+       nvl(fmpfh.avg_fx, 1) fx_rate_price_to_base,
+       nvl(fmpfh.avg_fx, 1) * fmed.provisional_price price_in_base_ccy,
+       fmpfh.finalize_date price_fixed_date,
+       nvl(fmpfh.avg_fx, 1) * fmed.provisional_price * fmpfh.priced_qty *
+       ucm.multiplication_factor amount,
+       akc.base_cur_id,
+       akc.base_currency_name,
+       null as pcdi_id
+  from fmuh_free_metal_utility_header fmuh,
+       fmed_free_metal_elemt_details  fmed,
+       fmpfh_price_fixation_header    fmpfh,
+       ak_corporate                   akc,
+       qum_quantity_unit_master       qum,
+       phd_profileheaderdetails       phd,
+       aml_attribute_master_list      aml,
+       pdm_productmaster              pdm,
+       axs_action_summary             axs,
+       v_ppu_pum                      ppu,
+       cm_currency_master             cm,
+       qum_quantity_unit_master       qum_ppu,
+       ucm_unit_conversion_master     ucm
+ where fmuh.fmuh_id = fmed.fmuh_id
+   and fmed.fmed_id = fmpfh.fmed_id
+   and fmed.element_id = fmpfh.element_id
+   and fmuh.is_active = 'Y'
+   and fmed.is_active = 'Y'
+   and fmpfh.is_active = 'Y'
+   and fmuh.corporate_id = akc.corporate_id
+   and fmed.qty_unit_id = qum.qty_unit_id
+   and phd.profileid = fmuh.smelter_id
+   and fmed.element_id = aml.attribute_id
+   and aml.underlying_product_id = pdm.product_id
+   and fmuh.internal_action_ref_no = axs.internal_action_ref_no
+   and axs.corporate_id=pc_corporate_id
+   and axs.eff_date >= vd_prev_eom_date
+   and axs.eff_date<=pd_trade_date
+   and fmed.price_unit_id = ppu.product_price_unit_id
+   and ppu.cur_id = cm.cur_id
+   and ppu.weight_unit_id = qum_ppu.qty_unit_id
+   and ucm.from_qty_unit_id = fmed.qty_unit_id
+   and ucm.to_qty_unit_id = pdm.base_quantity_unit
+   and ucm.is_active = 'Y'
+   and aml.is_deleted = 'N'
+   and pdm.is_deleted = 'N'
+   and phd.is_deleted = 'N'
+   and axs.process = 'EOM';
+commit;
+--
+-- Logic for Contango Due To Quantity & Price
+-- Physical Purchase Value - Physical Sales Value (a)
+-- Derivative Sales Value - Derivative Purchase Value (b)
+-- Contango due to qty and price (c) = b - a
+--
+    vc_error_msg :='Start of Allocation Header Data Insertion';
     insert into mbv_allocation_report_header
       (process_id,
        eod_trade_date,
@@ -3294,19 +3454,21 @@ end;
                      mbv.corporate_name,
                      mbv.product_id,
                      mbv.product_desc,
-                     sum( case when mbv.eod_trade_date < pd_trade_date then mbv.purchase_qty else 0 end ) +
+                     sum( case when mbv.eod_trade_date < pd_trade_date then mbv.purchase_qty else 0 end ) -
                      sum(case when mbv.eod_trade_date < pd_trade_date then mbv.sales_qty else 0 end) opening_balance,
                      sum(case
-                           when mbv.section_name = 'Derivatives' and mbv.eod_trade_date = pd_trade_date then
+                           when mbv.section_name = 'Derivatives' then
                             mbv.purchase_qty - mbv.sales_qty
                            else
                             0
                          end) actual_hedged_qty,
                      sum(case
                            when mbv.section_name = 'Derivatives' and mbv.eod_trade_date = pd_trade_date then
-                            mbv.amount
-                           else
-                            -1 * mbv.amount
+                            case when mbv.purchase_qty > 0 then -1 * mbv.amount else mbv.amount end 
+                           when mbv.section_name = 'Physicals' and mbv.eod_trade_date = pd_trade_date then
+                            -1 * mbv.amount -- Physical Amount is stored as Positive for Purchase and Negative for Sales
+                            else
+                            0
                          end) contango_due_to_qty_and_price
                 from mbv_allocation_report mbv
                where mbv.eod_trade_date <= pd_trade_date
@@ -3353,5 +3515,5 @@ end;
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-end; 
+end;
 /

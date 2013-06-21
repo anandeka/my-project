@@ -4003,10 +4003,10 @@ commit;
      where process_id = pc_process_id;
     delete from pfrd_price_fix_report_detail
      where process_id = pc_process_id;
-    delete from diwap_di_weighted_avg_price
-     where process_id = pc_process_id;
 	delete from css_contract_status_summary
      where process_id = pc_process_id;
+	 delete from pfrhe_pfrh_extension 
+	 where process_id = pc_process_id;
     commit;
 
     sp_eodeom_process_log(pc_corporate_id,

@@ -8754,7 +8754,7 @@ exception
     commit;
 end;
 -- End of Intrastat
-  procedure sp_phy_contract_status(pc_corporate_id varchar2,
+procedure sp_phy_contract_status(pc_corporate_id varchar2,
                                    pd_trade_date   date,
                                    pc_process_id   varchar2) as
   begin
@@ -9188,7 +9188,7 @@ insert into tcs2_temp_cs_priced
    delivery_item_no,
    pcdi_id,
    underlying_product_id)
---All contracts of Price type <> Fixed, except. internal Tolling contracts
+--All contracts of Price type <> Fixed, except. internal Tolling contracts, Excluding Base Metal
 select pc_corporate_id,
          pcm.internal_contract_ref_no,
          poch.element_id,
@@ -9206,31 +9206,18 @@ select pc_corporate_id,
          pfd_price_fixation_details     pfd,
          v_pcdi_exchange_detail         v_pcdi,
          aml_attribute_master_list      aml
-         /*,
-         pcbpd_pc_base_price_detail     pcbpd,
-         ppfh_phy_price_formula_header  ppfh,
-         ppfd_phy_price_formula_details ppfd*/
    where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
      and pocd.price_type <> 'Fixed'
      and pcdi.pcdi_id = poch.pcdi_id
      and poch.poch_id = pocd.poch_id
      and pocd.pocd_id = pofh.pocd_id
      and pofh.pofh_id = pfd.pofh_id
---     and pocd.pcbpd_id = pcbpd.pcbpd_id
-  --   and pcbpd.pcbpd_id = ppfh.pcbpd_id
-  --   and ppfh.ppfh_id = ppfd.ppfh_id
-  --   and ppfh.process_id = pc_process_id
-   --  and ppfd.process_id = pc_process_id
-    -- and pcbpd.process_id = pc_process_id
      and pcm.is_active = 'Y'
      and pcdi.is_active = 'Y'
      and poch.is_active = 'Y'
      and pocd.is_active = 'Y'
      and pofh.is_active = 'Y'
      and pfd.is_active = 'Y'
-    -- and pcbpd.is_active = 'Y'
-    -- and ppfh.is_active = 'Y'
-     --and ppfd.is_active = 'Y'
      and pcm.process_id = pc_process_id
      and pcdi.process_id = pc_process_id
      and pfd.hedge_correction_date <= pd_trade_date
@@ -9252,7 +9239,60 @@ sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
                           gvn_log_counter,
-                          'Main Table tcs2_temp_cs_priced over 1');     
+                          'Main Table tcs2_temp_cs_priced over 1');  
+                          
+insert into tcs2_temp_cs_priced
+  (corporate_id,
+   internal_contract_ref_no,
+   element_id,
+   priced_qty,
+   instrument_id,
+   contract_type,
+   delivery_item_no,
+   pcdi_id,
+   underlying_product_id)
+--Base Metal
+select pc_corporate_id,
+         pcm.internal_contract_ref_no,
+         poch.element_id,
+         sum(pfd.qty_fixed) priced_qty,
+         v_pcdi.instrument_id,
+         pcm.contract_type,
+         pcdi.delivery_item_no,
+         pcdi.pcdi_id,
+         null 
+    from pcm_physical_contract_main     pcm,
+         pcdi_pc_delivery_item          pcdi,
+         poch_price_opt_call_off_header poch,
+         pocd_price_option_calloff_dtls pocd,
+         pofh_price_opt_fixation_header pofh,
+         pfd_price_fixation_details     pfd,
+         v_pcdi_exchange_detail         v_pcdi
+   where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+     and pocd.price_type <> 'Fixed'
+     and pcdi.pcdi_id = poch.pcdi_id
+     and poch.poch_id = pocd.poch_id
+     and pocd.pocd_id = pofh.pocd_id
+     and pofh.pofh_id = pfd.pofh_id
+     and pcm.is_active = 'Y'
+     and pcdi.is_active = 'Y'
+     and poch.is_active = 'Y'
+     and pocd.is_active = 'Y'
+     and pofh.is_active = 'Y'
+     and pfd.is_active = 'Y'
+     and pcm.process_id = pc_process_id
+     and pcdi.process_id = pc_process_id
+     and pfd.hedge_correction_date <= pd_trade_date
+     and nvl(pfd.is_cancel, 'N') = 'N'
+     and v_pcdi.pcdi_id = pcdi.pcdi_id
+     and v_pcdi.element_id is null
+   group by pcm.internal_contract_ref_no,
+            poch.element_id,
+            v_pcdi.instrument_id,
+            pcm.contract_type,
+            pcdi.delivery_item_no,
+            pcdi.pcdi_id;                             
+commit;            
             
  insert into tcs2_temp_cs_priced
   (corporate_id,
