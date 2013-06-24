@@ -44,7 +44,8 @@ IS
    iscommercialfeeapplied     VARCHAR2 (1);
    amendmentdate              VARCHAR2 (50);
    amendmentreason            VARCHAR2 (4000);
-
+   cancellationdate           VARCHAR2 (50);
+   cancellationreason         VARCHAR2 (4000);
 
 
    CURSOR cr_delivery
@@ -63,20 +64,25 @@ BEGIN
      FROM DUAL;
 
    BEGIN
-      SELECT TO_CHAR (pcm.issue_date, 'dd-Mon-YYYY'), pcm.contract_ref_no,
-             NVL (pcm.cp_contract_ref_no, 'NA'), ak.corporate_name,
-             ak.corporate_id, pcm.purchase_sales, phd.companyname,
-             pcm.cp_id, pcm.product_group_type, pcm.partnership_type, pcm.is_tolling_contract,pcm.is_commercial_fee_applied
-        INTO issuedate, contractrefno,
-             cpcontractrefno, corporatename,
-             corporateid, contracttype, counterparty,
-             cpid, product_group_type, executiontype, istollingcontract,iscommercialfeeapplied
-        FROM pcm_physical_contract_main pcm,
-             ak_corporate ak,
-             phd_profileheaderdetails phd
-       WHERE pcm.corporate_id = ak.corporate_id
-         AND phd.profileid = pcm.cp_id
-         AND pcm.internal_contract_ref_no = p_contractno;
+      
+        SELECT TO_CHAR (pcm.issue_date, 'dd-Mon-YYYY'), pcm.contract_ref_no,
+               NVL (pcm.cp_contract_ref_no, 'NA'), ak.corporate_name,
+               ak.corporate_id, pcm.purchase_sales, phd.companyname, pcm.cp_id,
+               pcm.product_group_type, pcm.partnership_type, pcm.is_tolling_contract,
+               pcm.is_commercial_fee_applied,
+               TO_CHAR (pcm.cancellation_date, 'dd-Mon-YYYY'), pcm.reason_to_cancel
+          INTO issuedate, contractrefno,
+               cpcontractrefno, corporatename,
+               corporateid, contracttype, counterparty, cpid,
+               product_group_type, executiontype, istollingcontract,
+               iscommercialfeeapplied,
+               cancellationdate, cancellationreason
+          FROM pcm_physical_contract_main pcm,
+               ak_corporate ak,
+               phd_profileheaderdetails phd
+         WHERE pcm.corporate_id = ak.corporate_id
+           AND phd.profileid = pcm.cp_id
+           AND pcm.internal_contract_ref_no = p_contractno;
    EXCEPTION
       WHEN NO_DATA_FOUND
       THEN
@@ -116,7 +122,7 @@ BEGIN
         VALUES (docid, 'ORIGINAL', NULL, NULL,
                 p_docrefno, 1, issuedate, 'N',
                 'Active', NULL, NULL, NULL, NULL,
-                NULL, NULL, NULL, NULL,
+                NULL, cancellationdate, NULL, NULL,
                 p_contractno, contractrefno, contracttype,
                 corporateid, NULL, NULL,
                 NULL, NULL, NULL, 'Full Contract'
@@ -262,6 +268,22 @@ BEGIN
         VALUES (docid, display_order, NULL, contractsection,
                 'Contract Issue Date', 'Y', NULL,
                 NULL, issuedate, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
+    
+   display_order := display_order + 1;
+
+   INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, contractsection,
+                'Reason to Cancel', 'Y', NULL,
+                NULL, cancellationreason, NULL,
                 NULL, 'N', 'N',
                 'N', 'FULL', 'N'
                );
