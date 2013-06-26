@@ -102,6 +102,11 @@ create or replace package pkg_phy_eod_reports is
                              pc_process_id   varchar2,
                              pc_process      varchar2,
                              pc_user_id      varchar2);
+  procedure sp_calc_invoice_other_charges(pc_corporate_id varchar2,
+                                          pd_trade_date   date,
+                                          pc_process_id   varchar2,
+                                          pc_process      varchar2,
+                                          pc_user_id      varchar2);
 end;
 /
 create or replace package body pkg_phy_eod_reports is
@@ -2467,6 +2472,11 @@ create or replace package body pkg_phy_eod_reports is
     --
     -- Call Other Charges Calcualtion
     --
+    sp_calc_invoice_other_charges(pc_corporate_id,
+                                 pd_trade_date,
+                                 pc_process_id,
+                                 'EOM',
+                                 null);
     sp_calc_freight_other_charge(pc_corporate_id,
                                  pd_trade_date,
                                  pc_process_id,
@@ -3873,41 +3883,70 @@ create or replace package body pkg_phy_eod_reports is
     -- Frieght and Other charges we need to update only once per GMR, on Non Penalty Record
     -- Where the sort order = 1 sort on Paybale Returnbale Type + Element Name
     --
-    for cur_charges in (select is1.internal_invoice_ref_no,
-                               nvl(is1.freight_allowance_amt, 0) /
-                               iid.gmr_count freight_allowance_amt,
-                               (nvl(is1.total_other_charge_amount, 0) -
-                               nvl(is1.freight_allowance_amt, 0)) /
-                               iid.gmr_count total_other_charge_amount,
-                               iid.internal_gmr_ref_no
-                          from is_invoice_summary        is1,
-                               process_gmr gmr,
-                               v_iid_invoice             iid
-                         where is1.process_id = pc_process_id
-                           and iid.internal_invoice_ref_no =
-                               is1.internal_invoice_ref_no
-                           and iid.internal_gmr_ref_no =
-                               gmr.internal_gmr_ref_no
-                           and iid.internal_invoice_ref_no =
-                               gmr.latest_internal_invoice_ref_no
-                           and gmr.process_id = pc_process_id
-                           and gmr.gmr_type ='CONCENTRATES')
+    for cur_charges in (select iocd.internal_gmr_ref_no,
+        iocd.gmr_invoiced_qty,
+        nvl(sum(case
+                  when iocd.is_container_freight_charge = 'N' then
+                   iocd.charge_rate
+                  else
+                   0
+                end),
+            0) other_charges_rate,
+        nvl(sum(case
+                  when iocd.is_container_charge = 'Y' then
+                   iocd.charge_rate
+                  else
+                   0
+                end),
+            0) container_charge_rate,
+        nvl(sum(case
+                  when iocd.is_container_freight_charge = 'Y' then
+                   iocd.charge_rate
+                  else
+                   0
+                end),
+            0) container_freight_charge_rate
+   from iocd_ioc_details iocd
+  where iocd.process_id = pc_process_id
+  and iocd.contract_type ='CONCENTRATES'
+  group by iocd.internal_gmr_ref_no,
+           iocd.gmr_invoiced_qty)
     loop
-    
-      update pa_purchase_accural_gmr pa_gmr
-         set pa_gmr.othercharges_amount  = cur_charges.total_other_charge_amount,
-             pa_gmr.frightcharges_amount = case when pa_gmr.is_pledge = 'N' then cur_charges.freight_allowance_amt else 0 end
-       where pa_gmr.process_id = pc_process_id
-         and pa_gmr.internal_gmr_ref_no = cur_charges.internal_gmr_ref_no
-         and pa_gmr.payable_returnable_type <> 'Penalty'
-         and pa_gmr.payable_returnable_type || pa_gmr.element_id =
-             (select min(pa_gmr_inn.payable_returnable_type ||
-                         pa_gmr_inn.element_id)
-                from pa_purchase_accural_gmr pa_gmr_inn
-               where pa_gmr_inn.process_id = pc_process_id
-                 and pa_gmr_inn.internal_gmr_ref_no =
-                     cur_charges.internal_gmr_ref_no
-                 and pa_gmr.payable_returnable_type <> 'Penalty');
+    --
+    -- For Pledge GMR earlier we were considering Freight Charge Only in FRIGHTCHARGES_AMOUNT
+    --  With new change FRIGHTCHARGES_AMOUNT = Freight And Container Charge
+    -- For Pledge GMRS we will store exclude Freight charges from the invoice and store the rest in 
+    --  othercharges_amount. So pledge GMR report other column wil show = other charge + container charge
+    -- 
+   UPDATE pa_purchase_accural_gmr pa_gmr
+   SET pa_gmr.othercharges_amount =
+            (cur_charges.gmr_invoiced_qty * cur_charges.other_charges_rate
+            )
+          + CASE
+               WHEN pa_gmr.is_pledge = 'Y'
+                  THEN   nvl (cur_charges.container_charge_rate, 0)
+                       * cur_charges.gmr_invoiced_qty
+               ELSE 0
+            END,
+       pa_gmr.frightcharges_amount =
+          CASE
+             WHEN pa_gmr.is_pledge = 'N'
+                THEN   cur_charges.gmr_invoiced_qty
+                     * cur_charges.container_freight_charge_rate
+             ELSE 0
+          END
+ WHERE pa_gmr.process_id = pc_process_id
+   AND pa_gmr.internal_gmr_ref_no = cur_charges.internal_gmr_ref_no
+   AND pa_gmr.payable_returnable_type <> 'Penalty'
+   AND pa_gmr.payable_returnable_type || pa_gmr.element_id =
+          (SELECT MIN (   pa_gmr_inn.payable_returnable_type
+                       || pa_gmr_inn.element_id
+                      )
+             FROM pa_purchase_accural_gmr pa_gmr_inn
+            WHERE pa_gmr_inn.process_id = pc_process_id
+              AND pa_gmr_inn.internal_gmr_ref_no =
+                                               cur_charges.internal_gmr_ref_no
+              AND pa_gmr.payable_returnable_type <> 'Penalty');
     end loop;
     commit;
     vn_log_counter := vn_log_counter + 1;
@@ -4047,19 +4086,38 @@ create or replace package body pkg_phy_eod_reports is
     -- For calcualted section update freight and other charges once per GMR, on Non Penalty Record
     -- Where the sort order = 1, sort on Paybale Returnbale Type + Element Name
   
-    for cur_calc_oc_fc in (select tgoc.internal_gmr_ref_no,
-                                  tgoc.small_lot_charge +
-                                  tgoc.container_charge +
-                                  tgoc.sampling_charge +
-                                  tgoc.handling_charge + tgoc.location_value other_charges,
-                                  tgoc.freight_allowance freight_charges
-                             from gfoc_gmr_freight_other_charge tgoc
-                            where tgoc.process_id = pc_process_id)
-    loop
+for cur_calc_oc_fc in (
+ select iocd.internal_gmr_ref_no,
+        iocd.gmr_invoiced_qty,
+        nvl(sum(case
+                  when iocd.is_container_freight_charge = 'N' then
+                   iocd.charge_rate
+                  else
+                   0
+                end),
+            0) other_charges_rate,
+        nvl(sum(case
+                  when iocd.is_container_freight_charge = 'Y' then
+                   iocd.charge_rate
+                  else
+                   0
+                end),
+            0) container_freight_charge_rate,
+        nvl(sum(case
+                  when iocd.is_container_charge = 'Y' then
+                   iocd.charge_rate
+                  else
+                   0
+                end),
+            0) container_charge_rate            
+   from iocd_ioc_details iocd
+  where iocd.process_id = pc_process_id
+  and iocd.contract_type ='CONCENTRATES'
+  group by iocd.internal_gmr_ref_no,
+           iocd.gmr_invoiced_qty) loop
       update pa_purchase_accural_gmr pa_gmr
-         set pa_gmr.othercharges_amount  = -1 * cur_calc_oc_fc.other_charges,
-             pa_gmr.frightcharges_amount = -1 *
-                                           cur_calc_oc_fc.freight_charges
+         set pa_gmr.othercharges_amount  = cur_calc_oc_fc.other_charges_rate * cur_calc_oc_fc.gmr_invoiced_qty,
+             pa_gmr.frightcharges_amount = case when pa_gmr.is_pledge = 'N' then cur_calc_oc_fc.gmr_invoiced_qty * cur_calc_oc_fc.container_freight_charge_rate  else cur_calc_oc_fc.gmr_invoiced_qty * cur_calc_oc_fc.container_charge_rate end
        where pa_gmr.process_id = pc_process_id
          and pa_gmr.internal_gmr_ref_no =
              cur_calc_oc_fc.internal_gmr_ref_no
@@ -4074,9 +4132,9 @@ create or replace package body pkg_phy_eod_reports is
                      cur_calc_oc_fc.internal_gmr_ref_no
                  and pa_gmr_inn.payable_returnable_type <> 'Penalty'
                  and pa_gmr_inn.tranascation_type = 'Calculated');
-    end loop;
+    end loop;    
     commit;
-    --- for pledge GMR calualted sectio should not include other,Fright charges(75274)
+    --- For Pledge GMR calualted sectio should not include other,Fright charges(75274)
     update pa_purchase_accural_gmr pa_gmr
        set pa_gmr.othercharges_amount = 0, pa_gmr.frightcharges_amount = 0
      where pa_gmr.process_id = pc_process_id
@@ -4221,23 +4279,23 @@ create or replace package body pkg_phy_eod_reports is
              pa.pay_in_cur_code,
              sum(case
                    when pa.tranascation_type = 'Calculated' then
-                    pa.frightcharges_amount
+                    nvl(pa.frightcharges_amount,0)
                    else
                     0
                  end) - sum(case
                               when pa.tranascation_type = 'Invoiced' then
-                               pa.frightcharges_amount
+                               nvl(pa.frightcharges_amount,0)
                               else
                                0
                             end) frightcharges_amount,
              sum(case
                    when pa.tranascation_type = 'Calculated' then
-                    pa.othercharges_amount
+                    nvl(pa.othercharges_amount,0)
                    else
                     0
                  end) - sum(case
                               when pa.tranascation_type = 'Invoiced' then
-                               pa.othercharges_amount
+                               nvl(pa.othercharges_amount,0)
                               else
                                0
                             end) othercharges_amount,
@@ -5194,29 +5252,31 @@ select grd.internal_gmr_ref_no,
 --                         
 -- Update Freight and Other Charges from Invoice
 --
-for cur_charges in (select is1.internal_invoice_ref_no,
-                               nvl(is1.freight_allowance_amt, 0) /
-                               iid.gmr_count freight_allowance_amt,
-                               (nvl(is1.total_other_charge_amount, 0) -
-                               nvl(is1.freight_allowance_amt, 0)) /
-                               iid.gmr_count total_other_charge_amount,
-                               iid.internal_gmr_ref_no
-                          from is_invoice_summary        is1,
-                               process_gmr gmr,
-                               v_iid_invoice             iid
-                         where is1.process_id = pc_process_id
-                           and iid.internal_invoice_ref_no =
-                               is1.internal_invoice_ref_no
-                           and iid.internal_gmr_ref_no =
-                               gmr.internal_gmr_ref_no
-                           and iid.internal_invoice_ref_no =
-                               gmr.latest_internal_invoice_ref_no
-                           and gmr.process_id = pc_process_id
-                           and gmr.gmr_type ='BASEMETAL')
-    loop
+for cur_charges in (
+  select iocd.internal_gmr_ref_no,
+         iocd.gmr_invoiced_qty,
+         nvl(sum(case
+                   when iocd.is_container_freight_charge = 'N' then
+                    iocd.charge_rate
+                   else
+                    0
+                 end),
+             0) other_charges_rate,
+         nvl(sum(case
+                   when iocd.is_container_freight_charge = 'Y' then
+                    iocd.charge_rate
+                   else
+                    0
+                 end),
+             0) freight_container_charge_rate
+    from iocd_ioc_details iocd
+   where iocd.process_id = pc_process_id
+     and iocd.contract_type = 'BASEMETAL'
+   group by iocd.internal_gmr_ref_no,
+            iocd.gmr_invoiced_qty) loop
       update pa_purchase_accural_gmr pa_gmr
-         set pa_gmr.othercharges_amount  = cur_charges.total_other_charge_amount,
-             pa_gmr.frightcharges_amount = cur_charges.freight_allowance_amt
+         set pa_gmr.othercharges_amount  = cur_charges.other_charges_rate * cur_charges.gmr_invoiced_qty,
+             pa_gmr.frightcharges_amount = cur_charges.freight_container_charge_rate * cur_charges.gmr_invoiced_qty
        where pa_gmr.process_id = pc_process_id
          and pa_gmr.internal_gmr_ref_no = cur_charges.internal_gmr_ref_no;
     end loop;
@@ -5354,6 +5414,25 @@ insert into pa_purchase_accural_gmr
                 pa.warehouse_profile_id,
                 pa.warehouse_name;
 commit;   
+--
+-- For calculated section copy the other charge from Invoiced Section
+--
+for cur_bm_oc_calculated in(
+select pa.internal_gmr_ref_no,
+       pa.othercharges_amount,
+       pa.frightcharges_amount
+  from pa_purchase_accural_gmr pa
+ where pa.process_id = pc_process_id
+   and pa.trade_type = 'Base Metal'
+   and pa.tranascation_type = 'Invoiced') loop
+   update pa_purchase_accural_gmr pa
+      set pa.othercharges_amount  = cur_bm_oc_calculated.othercharges_amount,
+          pa.frightcharges_amount = cur_bm_oc_calculated.frightcharges_amount
+    where pa.process_id = pc_process_id
+      and pa.internal_gmr_ref_no = cur_bm_oc_calculated.internal_gmr_ref_no
+      and pa.tranascation_type = 'Calculated';
+end loop;   
+commit;
     --
     -- Difference Section at GMR level
     --
@@ -8754,7 +8833,7 @@ exception
     commit;
 end;
 -- End of Intrastat
-procedure sp_phy_contract_status(pc_corporate_id varchar2,
+  procedure sp_phy_contract_status(pc_corporate_id varchar2,
                                    pd_trade_date   date,
                                    pc_process_id   varchar2) as
   begin
@@ -17949,18 +18028,28 @@ insert into arg_arrival_report_gmr
   -- Update Other Charges
   --
 
-  for cur_oc in (select gfoc.internal_gmr_ref_no,
-                        gfoc.small_lot_charge + gfoc.container_charge +
-                        gfoc.sampling_charge + gfoc.handling_charge +
-                        gfoc.location_value + gfoc.freight_allowance as other_charges
-                   from gfoc_gmr_freight_other_charge gfoc
-                  where gfoc.process_id = pc_process_id)
+  for cur_oc in (
+  select iocd.internal_gmr_ref_no,
+       nvl(sum(case
+             when iocd.is_container_freight_charge = 'N' then
+              iocd.charge_rate
+             else
+              0
+           end),0) other_charges_rate,
+       nvl(sum(case
+             when iocd.is_container_freight_charge = 'Y' then
+              iocd.charge_rate
+             else
+              0
+           end),0) freight_container_charge_rate
+  from iocd_ioc_details iocd
+ where iocd.process_id = pc_process_id
+ group by iocd.internal_gmr_ref_no)
   loop
-  
     update aro_ar_original aro
-       set aro.other_charges_amt = round((cur_oc.other_charges *
-                                         aro.grd_wet_qty / aro.gmr_qty),
-                                         aro.pay_cur_decimal)
+       set aro.other_charges_amt = round((cur_oc.other_charges_rate * aro.grd_wet_qty  ), aro.pay_cur_decimal),
+           aro.freight_container_charge_amt = round((cur_oc.freight_container_charge_rate *  aro.grd_wet_qty),
+                                         aro.pay_cur_decimal)                         
      where aro.process_id = pc_process_id
        and aro.internal_gmr_ref_no = cur_oc.internal_gmr_ref_no;
   end loop;
@@ -18001,6 +18090,7 @@ insert into arg_arrival_report_gmr
      is_new,
      mtd_ytd,
      other_charges_amt,
+     freight_container_charge_amt,
      pay_cur_id,
      pay_cur_code,
      pay_cur_decimal,
@@ -18033,6 +18123,7 @@ insert into arg_arrival_report_gmr
            'Y', -- is_new,
            'MTD', -- mtd_ytd,
            other_charges_amt,
+           freight_container_charge_amt,
            pay_cur_id,
            pay_cur_code,
            pay_cur_decimal,
@@ -18158,6 +18249,7 @@ insert into ar_arrival_report
    is_new,
    mtd_ytd,
    other_charges_amt,
+   freight_container_charge_amt,
    pay_cur_id,
    pay_cur_code,
    pay_cur_decimal,
@@ -18190,6 +18282,7 @@ insert into ar_arrival_report
          is_new,
          mtd_ytd,
          sum(other_charges_amt),
+         sum(freight_container_charge_amt),
          pay_cur_id,
          pay_cur_code,
          pay_cur_decimal,
@@ -18220,6 +18313,7 @@ insert into ar_arrival_report
                  'N' is_new, -- is_new,
                  'MTD' mtd_ytd, -- mtd_ytd,
                  sum(aro_current.other_charges_amt) other_charges_amt,
+                 sum(freight_container_charge_amt) freight_container_charge_amt,
                  aro_current.pay_cur_id,
                  aro_current.pay_cur_code,
                  aro_current.pay_cur_decimal,
@@ -18278,6 +18372,7 @@ insert into ar_arrival_report
                  'N', -- is_new,
                  'MTD', -- mtd_ytd,
                  -1 * sum(are_prev.other_charges_amt),
+                 -1 * sum(freight_container_charge_amt),
                  are_prev.pay_cur_id,
                  are_prev.pay_cur_code,
                  are_prev.pay_cur_decimal,
@@ -18527,6 +18622,7 @@ insert into are_arrival_report_element
      is_new,
      mtd_ytd,
      other_charges_amt,
+     freight_container_charge_amt,
      pay_cur_id,
      pay_cur_code,
      pay_cur_decimal,
@@ -18559,6 +18655,7 @@ insert into are_arrival_report_element
            'Y', -- is_new,
            'YTD', -- mtd_ytd,
            other_charges_amt,
+           freight_container_charge_amt,
            pay_cur_id,
            pay_cur_code,
            pay_cur_decimal,
@@ -18684,6 +18781,7 @@ insert into are_arrival_report_element
    is_new,
    mtd_ytd,
    other_charges_amt,
+   freight_container_charge_amt,
    pay_cur_id,
    pay_cur_code,
    pay_cur_decimal,
@@ -18716,6 +18814,7 @@ insert into are_arrival_report_element
          is_new,
          mtd_ytd,
          sum(other_charges_amt),
+         sum(freight_container_charge_amt),
          pay_cur_id,
          pay_cur_code,
          pay_cur_decimal,
@@ -18746,6 +18845,7 @@ insert into are_arrival_report_element
                  'N' is_new, -- is_new,
                  'YTD' mtd_ytd, -- mtd_ytd,
                  sum(aro_current.other_charges_amt) other_charges_amt,
+                 sum(freight_container_charge_amt) freight_container_charge_amt,
                  aro_current.pay_cur_id,
                  aro_current.pay_cur_code,
                  aro_current.pay_cur_decimal,
@@ -18804,6 +18904,7 @@ insert into are_arrival_report_element
                  'N', -- is_new,
                  'YTD', -- mtd_ytd,
                  -1 * sum(are_prev.other_charges_amt),
+                 -1 * sum(freight_container_charge_amt), 
                  are_prev.pay_cur_id,
                  are_prev.pay_cur_code,
                  are_prev.pay_cur_decimal,
@@ -19470,6 +19571,7 @@ begin
          feeding_point_name,
          grd_to_gmr_qty_factor,
          other_charges_amt,
+         freight_container_charge_amt,
          pcdi_id)
       values
         (pc_process_id,
@@ -19508,6 +19610,7 @@ begin
          cur_feed_rows.feeding_point_name,
          cur_feed_rows.grd_to_gmr_qty_factor,
          0, --other_charges_amt
+         0, -- freight_container_charge_amt
          cur_feed_rows.pcdi_id);
     end if;
     --
@@ -19903,21 +20006,31 @@ begin
                         gvn_log_counter,
                         'Feed Consumption report GMR Qty Updation Over');
   --  
-  -- Update Other Charges
+  -- Update Other Charges, For MFT GMR Container and Freight Charge is ZERO
   --
 
-  for cur_oc in (select gfoc.internal_gmr_ref_no,
-                        gfoc.small_lot_charge + gfoc.container_charge +
-                        gfoc.sampling_charge + gfoc.handling_charge +
-                        gfoc.location_value + gfoc.freight_allowance as other_charges
-                   from gfoc_gmr_freight_other_charge gfoc
-                  where gfoc.process_id = pc_process_id)
-  loop
-  
-    update fco_feed_consumption_original fco
-       set fco.other_charges_amt = round((cur_oc.other_charges *
-                                         fco.grd_wet_qty / fco.gmr_qty),
-                                         fco.pay_cur_decimal)
+  for cur_oc in (
+  select iocd.internal_gmr_ref_no,
+       nvl(sum(case
+             when iocd.is_container_freight_charge = 'N' then
+              iocd.charge_rate
+             else
+              0
+           end),0) other_charge_rate,
+           iocd.invoiced_qty_unit_id
+  from iocd_ioc_details iocd
+ where iocd.process_id = pc_process_id
+ group by iocd.internal_gmr_ref_no,
+          iocd.invoiced_qty_unit_id)
+  loop 
+   update fco_feed_consumption_original fco
+       set ( fco.other_charges_amt,fco.freight_container_charge_amt) =
+       ( select round((cur_oc.other_charge_rate *  fco.grd_wet_qty * ucm.multiplication_factor),fco.pay_cur_decimal),
+                0 
+           from ucm_unit_conversion_master ucm
+           where ucm.from_qty_unit_id = fco.conc_base_qty_unit_id -- MFT GMR Qty Unit
+           and ucm.to_qty_unit_id = cur_oc.invoiced_qty_unit_id -- Supplier GMR Qty Unit
+           and ucm.is_active ='Y')
      where fco.process_id = pc_process_id
        and fco.parent_internal_gmr_ref_no = cur_oc.internal_gmr_ref_no;
   end loop;
@@ -19968,7 +20081,8 @@ begin
      feeding_point_name,
      is_new,
      mtd_ytd,
-     other_charges_amt)
+     other_charges_amt,
+     freight_container_charge_amt)
     select process_id,
            eod_trade_date,
            corporate_id,
@@ -20004,7 +20118,8 @@ begin
            feeding_point_name,
            'Y',
            'MTD',
-           other_charges_amt
+           other_charges_amt,
+           freight_container_charge_amt
       from fco_feed_consumption_original fco
      where fco.process_id = pc_process_id
        and exists
@@ -20138,7 +20253,8 @@ begin
      feeding_point_name,
      is_new,
      mtd_ytd,
-     other_charges_amt)
+     other_charges_amt,
+     freight_container_charge_amt)
     select process_id,
            eod_trade_date,
            corporate_id,
@@ -20174,7 +20290,8 @@ begin
            feeding_point_name,
            'Y',
            'YTD',
-           other_charges_amt
+           other_charges_amt,
+           freight_container_charge_amt
       from fco_feed_consumption_original fco
      where fco.process_id = pc_process_id
        and exists
@@ -20361,6 +20478,7 @@ begin
      is_new,
      mtd_ytd,
      other_charges_amt,
+     freight_container_charge_amt,
      feeding_point_id,
      feeding_point_name)
     select process_id,
@@ -20389,6 +20507,7 @@ begin
            'N', --is_new,
            'MTD', --mtd_ytd,
            -1 * sum(other_charges_amt) other_charges_amt,
+           -1 * sum(freight_container_charge_amt) freight_container_charge_amt,
            feeding_point_id,
            feeding_point_name
       from fco_feed_consumption_original fco_prev
@@ -20461,6 +20580,7 @@ begin
      is_new,
      mtd_ytd,
      other_charges_amt,
+     freight_container_charge_amt,
      feeding_point_id,
      feeding_point_name)
     select process_id,
@@ -20489,6 +20609,7 @@ begin
            'N', --is_new,
            'MTD', --mtd_ytd,
            sum(other_charges_amt) other_charges_amt,
+           sum(freight_container_charge_amt) freight_container_charge_amt,
            feeding_point_id,
            feeding_point_name
       from fco_feed_consumption_original fco
@@ -20557,7 +20678,8 @@ begin
      mtd_ytd,
      feeding_point_id,
      feeding_point_name,
-     other_charges_amt)
+     other_charges_amt,
+     freight_container_charge_amt)
     select pc_process_id,
            pd_trade_date,
            corporate_id,
@@ -20585,7 +20707,8 @@ begin
            mtd_ytd,
            feeding_point_id,
            feeding_point_name,
-           sum(other_charges_amt)
+           sum(other_charges_amt),
+           sum(freight_container_charge_amt)
       from fcot_fco_temp t
      where t.corporate_id = pc_corporate_id
      group by corporate_id,
@@ -20922,6 +21045,7 @@ begin
      is_new,
      mtd_ytd,
      other_charges_amt,
+     freight_container_charge_amt,
      feeding_point_id,
      feeding_point_name)
     select process_id,
@@ -20950,6 +21074,7 @@ begin
            'N', --is_new,
            'YTD', --mtd_ytd,
            -1 * sum(other_charges_amt) other_charges_amt,
+           -1 * sum(freight_container_charge_amt) freight_container_charge_amt,
            feeding_point_id,
            feeding_point_name
       from fco_feed_consumption_original fco_prev
@@ -21022,6 +21147,7 @@ begin
      is_new,
      mtd_ytd,
      other_charges_amt,
+     freight_container_charge_amt,
      feeding_point_id,
      feeding_point_name)
     select process_id,
@@ -21050,6 +21176,7 @@ begin
            'N', --is_new,
            'YTD', --mtd_ytd,
            sum(other_charges_amt) other_charges_amt,
+           sum(freight_container_charge_amt) freight_container_charge_amt,
            feeding_point_id,
            feeding_point_name
       from fco_feed_consumption_original fco
@@ -21118,7 +21245,8 @@ begin
      mtd_ytd,
      feeding_point_id,
      feeding_point_name,
-     other_charges_amt)
+     other_charges_amt,
+     freight_container_charge_amt)
     select pc_process_id,
            pd_trade_date,
            corporate_id,
@@ -21146,7 +21274,8 @@ begin
            mtd_ytd,
            feeding_point_id,
            feeding_point_name,
-           sum(other_charges_amt)
+           sum(other_charges_amt),
+           sum(freight_container_charge_amt)
       from fcot_fco_temp t
      where t.corporate_id = pc_corporate_id
      group by corporate_id,
@@ -22569,6 +22698,7 @@ begin
          conc_base_qty_unit_id,
          conc_base_qty_unit,
          other_charges_amt,
+         freight_container_charge_amt,
          parent_internal_gmr_ref_no,
          parent_internal_grd_ref_no,
          pay_cur_decimal,
@@ -22600,6 +22730,7 @@ begin
          cur_closing_rows.pay_cur_code,
          cur_closing_rows.conc_base_qty_unit_id,
          cur_closing_rows.conc_base_qty_unit,
+         0,
          0,
          cur_closing_rows.parent_internal_gmr_ref_no,
          cur_closing_rows.parent_internal_grd_ref_no,
@@ -22698,18 +22829,28 @@ begin
   -- Then Other charge for GMR-1 is 250, GMR-2 is 100 and GMR-3 is 150
   -- If Total Other charge is 500
   --
-
-  for cur_oc in (select gfoc.internal_gmr_ref_no,
-                        gfoc.small_lot_charge + gfoc.container_charge +
-                        gfoc.sampling_charge + gfoc.handling_charge +
-                        gfoc.location_value + gfoc.freight_allowance as other_charges
-                   from gfoc_gmr_freight_other_charge gfoc
-                  where gfoc.process_id = pc_process_id)
-  loop
+  for cur_oc in (
+  select iocd.internal_gmr_ref_no,
+       nvl(sum(case
+             when iocd.is_container_freight_charge = 'N' then
+              iocd.charge_rate
+             else
+              0
+           end),0) other_charges_rate,
+       nvl(sum(case
+             when iocd.is_container_freight_charge = 'Y' then
+              iocd.charge_rate
+             else
+              0
+           end),0) freight_container_charge_rate
+  from iocd_ioc_details iocd
+ where iocd.process_id = pc_process_id
+ group by iocd.internal_gmr_ref_no)loop
   
     update cbr_closing_balance_report cbr
-       set cbr.other_charges_amt = round((cur_oc.other_charges *
-                                         cbr.grd_wet_qty / cbr.gmr_qty),
+       set cbr.other_charges_amt = round((cur_oc.other_charges_rate * cbr.grd_wet_qty ),
+                                         cbr.pay_cur_decimal),
+           cbr.Freight_Container_Charge_Amt = round((cur_oc.freight_container_charge_rate * cbr.grd_wet_qty ),
                                          cbr.pay_cur_decimal)
      where cbr.process_id = pc_process_id
        and cbr.parent_internal_gmr_ref_no = cur_oc.internal_gmr_ref_no;
@@ -23255,7 +23396,7 @@ begin
         end if;
       end loop;
     end;
-  
+    
       vn_esc_desc_tc_value := vn_total_treatment_charge -
                               vn_total_base_tret_charge;
  
@@ -23462,7 +23603,7 @@ begin
                 and gmr.dbd_id = pc_dbd_id
                 and grd.dbd_id = pc_dbd_id
                 and pci.dbd_id = pc_dbd_id
-                and spq.dbd_id = pc_dbd_id
+                and spq.dbd_id = pc_dbd_id             
                 and grd.internal_contract_item_ref_no =
                     pci.internal_contract_item_ref_no
                 and exists
@@ -25415,6 +25556,121 @@ exception
                                                          pd_trade_date);
     sp_insert_error_log(vobj_error_log);
                                                          
-end;                          
+end; 
+procedure sp_calc_invoice_other_charges(pc_corporate_id varchar2,
+                             pd_trade_date   date,
+                             pc_process_id   varchar2,
+                             pc_process      varchar2,
+                             pc_user_id      varchar2)
+is
+ vn_eel_error_count      number := 1;
+  vobj_error_log          tableofpelerrorlog := tableofpelerrorlog();
+begin
+insert into iids_iid_summary
+  (process_id,
+   internal_invoice_ref_no,
+   internal_gmr_ref_no,
+   gmr_invoiced_qty,
+   total_invoiced_qty,
+   invoiced_qty_unit_id,
+   invoice_cur_id,
+   contract_type)
+  select gmr.process_id,
+         iid.internal_invoice_ref_no,
+         iid.internal_gmr_ref_no,
+         sum(iid.invoiced_qty) invoiced_qty,
+         iss.invoiced_qty total_invoiced_qty,
+         iid.invoiced_qty_unit_id,
+         gmr.invoice_cur_id,
+         gmr.gmr_type
+    from iid_invoicable_item_details iid,
+         process_gmr                  gmr,
+         is_invoice_summary          iss
+   where iid.is_active = 'Y'
+     and iid.internal_invoice_ref_no = gmr.latest_internal_invoice_ref_no
+     and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+     and iss.process_id = pc_process_id
+     and iss.is_active ='Y'
+     and iss.internal_invoice_ref_no = gmr.latest_internal_invoice_ref_no
+     and gmr.process_id = pc_process_id
+     and gmr.is_deleted ='N'
+   group by gmr.process_id,
+            iid.internal_invoice_ref_no,
+            iid.internal_gmr_ref_no,
+            iid.invoiced_qty_unit_id,
+            iss.invoiced_qty,
+            gmr.invoice_cur_id,
+            gmr.gmr_type;
+commit;
+insert into iocd_ioc_details
+  (process_id,
+   internal_invoice_ref_no,
+   internal_gmr_ref_no,
+   gmr_invoiced_qty,
+   total_invoiced_qty,
+   invoiced_qty_unit_id,
+   other_charge_cost_id,
+   cost_component_name,
+   amount_in_inv_cur,
+   is_container_freight_charge,
+   is_container_charge,
+   is_freight_charge,
+   charge_rate,
+   invoice_cur_id,
+   contract_type)
+  select iids.process_id,
+         iids.internal_invoice_ref_no,
+         iids.internal_gmr_ref_no,
+         iids.gmr_invoiced_qty,
+         iids.total_invoiced_qty total_invoiced_qty,
+         iids.invoiced_qty_unit_id invoiced_qty_unit_id,
+         ioc.other_charge_cost_id,
+         scm.cost_component_name,
+         ioc.amount_in_inv_cur,
+         case
+           when scm.cost_component_name in
+                ('Freight Allowance', 'Container Charges') then
+            'Y'
+           else
+            'N'
+         end as is_container_freight_charge,
+          case
+           when scm.cost_component_name = 'Container Charges' then
+            'Y'
+           else
+            'N'
+         end as is_container_charge,
+          case
+           when scm.cost_component_name = 'Freight Allowance' then
+            'Y'
+           else
+            'N'
+         end as is_freight_charge,
+         ioc.amount_in_inv_cur / iids.total_invoiced_qty charge_rate,
+         iids.invoice_cur_id,
+         iids.contract_type
+    from iids_iid_summary          iids,
+         ioc_invoice_other_charge  ioc,
+         scm_service_charge_master scm
+   where iids.internal_invoice_ref_no = ioc.internal_invoice_ref_no
+     and iids.process_id = pc_process_id
+     and scm.cost_id = ioc.other_charge_cost_id;
+commit;
+exception
+  when others then
+    vobj_error_log.extend;
+    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                         'procedure sp_calc_invoice_other_charges',
+                                                         'M2M-013',
+                                                         'Code:' || sqlcode ||
+                                                         'Message:' ||
+                                                         sqlerrm,
+                                                         '',
+                                                         pc_process,
+                                                         pc_user_id,
+                                                         sysdate,
+                                                         pd_trade_date);
+    sp_insert_error_log(vobj_error_log);
+end;                                                      
 end; 
 /
