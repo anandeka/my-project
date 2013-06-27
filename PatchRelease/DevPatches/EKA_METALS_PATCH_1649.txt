@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1649
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  27-Jun-2013 
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  81010
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Bulk Pricing Document
+
+Sub-Module  			 :  Bulk Pricing Document
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+====================================================================================================================================
+
+Revision: 132249
+Author: rajuga
+Date: 7:02:38 PM, Thursday, June 27, 2013
+Message:
+Bug 81010 - Bulk pricing output document is showing blank.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/BulkPricingDocument.rpt
+
+====================================================================================================================================
