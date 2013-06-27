@@ -1312,7 +1312,8 @@ select ppu.product_price_unit_id wap_price_unit_id,
        div_der_instrument_valuation div,
        v_ppu_pum                    ppu,
        cm_currency_master           cm,
-       qum_quantity_unit_master     qum
+       qum_quantity_unit_master     qum,
+       irm_instrument_type_master   irm
  where pdd.product_id = cur_pfrh_wap.product_id
    and pdd.is_deleted = 'N'
    and pdd.is_active = 'Y'
@@ -1324,7 +1325,10 @@ select ppu.product_price_unit_id wap_price_unit_id,
    and div.price_unit_id = ppu.price_unit_id
    and ppu.product_id = cur_pfrh_wap.product_id
    and ppu.cur_id = cm.cur_id
-   and ppu.weight_unit_id = qum.qty_unit_id;
+   and ppu.weight_unit_id = qum.qty_unit_id
+   and irm.instrument_type_id = dim.instrument_type_id
+   and irm.is_active = 'Y'
+   and irm.instrument_type = 'Future';
    vc_m2m_price_unit_id := vc_wap_price_unit_id;
     If vc_base_price_unit_id <> vc_m2m_price_unit_id then
      select pkg_phy_pre_check_process.f_get_converted_price(pc_corporate_id,
@@ -1744,116 +1748,120 @@ commit;
     --
     -- Raw Data Into MBV Main Table For Base Metal Products
     --
-    insert into mbv_metal_balance_valuation
-      (process_id,
-       eod_trade_date,
-       corporate_id,
-       corporate_name,
-       product_id,
-       product_name,
-       instrument_id,
-       instrument_name,
-       exchange_id,
-       exchange_name,
-       phy_realized_ob_pnl,
-       phy_realized_qty,
-       phy_realized_pnl,
-       phy_realized_cb_pnl,
-       phy_unr_price_inv_price,
-       phy_unr_price_na_inv_price,
-       phy_unr_price_nd_inv_price,
-       referential_price_diff,
-       contango_bw_diff_value,
-       priced_not_arrived_qty,
-       priced_not_delivered_qty,
-       metal_debt_qty,
-       metal_debt_value,
-       inventory_unreal_pnl,
-       month_end_price,
-       der_realized_qty,
-       der_realized_pnl,
-       der_unrealized_pnl,
-       der_realized_ob_pnl,
-       qty_decimals,
-       ccy_decimals,
-       total_inv_qty,
-       priced_inv_qty,
-       unpriced_inv_qty,
-       unr_phy_priced_inv_pnl,
-       unr_phy_priced_na_pnl,
-       unr_phy_priced_nd_pnl,
-       der_ref_price_diff_value,
-       phy_ref_price_diff_value,
-       contango_dueto_qty_price,
-       contango_dueto_qty,
-       actual_hedged_qty,
-       qty_to_be_hedged,
-       hedge_effectiveness,
-       currency_unit,
-       qty_unit)
-      select pc_process_id,
-             pd_trade_date,
-             akc.corporate_id,
-             akc.corporate_name,
-             pdm.product_id,
-             pdm.product_desc,
-             dim.instrument_id,
-             dim.instrument_name,
-             emt.exchange_id,
-             emt.exchange_name,
-             0, --    phy_realized_ob,
-             0, --    phy_realized_qty,
-             0, --    phy_realized_pnl,
-             0, --    phy_realized_cb,
-             0, --    phy_unr_price_inv_price,
-             0, --    phy_unr_price_na_inv_price,
-             0, --    phy_unr_price_nd_inv_price,
-             0, --    referential_price_diff,
-             0, --    contango_bw_diff,
-             0, --    priced_not_arrived_qty,
-             0, --    priced_not_delivered_qty,
-             0, --    metal_debt_qty,
-             0, --    metal_debt_value,
-             0, --    inventory_unreal_pnl,
-             0, --    month_end_price,
-             0, --    der_realized_qty,
-             0, --    der_realized_pnl,
-             0, --    der_unrealized_pnl,
-             0, --    der_realized_ob,
-             qum.decimals, --    qty_decimals,
-             cm.decimals, --    ccy_decimals,
-             0, --    total_inv_qty,
-             0, --    priced_inv_qty,
-             0, --    unpriced_inv_qty,
-             0, --    unr_phy_priced_inv_pnl,
-             0, --    unr_phy_priced_na_pnl,
-             0, --    unr_phy_priced_nd_pnl,
-             0, --    der_ref_price_diff,
-             0, --    phy_ref_price_diff,
-             0, --    contango_dueto_qty_price,
-             0, --    contango_dueto_qty,
-             0, --    actual_hedged_qty,
-             0, --    qty_to_be_hedged
-             0, --    hedge_effectiveness,
-             cm.cur_code, -- currency_unit,
-             qum.qty_unit -- qty_unit
-        from ak_corporate               akc,
-             pdm_productmaster          pdm,
-             pdd_product_derivative_def pdd,
-             dim_der_instrument_master  dim,
-             emt_exchangemaster         emt,
-             qum_quantity_unit_master   qum,
-             cm_currency_master         cm
-       where akc.corporate_id = pc_corporate_id
-         and pdm.product_id = pdd.product_id
-         and pdd.exchange_id = emt.exchange_id
-         and pdd.derivative_def_id = dim.product_derivative_id
-         and dim.is_active = 'Y'
-         and dim.is_deleted = 'N'
-         and pdd.is_active = 'Y'
-         and pdm.product_type_id = 'Standard'
-         and pdm.base_quantity_unit = qum.qty_unit_id
-         and akc.base_cur_id = cm.cur_id;
+insert into mbv_metal_balance_valuation
+  (process_id,
+   eod_trade_date,
+   corporate_id,
+   corporate_name,
+   product_id,
+   product_name,
+   instrument_id,
+   instrument_name,
+   exchange_id,
+   exchange_name,
+   phy_realized_ob_pnl,
+   phy_realized_qty,
+   phy_realized_pnl,
+   phy_realized_cb_pnl,
+   phy_unr_price_inv_price,
+   phy_unr_price_na_inv_price,
+   phy_unr_price_nd_inv_price,
+   referential_price_diff,
+   contango_bw_diff_value,
+   priced_not_arrived_qty,
+   priced_not_delivered_qty,
+   metal_debt_qty,
+   metal_debt_value,
+   inventory_unreal_pnl,
+   month_end_price,
+   der_realized_qty,
+   der_realized_pnl,
+   der_unrealized_pnl,
+   der_realized_ob_pnl,
+   qty_decimals,
+   ccy_decimals,
+   total_inv_qty,
+   priced_inv_qty,
+   unpriced_inv_qty,
+   unr_phy_priced_inv_pnl,
+   unr_phy_priced_na_pnl,
+   unr_phy_priced_nd_pnl,
+   der_ref_price_diff_value,
+   phy_ref_price_diff_value,
+   contango_dueto_qty_price,
+   contango_dueto_qty,
+   actual_hedged_qty,
+   qty_to_be_hedged,
+   hedge_effectiveness,
+   currency_unit,
+   qty_unit)
+  select pc_process_id,
+         pd_trade_date,
+         akc.corporate_id,
+         akc.corporate_name,
+         pdm.product_id,
+         pdm.product_desc,
+         dim.instrument_id,
+         dim.instrument_name,
+         emt.exchange_id,
+         emt.exchange_name,
+         0, --    phy_realized_ob,
+         0, --    phy_realized_qty,
+         0, --    phy_realized_pnl,
+         0, --    phy_realized_cb,
+         0, --    phy_unr_price_inv_price,
+         0, --    phy_unr_price_na_inv_price,
+         0, --    phy_unr_price_nd_inv_price,
+         0, --    referential_price_diff,
+         0, --    contango_bw_diff,
+         0, --    priced_not_arrived_qty,
+         0, --    priced_not_delivered_qty,
+         0, --    metal_debt_qty,
+         0, --    metal_debt_value,
+         0, --    inventory_unreal_pnl,
+         0, --    month_end_price,
+         0, --    der_realized_qty,
+         0, --    der_realized_pnl,
+         0, --    der_unrealized_pnl,
+         0, --    der_realized_ob,
+         qum.decimals, --    qty_decimals,
+         cm.decimals, --    ccy_decimals,
+         0, --    total_inv_qty,
+         0, --    priced_inv_qty,
+         0, --    unpriced_inv_qty,
+         0, --    unr_phy_priced_inv_pnl,
+         0, --    unr_phy_priced_na_pnl,
+         0, --    unr_phy_priced_nd_pnl,
+         0, --    der_ref_price_diff,
+         0, --    phy_ref_price_diff,
+         0, --    contango_dueto_qty_price,
+         0, --    contango_dueto_qty,
+         0, --    actual_hedged_qty,
+         0, --    qty_to_be_hedged
+         0, --    hedge_effectiveness,
+         cm.cur_code, -- currency_unit,
+         qum.qty_unit -- qty_unit
+    from ak_corporate               akc,
+         pdm_productmaster          pdm,
+         pdd_product_derivative_def pdd,
+         dim_der_instrument_master  dim,
+         emt_exchangemaster         emt,
+         qum_quantity_unit_master   qum,
+         cm_currency_master         cm,
+         irm_instrument_type_master irm
+   where akc.corporate_id = pc_corporate_id
+     and pdm.product_id = pdd.product_id
+     and pdd.exchange_id = emt.exchange_id
+     and pdd.derivative_def_id = dim.product_derivative_id
+     and dim.is_active = 'Y'
+     and dim.is_deleted = 'N'
+     and pdd.is_active = 'Y'
+     and pdm.product_type_id = 'Standard'
+     and pdm.base_quantity_unit = qum.qty_unit_id
+     and akc.base_cur_id = cm.cur_id
+     and irm.instrument_type_id = dim.instrument_type_id
+     and irm.is_active = 'Y'
+     and irm.instrument_type = 'Future';
     commit;
     --
     -- Month End Price for Each product Assuming One Product has one instrument
@@ -2383,7 +2391,6 @@ vc_error_msg := 'End of sp_calc_mbv_report';
                                  'dd-Mon-yyyy'))
              end) delivery_date,
              pcbph.element_id
-      
         from pcm_physical_contract_main     pcm,
              pcdi_pc_delivery_item          pcdi,
              pci_physical_contract_item     pci,

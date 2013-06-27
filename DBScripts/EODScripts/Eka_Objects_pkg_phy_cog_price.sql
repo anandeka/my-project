@@ -4262,14 +4262,18 @@ create or replace package body pkg_phy_cog_price is
              apm_available_price_master   apm,
              pum_price_unit_master        pum,
              v_der_instrument_price_unit  vdip,
-             pdc_prompt_delivery_calendar pdc
+             pdc_prompt_delivery_calendar pdc,
+             irm_instrument_type_master   irm
        where dim.instrument_id = div.instrument_id
          and div.is_deleted = 'N'
          and div.price_source_id = ps.price_source_id
          and div.available_price_id = apm.available_price_id
          and div.price_unit_id = pum.price_unit_id
          and dim.instrument_id = vdip.instrument_id
-         and dim.delivery_calender_id = pdc.prompt_delivery_calendar_id;
+         and dim.delivery_calender_id = pdc.prompt_delivery_calendar_id
+         and irm.instrument_type_id = dim.instrument_type_id
+         and irm.is_active = 'Y'
+         and irm.instrument_type = 'Future';
     vn_forward_days              number;
     vd_quotes_date               date;
     vc_market_quote_dr_id        varchar2(15);
