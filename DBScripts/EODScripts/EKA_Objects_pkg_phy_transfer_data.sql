@@ -587,7 +587,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
       dbms_mview.refresh('FMUH_FREE_METAL_UTILITY_HEADER', 'f');
       dbms_mview.refresh('FMED_FREE_METAL_ELEMT_DETAILS', 'f');
       dbms_mview.refresh('FMPFH_PRICE_FIXATION_HEADER', 'f');
-	  dbms_mview.refresh('PFAM_PRICE_FIX_ACTION_MAPPING', 'f');
+      dbms_mview.refresh('PFAM_PRICE_FIX_ACTION_MAPPING', 'f');
+      dbms_mview.refresh('IVD_INVOICE_VAT_DETAILS', 'f');
     end if;
   exception
     when others then
@@ -1526,6 +1527,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        version,
        entry_type,
        is_active,
+       pffxd_id,
        dbd_id)
       select ul.pcdbul_id,
              ul.internal_action_ref_no,
@@ -1546,6 +1548,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.version,
              ul.entry_type,
              ul.is_active,
+             ul.pffxd_id,
              pc_dbd_id
         from pcdbul_pc_delivery_basis_ul@eka_appdb ul,
              eod_eom_axsdata@eka_appdb          axs

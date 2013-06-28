@@ -4586,6 +4586,7 @@ commit;
        tax_status,
        version,
        is_active,
+       pffxd_id,
        dbd_id,
        process_id)
       select decode(pcdb_id, 'Empty_String', null, pcdb_id),
@@ -4610,6 +4611,7 @@ commit;
              decode(tax_status, 'Empty_String', null, tax_status),
              decode(version, 'Empty_String', null, version),
              decode(is_active, 'Empty_String', null, is_active),
+             decode(pffxd_id, 'Empty_String', null, pffxd_id),
              gvc_dbd_id,
              pkg_phy_populate_data.gvc_process_id
         from (select pcdbul.pcdb_id,
@@ -4704,6 +4706,12 @@ commit;
                                    pcdbul.is_active
                                 end),
                             24) is_active,
+                     substr(max(case
+                                  when pcdbul.pffxd_id is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcdbul.pffxd_id
+                                end),
+                            24) pffxd_id,       
                      gvc_dbd_id
                 from pcdbul_pc_delivery_basis_ul pcdbul,
                      axs_action_summary          axs,

@@ -36,7 +36,12 @@ create or replace package pkg_phy_mbv_report is
                                  pd_trade_date   date,
                                  pc_process      varchar2,
                                  pc_process_id   varchar2);
-end;
+
+  procedure sp_fx_allocation_report(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_process      varchar2,
+                                    pc_process_id   varchar2);
+end; 
 /
 create or replace package body pkg_phy_mbv_report is
   procedure sp_run_mbv_report(pc_corporate_id varchar2,
@@ -124,6 +129,19 @@ create or replace package body pkg_phy_mbv_report is
                           pc_process_id,
                           vn_logno,
                           'End of ' || vc_error_msg);
+---- Added Suresh
+    vc_error_msg := 'sp_fx_allocation_report';
+    sp_fx_allocation_report(pc_corporate_id,
+                            pd_trade_date,                           
+                            pc_process,
+                            pc_process_id);
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'End of ' || vc_error_msg);
+
   
   exception
     when others then
@@ -3880,5 +3898,1682 @@ commit;
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
+
+procedure sp_fx_allocation_report(pc_corporate_id varchar2,
+                                 pd_trade_date   date,
+                                 pc_process      varchar2,
+                                 pc_process_id   varchar2) is
+  vd_prev_eom_date date;
+  vn_exch_rate     number;
+  vn_eel_error_count number := 1;
+  vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+  vc_error_msg       varchar2(100);
+begin
+
+  begin
+    select tdc.trade_date
+      into vd_prev_eom_date
+      from tdc_trade_date_closure tdc
+     where tdc.trade_date = (select max(t.trade_date)
+                               from tdc_trade_date_closure t
+                              where t.trade_date < pd_trade_date
+                                and t.corporate_id = pc_corporate_id
+                                and t.process = 'EOM')
+       and tdc.corporate_id = pc_corporate_id
+       and tdc.process = 'EOM';
+  
+  exception
+    when no_data_found then
+      vd_prev_eom_date := to_date('01-Jan-2000', 'dd-Mon-yyyy');
+  end;
+  ---1. Base metal Fixed Contracts
+  insert into fxar_fx_allocation_report
+    (process_id,
+     eod_trade_date,
+     corporate_id,
+     corporate_name,
+     section_name,
+     main_section,
+     profit_center_id,
+     profit_center_name,
+     product_id,
+     product_desc,
+     trader_id,
+     trader_name,
+     internal_contract_ref_no,
+     delivery_item_no,
+     pcdi_id,
+     purchase_qty,
+     sales_qty,
+     qty_unit_id,
+     qty_unit,
+     exposure_date,
+     price,
+     price_unit_id,
+     price_unit_name,
+     hedge_amount,
+     exposure_cur_id,
+     exposure_cur_name,
+     base_cur_id,
+     base_cur_name,
+     exchange_rate,
+     purchase_sales)
+    select pc_process_id,
+           pd_trade_date,
+           akc.corporate_id,
+           akc.corporate_name,
+           'Physicals' main_section,
+           'Base Metal-Fixed Price' section,
+           cpc.profit_center_id,
+           cpc.profit_center_short_name profit_center,
+           pdm.product_id,
+           pdm.product_desc product,
+           pcm.trader_id trader_id,
+           gab.firstname || ' ' || gab.lastname trader,
+           pcm.contract_ref_no,
+           pcm.contract_ref_no || ' - ' || pcdi.delivery_item_no delivery_item_ref_no,
+           pcdi.pcdi_id,
+           (case
+             when pcm.purchase_sales = 'P' then
+              (-1) * diqs.total_qty
+             else
+              0
+           end) purchase_qty,
+           (case
+             when pcm.purchase_sales = 'S' then
+              (1) * diqs.total_qty
+             else
+              0
+           end) sales_qty,
+           qum.qty_unit qty_unit,
+           qum.qty_unit_id,
+           pcm.issue_date trade_date,
+           pcbpd.price_value price,
+           pum.price_unit_id,
+           pum.price_unit_name price_unit,
+           decode(pcm.purchase_sales, 'P', -1, 'S', 1) *
+           (pcbpd.price_value / nvl(ppu.weight, 1)) *
+           (pffxd.fixed_fx_rate *
+            pkg_general.f_get_converted_quantity(pdm.product_id,
+                                                 qum.qty_unit_id,
+                                                 pum.weight_unit_id,
+                                                 diqs.total_qty)) hedging_amount,
+           cm_pay.cur_id exposure_cur_id,
+           cm_pay.cur_code exposure_currency,
+           cm_base.cur_id,
+           cm_base.cur_code base_currency,
+           1,
+           pcm.purchase_sales
+      from pcdi_pc_delivery_item          pcdi,
+           diqs_delivery_item_qty_status  diqs,
+           pcm_physical_contract_main     pcm,
+           poch_price_opt_call_off_header poch,
+           pocd_price_option_calloff_dtls pocd,
+           pofh_price_opt_fixation_header pofh,
+           pcbpd_pc_base_price_detail     pcbpd,
+           pffxd_phy_formula_fx_details   pffxd,
+           ak_corporate                   akc,
+           ak_corporate_user              akcu,
+           gab_globaladdressbook          gab,
+           pcpd_pc_product_definition     pcpd,
+           cpc_corporate_profit_center    cpc,
+           pdm_productmaster              pdm,
+           cm_currency_master             cm_base,
+           cm_currency_master             cm_pay,
+           v_ppu_pum                      ppu,
+           pum_price_unit_master          pum,
+           qum_quantity_unit_master       qum,
+           phd_profileheaderdetails       phd
+     where pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+       and pcdi.pcdi_id = diqs.pcdi_id
+       and diqs.is_active = 'Y'
+       and pcdi.pcdi_id = poch.pcdi_id
+       and poch.poch_id = pocd.poch_id
+       and pocd.pocd_id = pofh.pocd_id(+)
+       and pocd.pcbpd_id = pcbpd.pcbpd_id
+       and pcbpd.pffxd_id = pffxd.pffxd_id
+       and pffxd.is_active = 'Y'
+       and pcm.corporate_id = akc.corporate_id
+       and pcm.trader_id = akcu.user_id(+)
+       and akcu.gabid = gab.gabid
+       and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
+       and pcpd.profit_center_id = cpc.profit_center_id
+       and pcpd.product_id = pdm.product_id
+       and akc.base_cur_id = cm_base.cur_id
+       and pocd.pay_in_cur_id = cm_pay.cur_id
+       and pcbpd.price_unit_id = ppu.product_price_unit_id
+       and ppu.price_unit_id = pum.price_unit_id
+       and diqs.item_qty_unit_id = qum.qty_unit_id
+       and pcm.cp_id = phd.profileid
+       and pcbpd.price_basis = 'Fixed'
+       and pcdi.is_active = 'Y'
+       and pcm.is_active = 'Y'
+       and pcm.contract_type = 'BASEMETAL'
+       and pcm.approval_status = 'Approved'
+       and pcm.contract_status <> 'Cancelled'
+       and pcpd.input_output = 'Input'
+       and poch.is_active = 'Y'
+       and pocd.is_active = 'Y'
+       and pofh.is_active(+) = 'Y'
+       and pcbpd.is_active = 'Y'
+       and pcm.process_id = pc_process_id
+       and pcdi.process_id = pc_process_id
+       and diqs.process_id = pc_process_id
+       and pcbpd.process_id = pc_process_id
+       and pffxd.process_id = pc_process_id
+       and pcpd.process_id = pc_process_id
+       and pcm.corporate_id = pc_corporate_id
+       and pcm.issue_date > vd_prev_eom_date
+       and pcm.issue_date <= pd_trade_date;
+  commit;
+  ---2. concentrates Fixed contracts
+  insert into fxar_fx_allocation_report
+    (process_id,
+     eod_trade_date,
+     corporate_id,
+     corporate_name,
+     section_name,
+     main_section,
+     profit_center_id,
+     profit_center_name,
+     product_id,
+     product_desc,
+     trader_id,
+     trader_name,
+     internal_contract_ref_no,
+     delivery_item_no,
+     pcdi_id,
+     purchase_qty,
+     sales_qty,
+     qty_unit_id,
+     qty_unit,
+     exposure_date,
+     price,
+     price_unit_id,
+     price_unit_name,
+     hedge_amount,
+     exposure_cur_id,
+     exposure_cur_name,
+     base_cur_id,
+     base_cur_name,
+     exchange_rate,
+     purchase_sales)
+    select pc_process_id,
+           pd_trade_date,
+           akc.corporate_id,
+           akc.corporate_name,
+           'Physicals' main_section,
+           'Concentrates-Fixed Price' section,
+           cpc.profit_center_id,
+           cpc.profit_center_short_name profit_center,
+           pdm_under.product_id,
+           pdm_under.product_desc product,
+           pcm.trader_id trader_id,
+           gab.firstname || ' ' || gab.lastname trader,
+           pcm.contract_ref_no,
+           pcm.contract_ref_no || ' - ' || pcdi.delivery_item_no delivery_item_ref_no,
+           pcdi.pcdi_id,
+           (case
+             when pcm.purchase_sales = 'P' then
+              (-1) * dipq.payable_qty
+             else
+              0
+           end) purchase_qty,
+           (case
+             when pcm.purchase_sales = 'S' then
+              (1) * dipq.payable_qty
+             else
+              0
+           end) sales_qty,
+           qum.qty_unit qty_unit,
+           qum.qty_unit_id,
+           pcm.issue_date trade_date,
+           pcbpd.price_value price,
+           pum.price_unit_id,
+           pum.price_unit_name price_unit,
+           decode(pcm.purchase_sales, 'P', -1, 'S', 1) *
+           (pcbpd.price_value / nvl(ppu.weight, 1)) *
+           (pffxd.fixed_fx_rate *
+            pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
+                                                     pdm.product_id),
+                                                 qum.qty_unit_id,
+                                                 pum.weight_unit_id,
+                                                 dipq.payable_qty)) hedging_amount,
+           cm_pay.cur_id exposure_cur_id,
+           cm_pay.cur_code exposure_currency,
+           cm_base.cur_id base_cur_id,
+           cm_base.cur_code base_currency,
+           1,
+           pcm.purchase_sales
+      from pcdi_pc_delivery_item          pcdi,
+           dipq_delivery_item_payable_qty dipq,
+           aml_attribute_master_list      aml,
+           pdm_productmaster              pdm_under,
+           qum_quantity_unit_master       qum_under,
+           pcm_physical_contract_main     pcm,
+           poch_price_opt_call_off_header poch,
+           pocd_price_option_calloff_dtls pocd,
+           pofh_price_opt_fixation_header pofh,
+           pcbpd_pc_base_price_detail     pcbpd,
+           pffxd_phy_formula_fx_details   pffxd,
+           ak_corporate                   akc,
+           ak_corporate_user              akcu,
+           gab_globaladdressbook          gab,
+           pcpd_pc_product_definition     pcpd,
+           cpc_corporate_profit_center    cpc,
+           pdm_productmaster              pdm,
+           cm_currency_master             cm_base,
+           cm_currency_master             cm_pay,
+           v_ppu_pum                      ppu,
+           pum_price_unit_master          pum,
+           qum_quantity_unit_master       qum,
+           phd_profileheaderdetails       phd
+     where pcdi.pcdi_id = dipq.pcdi_id
+       and dipq.element_id = aml.attribute_id
+       and aml.underlying_product_id = pdm_under.product_id(+)
+       and pdm_under.base_quantity_unit = qum_under.qty_unit_id(+)
+       and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+       and pcdi.pcdi_id = poch.pcdi_id
+       and poch.poch_id = pocd.poch_id
+       and poch.element_id = aml.attribute_id
+       and pocd.pocd_id = pofh.pocd_id(+)
+       and pocd.pcbpd_id = pcbpd.pcbpd_id
+       and pcbpd.pffxd_id = pffxd.pffxd_id
+       and pffxd.is_active = 'Y'
+       and dipq.is_active = 'Y'
+       and pcm.corporate_id = akc.corporate_id
+       and pcm.trader_id = akcu.user_id(+)
+       and akcu.gabid = gab.gabid
+       and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
+       and pcpd.profit_center_id = cpc.profit_center_id
+       and pcpd.product_id = pdm.product_id
+       and akc.base_cur_id = cm_base.cur_id
+       and pocd.pay_in_cur_id = cm_pay.cur_id
+       and pcbpd.price_unit_id = ppu.product_price_unit_id
+       and ppu.price_unit_id = pum.price_unit_id
+       and dipq.qty_unit_id = qum.qty_unit_id
+       and pcm.cp_id = phd.profileid
+       and pcbpd.price_basis = 'Fixed'
+       and pcdi.is_active = 'Y'
+       and pcm.is_active = 'Y'
+       and pcm.contract_type = 'CONCENTRATES'
+       and pcpd.input_output = 'Input'
+       and (case when pcm.is_tolling_contract = 'Y' then
+            nvl(pcm.approval_status, 'Approved') else pcm.approval_status end) =
+           'Approved'
+       and pcm.contract_status <> 'Cancelled'
+       and poch.is_active = 'Y'
+       and pocd.is_active = 'Y'
+       and pofh.is_active(+) = 'Y'
+       and pcbpd.is_active = 'Y'
+       and dipq.payable_qty <> 0
+       and pcm.process_id = pc_process_id
+       and pcdi.process_id = pc_process_id
+       and dipq.process_id = pc_process_id
+       and pcbpd.process_id = pc_process_id
+       and pcpd.process_id = pc_process_id
+       and pffxd.process_id = pc_process_id
+       and pcm.corporate_id = pc_corporate_id
+       and pcm.issue_date > vd_prev_eom_date
+       and pcm.issue_date <= pd_trade_date;
+  commit;
+  --- 3.Base metal Price Fixations
+
+  insert into fxar_fx_allocation_report
+    (process_id,
+     eod_trade_date,
+     corporate_id,
+     corporate_name,
+     section_name,
+     main_section,
+     profit_center_id,
+     profit_center_name,
+     product_id,
+     product_desc,
+     trader_id,
+     trader_name,
+     internal_contract_ref_no,
+     delivery_item_no,
+     pcdi_id,
+     purchase_qty,
+     sales_qty,
+     qty_unit_id,
+     qty_unit,
+     exposure_date,
+     price,
+     price_unit_id,
+     price_unit_name,
+     hedge_amount,
+     exposure_cur_id,
+     exposure_cur_name,
+     base_cur_id,
+     base_cur_name,
+     exchange_rate,
+     purchase_sales)
+    select pc_process_id,
+           pd_trade_date,
+           akc.corporate_id,
+           akc.corporate_name,
+           'Physicals' main_section,
+           'Base Metal-Price Fixation' section,
+           cpc.profit_center_id,
+           cpc.profit_center_short_name profit_center,
+           pdm.product_id,
+           pdm.product_desc product,
+           pcm.trader_id trader_id,
+           gab.firstname || ' ' || gab.lastname trader,
+           
+           pcm.contract_ref_no,
+           pcm.contract_ref_no || ' - ' || pcdi.delivery_item_no delivery_item_ref_no,
+           pcdi.pcdi_id,
+           (case
+             when pcm.purchase_sales = 'P' then
+              (-1) * pfd.qty_fixed
+             else
+              0
+           end) purchase_qty,
+           (case
+             when pcm.purchase_sales = 'S' then
+              (1) * pfd.qty_fixed
+             else
+              0
+           end) sales_qty,
+           qum.qty_unit,
+           qum.qty_unit_id,
+           pfd.fx_correction_date trade_date,
+           (nvl(pfd.user_price, 0) + nvl(pfd.adjustment_price, 0)) price,
+           pum.price_unit_id,
+           pum.price_unit_name price_unit,
+           decode(pcm.purchase_sales, 'P', -1, 'S', 1) *
+           nvl(pfd.hedge_amount, 0) hedging_amount,
+           cm_pay.cur_id exposure_cur_id,
+           cm_pay.cur_code exposure_currency,
+           cm_base.cur_id base_cur_id,
+           cm_base.cur_code base_currency,
+           1,
+           pcm.purchase_sales
+    
+      from pcdi_pc_delivery_item          pcdi,
+           pcm_physical_contract_main     pcm,
+           poch_price_opt_call_off_header poch,
+           pocd_price_option_calloff_dtls pocd,
+           pofh_price_opt_fixation_header pofh,
+           pfd_price_fixation_details     pfd,
+           ak_corporate                   akc,
+           ak_corporate_user              akcu,
+           gab_globaladdressbook          gab,
+           pcpd_pc_product_definition     pcpd,
+           pym_payment_terms_master       pym,
+           cpc_corporate_profit_center    cpc,
+           pdm_productmaster              pdm,
+           cm_currency_master             cm_base,
+           cm_currency_master             cm_pay,
+           v_ppu_pum                      ppu,
+           pum_price_unit_master          pum,
+           qum_quantity_unit_master       qum,
+           phd_profileheaderdetails       phd
+     where pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+       and pcdi.pcdi_id = poch.pcdi_id
+       and poch.poch_id = pocd.poch_id
+       and pocd.pocd_id = pofh.pocd_id(+)
+       and pofh.pofh_id = pfd.pofh_id
+       and pfd.is_active = 'Y'
+       and pcm.corporate_id = akc.corporate_id
+       and pcm.trader_id = akcu.user_id(+)
+       and akcu.gabid = gab.gabid(+)
+       and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
+       and pcpd.profit_center_id = cpc.profit_center_id
+       and pcpd.product_id = pdm.product_id
+       and akc.base_cur_id = cm_base.cur_id
+       and pocd.pay_in_cur_id = cm_pay.cur_id
+       and pfd.price_unit_id = ppu.product_price_unit_id(+)
+       and ppu.price_unit_id = pum.price_unit_id(+)
+       and pocd.qty_to_be_fixed_unit_id = qum.qty_unit_id
+       and pcm.cp_id = phd.profileid
+       and pcm.contract_type = 'BASEMETAL'
+       and pcm.approval_status = 'Approved'
+       and pcpd.input_output = 'Input'
+       and pcdi.is_active = 'Y'
+       and pcm.is_active = 'Y'
+       and pcm.contract_status <> 'Cancelled'
+       and poch.is_active = 'Y'
+       and pocd.is_active = 'Y'
+       and pofh.is_active(+) = 'Y'
+       and nvl(pfd.is_hedge_correction, 'N') = 'N'
+       and nvl(pfd.is_cancel, 'N') = 'N'
+       and pfd.hedge_amount is not null
+       and pcm.process_id = pc_process_id
+       and pcdi.process_id = pc_process_id
+       and pcpd.process_id = pc_process_id
+       and pcm.corporate_id = pc_corporate_id
+       and pfd.fx_correction_date > vd_prev_eom_date
+       and pfd.fx_correction_date <= pd_trade_date;
+  commit;
+  ---  4.concentrates Price Fixation    
+  insert into fxar_fx_allocation_report
+    (process_id,
+     eod_trade_date,
+     corporate_id,
+     corporate_name,
+     section_name,
+     main_section,
+     profit_center_id,
+     profit_center_name,
+     product_id,
+     product_desc,
+     trader_id,
+     trader_name,
+     internal_contract_ref_no,
+     delivery_item_no,
+     pcdi_id,
+     purchase_qty,
+     sales_qty,
+     qty_unit_id,
+     qty_unit,
+     exposure_date,
+     price,
+     price_unit_id,
+     price_unit_name,
+     hedge_amount,
+     exposure_cur_id,
+     exposure_cur_name,
+     base_cur_id,
+     base_cur_name,
+     exchange_rate,
+     purchase_sales)
+    select pc_process_id,
+           pd_trade_date,
+           akc.corporate_id,
+           akc.corporate_name,
+           'Physicals' section,
+           'Concentrate-Price Fixation' main_section,
+           cpc.profit_center_id,
+           cpc.profit_center_short_name profit_center,
+           pdm_under.product_id,
+           pdm_under.product_desc product,
+           pcm.trader_id trader_id,
+           gab.firstname || ' ' || gab.lastname trader,
+           pcm.contract_ref_no,
+           pcm.contract_ref_no || ' - ' || pcdi.delivery_item_no delivery_item_ref_no,
+           pcdi.pcdi_id,
+           (case
+             when pcm.purchase_sales = 'P' then
+              (-1) * pfd.qty_fixed
+             else
+              0
+           end) purchase_qty,
+           (case
+             when pcm.purchase_sales = 'S' then
+              (1) * pfd.qty_fixed
+             else
+              0
+           end) sales_qty,
+           qum.qty_unit,
+           qum.qty_unit_id,
+           pfd.fx_correction_date trade_date,
+           (nvl(pfd.user_price, 0) + nvl(pfd.adjustment_price, 0)) price,
+           pum.price_unit_id,
+           pum.price_unit_name price_unit,
+           decode(pcm.purchase_sales, 'P', -1, 'S', 1) *
+           nvl(pfd.hedge_amount, 0) hedging_amount,
+           cm_pay.cur_id exposure_cur_id,
+           cm_pay.cur_code exposure_currency,
+           cm_base.cur_id base_cur_id,
+           cm_base.cur_code base_currency,
+           1,
+           pcm.purchase_sales
+    
+      from pcdi_pc_delivery_item          pcdi,
+           pcm_physical_contract_main     pcm,
+           poch_price_opt_call_off_header poch,
+           aml_attribute_master_list      aml,
+           pdm_productmaster              pdm_under,
+           qum_quantity_unit_master       qum_under,
+           pocd_price_option_calloff_dtls pocd,
+           pofh_price_opt_fixation_header pofh,
+           pfd_price_fixation_details     pfd,
+           ak_corporate                   akc,
+           ak_corporate_user              akcu,
+           gab_globaladdressbook          gab,
+           pcpd_pc_product_definition     pcpd,
+           cpc_corporate_profit_center    cpc,
+           pdm_productmaster              pdm,
+           cm_currency_master             cm_base,
+           cm_currency_master             cm_pay,
+           v_ppu_pum                      ppu,
+           pum_price_unit_master          pum,
+           qum_quantity_unit_master       qum
+     where pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+       and pcdi.pcdi_id = poch.pcdi_id
+       and poch.element_id = aml.attribute_id
+       and aml.underlying_product_id = pdm_under.product_id(+)
+       and pdm_under.base_quantity_unit = qum_under.qty_unit_id(+)
+       and poch.poch_id = pocd.poch_id
+       and pocd.pocd_id = pofh.pocd_id(+)
+       and pcdi.is_active = 'Y'
+       and pcm.is_active = 'Y'
+       and pcm.contract_status <> 'Cancelled'
+       and poch.is_active = 'Y'
+       and pocd.is_active = 'Y'
+       and pofh.is_active(+) = 'Y'
+       and pofh.pofh_id = pfd.pofh_id
+       and pfd.is_active = 'Y'
+       and pcm.corporate_id = akc.corporate_id
+       and pcm.trader_id = akcu.user_id(+)
+       and akcu.gabid = gab.gabid
+       and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
+       and pcpd.profit_center_id = cpc.profit_center_id
+       and pcpd.product_id = pdm.product_id
+       and akc.base_cur_id = cm_base.cur_id
+       and pocd.pay_in_cur_id = cm_pay.cur_id
+       and pfd.price_unit_id = ppu.product_price_unit_id(+)
+       and ppu.price_unit_id = pum.price_unit_id(+)
+       and pocd.qty_to_be_fixed_unit_id = qum.qty_unit_id
+       and pcm.contract_type = 'CONCENTRATES'
+       and pcpd.input_output = 'Input'
+       and (case when pcm.is_tolling_contract = 'Y' then
+            nvl(pcm.approval_status, 'Approved') else pcm.approval_status end) =
+           'Approved'
+       and nvl(pfd.is_hedge_correction, 'N') = 'N'
+       and nvl(pfd.is_cancel, 'N') = 'N'
+       and pfd.hedge_amount is not null
+       and pcdi.process_id = pc_process_id
+       and pcm.process_id = pc_process_id
+       and pcpd.process_id = pc_process_id
+       and pcm.corporate_id = pc_corporate_id
+       and pfd.fx_correction_date > vd_prev_eom_date
+       and pfd.fx_correction_date <= pd_trade_date;
+  commit;
+  -- 5. Quality Premium
+  insert into fxar_fx_allocation_report
+    (process_id,
+     eod_trade_date,
+     corporate_id,
+     corporate_name,
+     section_name,
+     main_section,
+     profit_center_id,
+     profit_center_name,
+     product_id,
+     product_desc,
+     trader_id,
+     trader_name,
+     internal_contract_ref_no,
+     delivery_item_no,
+     pcdi_id,
+     purchase_qty,
+     sales_qty,
+     qty_unit_id,
+     qty_unit,
+     exposure_date,
+     price,
+     price_unit_id,
+     price_unit_name,
+     hedge_amount,
+     exposure_cur_id,
+     exposure_cur_name,
+     base_cur_id,
+     base_cur_name,
+     exchange_rate,
+     purchase_sales)
+    select pc_process_id,
+           pd_trade_date,
+           ak.corporate_id,
+           ak.corporate_name,
+           'Physicals' main_section,
+           'Quality  Premium' section,
+           cpc.profit_center_id,
+           cpc.profit_center_short_name profit_center,
+           pdm.product_id,
+           pdm.product_desc product,
+           pcm.trader_id trader_id,
+           gab.firstname || '  ' || gab.lastname trader,
+           pcm.contract_ref_no,
+           pcm.contract_ref_no || '-' || pcdi.delivery_item_no delivery_item_ref_no,
+           pcdi.pcdi_id,
+           (case
+             when pcm.purchase_sales = 'P' then
+              (-1) * diqs.total_qty
+             else
+              0
+           end) purchase_qty,
+           (case
+             when pcm.purchase_sales = 'S' then
+              (1) * diqs.total_qty
+             else
+              0
+           end) sales_qty,
+           qum.qty_unit qty_unit,
+           qum.qty_unit_id,
+           pcm.issue_date trade_date,
+           pcqpd.premium_disc_value price,
+           pcqpd.premium_disc_unit_id price_unit_id,
+           pum.price_unit_name price_unit,
+           decode(pcm.purchase_sales, 'P', -1, 'S', 1) *
+           (pcqpd.premium_disc_value / nvl(ppu.weight, 1)) *
+           (pffxd.fixed_fx_rate *
+            pkg_general.f_get_converted_quantity(pdm.product_id,
+                                                 qum.qty_unit_id,
+                                                 pum.weight_unit_id,
+                                                 diqs.total_qty)) hedging_amount,
+           cm_pay.cur_id exposure_cur_id,
+           cm_pay.cur_code exposure_currency,
+           cm_base.cur_id,
+           cm_base.cur_code base_currency,
+           1,
+           pcm.purchase_sales
+    
+      from ak_corporate                   ak,
+           pcm_physical_contract_main     pcm,
+           pcdi_pc_delivery_item          pcdi,
+           diqs_delivery_item_qty_status  diqs,
+           cm_currency_master             cm_base,
+           pcpd_pc_product_definition     pcpd,
+           cpc_corporate_profit_center    cpc,
+           pdm_productmaster              pdm,
+           qum_quantity_unit_master       qum,
+           pcqpd_pc_qual_premium_discount pcqpd,
+           pffxd_phy_formula_fx_details   pffxd,
+           v_ppu_pum                      ppu,
+           pum_price_unit_master          pum,
+           cm_currency_master             cm_pay,
+           ak_corporate_user              akc,
+           gab_globaladdressbook          gab
+     where ak.corporate_id = pcm.corporate_id
+       and ak.base_cur_id = cm_base.cur_id
+       and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+       and pcdi.pcdi_id = diqs.pcdi_id
+       and diqs.is_active = 'Y'
+       and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+       and pcpd.profit_center_id = cpc.profit_center_id
+       and pdm.product_id = pcpd.product_id
+       and qum.qty_unit_id = diqs.item_qty_unit_id
+       and pcqpd.internal_contract_ref_no = pcm.internal_contract_ref_no
+       and ppu.product_price_unit_id = pcqpd.premium_disc_unit_id
+       and pcqpd.pffxd_id = pffxd.pffxd_id
+       and pffxd.is_active = 'Y'
+       and pum.price_unit_id = ppu.price_unit_id
+       and cm_pay.cur_id = pcm.invoice_currency_id
+       and pcm.trader_id = akc.user_id
+       and akc.gabid = gab.gabid
+       and pcm.is_active = 'Y'
+       and (case when pcm.is_tolling_contract = 'Y' then
+            nvl(pcm.approval_status, 'Approved') else pcm.approval_status end) =
+           'Approved'
+       and pcm.contract_status <> 'Cancelled'
+       and pcpd.input_output = 'Input'
+       and pcdi.is_active = 'Y'
+       and pcpd.is_active = 'Y'
+       and pum.is_active = 'Y'
+       and pcm.process_id = pc_process_id
+       and pcdi.process_id = pc_process_id
+       and diqs.process_id = pc_process_id
+       and pcpd.process_id = pc_process_id
+       and pcqpd.process_id = pc_process_id
+       and pffxd.process_id = pc_process_id
+       and pcm.corporate_id = pc_corporate_id
+       and pcm.issue_date > vd_prev_eom_date
+       and pcm.issue_date <= pd_trade_date;
+  commit;
+
+  --  6. Location Premium
+  insert into fxar_fx_allocation_report
+    (process_id,
+     eod_trade_date,
+     corporate_id,
+     corporate_name,
+     section_name,
+     main_section,
+     profit_center_id,
+     profit_center_name,
+     product_id,
+     product_desc,
+     trader_id,
+     trader_name,
+     internal_contract_ref_no,
+     delivery_item_no,
+     pcdi_id,
+     purchase_qty,
+     sales_qty,
+     qty_unit_id,
+     qty_unit,
+     exposure_date,
+     price,
+     price_unit_id,
+     price_unit_name,
+     hedge_amount,
+     exposure_cur_id,
+     exposure_cur_name,
+     base_cur_id,
+     base_cur_name,
+     exchange_rate,
+     purchase_sales)
+    select pc_process_id,
+           pd_trade_date,
+           ak.corporate_id,
+           ak.corporate_name,
+           'Physicals' main_section,
+           'location  Premium' section,
+           cpc.profit_center_id,
+           cpc.profit_center_short_name profit_center,
+           pdm.product_id,
+           pdm.product_desc product,
+           pcm.trader_id trader_id,
+           gab.firstname || '  ' || gab.lastname trader,
+           pcm.contract_ref_no,
+           pcm.contract_ref_no || '-' || pcdi.delivery_item_no delivery_item_ref_no,
+           pcdi.pcdi_id,
+           (case
+             when pcm.purchase_sales = 'P' then
+              (-1) * diqs.total_qty
+             else
+              0
+           end) purchase_qty,
+           (case
+             when pcm.purchase_sales = 'S' then
+              (1) * diqs.total_qty
+             else
+              0
+           end) sales_qty,
+           qum.qty_unit contract_qty_unit,
+           qum.qty_unit_id,
+           pcm.issue_date trade_date,
+           pcdb.premium price,
+           pcdb.premium_unit_id price_unit_id,
+           pum.price_unit_name price_unit,
+           decode(pcm.purchase_sales, 'P', -1, 'S', 1) *
+           (pcdb.premium / nvl(ppu.weight, 1)) *
+           (pffxd.fixed_fx_rate *
+            pkg_general.f_get_converted_quantity(pdm.product_id,
+                                                 qum.qty_unit_id,
+                                                 pum.weight_unit_id,
+                                                 diqs.total_qty)) hedging_amount,
+           cm_pay.cur_id exposure_cur_id,
+           cm_pay.cur_code exposure_currency,
+           cm_base.cur_id,
+           cm_base.cur_code base_currency,
+           1,
+           pcm.purchase_sales
+      from ak_corporate                  ak,
+           pcm_physical_contract_main    pcm,
+           pcdi_pc_delivery_item         pcdi,
+           diqs_delivery_item_qty_status diqs,
+           cm_currency_master            cm_base,
+           pcpd_pc_product_definition    pcpd,
+           cpc_corporate_profit_center   cpc,
+           pdm_productmaster             pdm,
+           qum_quantity_unit_master      qum,
+           pcdb_pc_delivery_basis        pcdb,
+           pffxd_phy_formula_fx_details  pffxd,
+           v_ppu_pum                     ppu,
+           pum_price_unit_master         pum,
+           cm_currency_master            cm_expo,
+           ak_corporate_user             akc,
+           gab_globaladdressbook         gab,
+           cm_currency_master            cm_pay
+    
+     where ak.corporate_id = pcm.corporate_id
+       and ak.base_cur_id = cm_base.cur_id
+       and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+       and pcdi.pcdi_id = diqs.pcdi_id
+       and diqs.is_active = 'Y'
+       and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+       and pcpd.profit_center_id = cpc.profit_center_id
+       and pdm.product_id = pcpd.product_id
+       and qum.qty_unit_id = diqs.item_qty_unit_id
+       and pcdb.internal_contract_ref_no = pcm.internal_contract_ref_no
+       and pum.price_unit_id = ppu.price_unit_id
+       and pum.cur_id = cm_expo.cur_id
+       and ppu.product_price_unit_id = pcdb.premium_unit_id
+       and pcdb.pffxd_id = pffxd.pffxd_id(+)
+       and pffxd.is_active(+) = 'Y'
+       and cm_pay.cur_id = pcm.invoice_currency_id
+       and pcm.trader_id = akc.user_id
+       and akc.gabid = gab.gabid
+       and pcm.is_active = 'Y'
+       and (case when pcm.is_tolling_contract = 'Y' then
+            nvl(pcm.approval_status, 'Approved') else pcm.approval_status end) =
+           'Approved'
+       and pcm.contract_status <> 'Cancelled'
+       and pcpd.input_output = 'Input'
+       and pcdi.is_active = 'Y'
+       and pcpd.is_active = 'Y'
+       and pum.is_active = 'Y'
+       and pcm.process_id = pc_process_id
+       and pcdi.process_id = pc_process_id
+       and diqs.process_id = pc_process_id
+       and pcpd.process_id = pc_process_id
+       and pcdb.process_id = pc_process_id
+       and pffxd.process_id = pc_process_id
+       and pcm.corporate_id = pcm.corporate_id
+       and pcm.issue_date > vd_prev_eom_date
+       and pcm.issue_date <= pd_trade_date;
+  commit;
+
+  --  7. Accurals
+  insert into fxar_fx_allocation_report
+    (process_id,
+     eod_trade_date,
+     corporate_id,
+     corporate_name,
+     section_name,
+     main_section,
+     profit_center_id,
+     profit_center_name,
+     product_id,
+     product_desc,
+     trader_id,
+     trader_name,
+     internal_contract_ref_no,
+     delivery_item_no,
+     pcdi_id,
+     purchase_qty,
+     sales_qty,
+     qty_unit_id,
+     qty_unit,
+     exposure_date,
+     price,
+     price_unit_id,
+     price_unit_name,
+     hedge_amount,
+     exposure_cur_id,
+     exposure_cur_name,
+     base_cur_id,
+     base_cur_name,
+     exchange_rate,
+     purchase_sales)
+    select pc_process_id,
+           pd_trade_date,
+           ak.corporate_id,
+           ak.corporate_name,
+           'Physicals' main_section,
+           'Accruals' section,
+           cpc.profit_center_id,
+           cpc.profit_center_short_name profit_center,
+           pdm.product_id,
+           pdm.product_desc product,
+           pcm.trader_id trader_id,
+           gab.firstname || ' ' || gab.lastname trader,
+           pcm.contract_ref_no,
+           pcm.contract_ref_no || '-' || pcdi.delivery_item_no delivery_item_ref_no,
+           pcdi.pcdi_id,
+           (case
+             when pcm.purchase_sales = 'P' then
+              (-1) * cigc.qty
+             else
+              0
+           end) purchase_qty,
+           (case
+             when pcm.purchase_sales = 'S' then
+              (1) * cigc.qty
+             else
+              0
+           end) sales_qty,
+           qum.qty_unit qty_unit,
+           qum.qty_unit_id,
+           cs.effective_date trade_date,
+           cs.cost_value price,
+           (case
+             when cs.rate_type = 'Rate' then
+              cs.rate_price_unit_id
+             when cs.rate_type = 'Absolute' then
+              cs.transaction_amt_cur_id
+           end) price_unit_id,
+           (case
+             when cs.rate_type = 'Rate' then
+              pum.price_unit_name
+             when cs.rate_type = 'Absolute' then
+              cm_pay.cur_code
+           end) price_unit,
+           decode(cs.income_expense, 'Expense', -1, 'Income', 1) *
+           (cs.cost_value*decode(cs.rate_type,'Rate',1, cigc.qty) / nvl(ppu.weight, 1)) * cs.fx_to_base *
+           decode(cs.rate_type,
+                  'Rate',
+                  pkg_general.f_get_converted_quantity(pdm.product_id,
+                                                       qum.qty_unit_id,
+                                                       decode(cs.rate_type,
+                                                              'Rate',
+                                                              pum.weight_unit_id,
+                                                              qum.qty_unit_id),
+                                                       cigc.qty),
+                  1) hedging_amount,
+           cm_pay.cur_id exposure_cur_id,
+           cm_pay.cur_code exposure_currency,
+           cm_base.cur_id,
+           cm_base.cur_code base_currency,
+           1,
+           pcm.purchase_sales
+    
+      from ak_corporate                ak,
+           pcm_physical_contract_main  pcm,
+           pcdi_pc_delivery_item       pcdi,
+           cm_currency_master          cm_base,
+           cm_currency_master          cm_pay,
+           pcpd_pc_product_definition  pcpd,
+           cpc_corporate_profit_center cpc,
+           pdm_productmaster           pdm,
+           qum_quantity_unit_master    qum,
+           v_ppu_pum                   ppu,
+           pum_price_unit_master       pum,
+           gmr_goods_movement_record   gmr,
+           cigc_contract_item_gmr_cost cigc,
+           cs_cost_store               cs,
+           scm_service_charge_master   scm,
+           ak_corporate_user           akc,
+           gab_globaladdressbook       gab
+     where ak.corporate_id = pcm.corporate_id
+       and ak.base_cur_id = cm_base.cur_id
+       and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+       and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+       and pcpd.profit_center_id = cpc.profit_center_id
+       and pdm.product_id = pcpd.product_id
+       and qum.qty_unit_id = cigc.qty_unit_id
+       and cs.rate_price_unit_id = ppu.product_price_unit_id(+)
+       and cs.cost_component_id = scm.cost_id
+       and ppu.price_unit_id = pum.price_unit_id(+)
+       and gmr.internal_contract_ref_no = pcm.internal_contract_ref_no
+       and gmr.internal_gmr_ref_no = cigc.internal_gmr_ref_no
+       and cigc.cog_ref_no = cs.cog_ref_no
+       and cm_pay.cur_id = cs.transaction_amt_cur_id
+       and scm.cost_type = 'SECONDARY_COST'
+       and pcpd.input_output = 'Input'
+       and pcm.trader_id = akc.user_id
+       and akc.gabid = gab.gabid
+       and pcm.is_active = 'Y'
+       and gmr.is_deleted = 'N'
+       and pcm.contract_status <> 'Cancelled'
+       and (case when pcm.is_tolling_contract = 'Y' then
+            nvl(pcm.approval_status, 'Approved') else pcm.approval_status end) =
+           'Approved'
+       and pcdi.is_active = 'Y'
+       and pcpd.is_active = 'Y'
+       and pum.is_active(+) = 'Y'
+       and cigc.is_deleted = 'N'
+       and cs.is_deleted = 'N'
+       and pcm.process_id = pc_process_id
+       and pcdi.process_id = pc_process_id
+       and gmr.process_id = pc_process_id
+       and pcpd.process_id = pc_process_id
+       and cigc.process_id = pc_process_id
+       and cs.process_id = pc_process_id
+       and pcm.corporate_id = pc_corporate_id
+       and cs.effective_date > vd_prev_eom_date
+       and cs.effective_date <= pd_trade_date;
+  commit;
+  --8  cancel fixations
+
+  insert into fxar_fx_allocation_report
+    (process_id,
+     eod_trade_date,
+     corporate_id,
+     corporate_name,
+     section_name,
+     main_section,
+     profit_center_id,
+     profit_center_name,
+     product_id,
+     product_desc,
+     trader_id,
+     trader_name,
+     internal_contract_ref_no,
+     delivery_item_no,
+     pcdi_id,
+     purchase_qty,
+     sales_qty,
+     qty_unit_id,
+     qty_unit,
+     exposure_date,
+     price,
+     price_unit_id,
+     price_unit_name,
+     hedge_amount,
+     exposure_cur_id,
+     exposure_cur_name,
+     base_cur_id,
+     base_cur_name,
+     exchange_rate,
+     purchase_sales)
+    select pc_process_id,
+           pd_trade_date,
+           akc.corporate_id,
+           akc.corporate_name,
+           'Physicals' main_section,
+           'CANCELLED FIXATION' section,
+           cpc.profit_center_id,
+           cpc.profit_center_short_name profit_center,
+           aml.underlying_product_id product_id,
+           pdm.product_desc product,
+           pcm.trader_id trader_id,
+           gab.firstname || ' ' || gab.lastname trader,
+           pcm.contract_ref_no,
+           pcm.contract_ref_no || ' - ' || pcdi.delivery_item_no delivery_item_ref_no,
+           pcdi.pcdi_id,
+           (case
+             when pcm.purchase_sales = 'P' then
+              (-1) * pfd.qty_fixed
+             else
+              0
+           end) purchase_qty,
+           (case
+             when pcm.purchase_sales = 'S' then
+              (1) * pfd.qty_fixed
+             else
+              0
+           end) sales_qty,
+           qum.qty_unit,
+           qum.qty_unit_id,
+           pfd.fx_correction_date trade_date,
+           (nvl(pfd.user_price, 0) + nvl(pfd.adjustment_price, 0)) price,
+           pum.price_unit_id,
+           pum.price_unit_name price_unit,
+           decode(pcm.purchase_sales, 'P', -1, 'S', 1) *
+           nvl(pfd.hedge_amount, 0) hedging_amount,
+           cm_pay.cur_id exposure_cur_id,
+           cm_pay.cur_code exposure_currency,
+           cm_base.cur_id,
+           cm_base.cur_code base_currency,
+           1,
+           pcm.purchase_sales
+    
+      from pcdi_pc_delivery_item          pcdi,
+           pcm_physical_contract_main     pcm,
+           poch_price_opt_call_off_header poch,
+           pocd_price_option_calloff_dtls pocd,
+           pofh_price_opt_fixation_header pofh,
+           pfd_price_fixation_details     pfd,
+           ak_corporate                   akc,
+           ak_corporate_user              akcu,
+           gab_globaladdressbook          gab,
+           pcpd_pc_product_definition     pcpd,
+           cpc_corporate_profit_center    cpc,
+           pdm_productmaster              pdm,
+           cm_currency_master             cm_base,
+           cm_currency_master             cm_pay,
+           v_ppu_pum                      ppu,
+           pum_price_unit_master          pum,
+           qum_quantity_unit_master       qum,
+           aml_attribute_master_list      aml
+     where pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+       and pcdi.pcdi_id = poch.pcdi_id
+       and poch.poch_id = pocd.poch_id
+       and pocd.pocd_id = pofh.pocd_id(+)
+       and pofh.pofh_id = pfd.pofh_id
+       and pcm.corporate_id = akc.corporate_id
+       and pcm.trader_id = akcu.user_id(+)
+       and akcu.gabid = gab.gabid
+       and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
+       and pcpd.input_output = 'Input'
+       and pcpd.profit_center_id = cpc.profit_center_id
+       and poch.element_id = aml.attribute_id
+       and aml.underlying_product_id = pdm.product_id
+       and akc.base_cur_id = cm_base.cur_id
+       and pocd.pay_in_cur_id = cm_pay.cur_id
+       and pfd.price_unit_id = ppu.product_price_unit_id(+)
+       and ppu.price_unit_id = pum.price_unit_id(+)
+       and pocd.qty_to_be_fixed_unit_id = qum.qty_unit_id
+       and pcdi.is_active = 'Y'
+       and pcm.is_active = 'Y'
+       and pcm.contract_status <> 'Cancelled'
+       and poch.is_active = 'Y'
+       and pocd.is_active = 'Y'
+       and pofh.is_active(+) = 'Y'
+       and pfd.is_cancel = 'Y'
+       and nvl(pfd.is_exposure, 'Y') = 'Y'
+       and pcm.process_id = pc_process_id
+       and pcdi.process_id = pc_process_id
+       and pcpd.process_id = pc_process_id
+       and pcm.corporate_id = pc_corporate_id
+       and pfd.fx_correction_date > vd_prev_eom_date
+       and pfd.fx_correction_date <= pd_trade_date;
+  commit;
+  --- 9) hedge corrections
+  insert into fxar_fx_allocation_report
+    (process_id,
+     eod_trade_date,
+     corporate_id,
+     corporate_name,
+     section_name,
+     main_section,
+     profit_center_id,
+     profit_center_name,
+     product_id,
+     product_desc,
+     trader_id,
+     trader_name,
+     internal_contract_ref_no,
+     delivery_item_no,
+     pcdi_id,
+     purchase_qty,
+     sales_qty,
+     qty_unit_id,
+     qty_unit,
+     exposure_date,
+     price,
+     price_unit_id,
+     price_unit_name,
+     hedge_amount,
+     exposure_cur_id,
+     exposure_cur_name,
+     base_cur_id,
+     base_cur_name,
+     exchange_rate,
+     purchase_sales)
+  
+    select pc_process_id,
+           pd_trade_date,
+           akc.corporate_id,
+           akc.corporate_name,
+           'Physicals' main_section,
+           'Hedge Corrections' section,
+           cpc.profit_center_id,
+           cpc.profit_center_short_name profit_center,
+           aml.underlying_product_id product_id,
+           pdm.product_desc product,
+           pcm.trader_id trader_id,
+           gab.firstname || ' ' || gab.lastname trader,
+           pcm.contract_ref_no,
+           pcm.contract_ref_no || ' - ' || pcdi.delivery_item_no delivery_item_ref_no,
+           pcdi.pcdi_id,
+           (case
+             when pcm.purchase_sales = 'P' then
+              (-1) * pfd.qty_fixed
+             else
+              0
+           end) purchase_qty,
+           (case
+             when pcm.purchase_sales = 'S' then
+              (1) * pfd.qty_fixed
+             else
+              0
+           end) sales_qty,
+           qum.qty_unit,
+           qum.qty_unit_id,
+           pfd.fx_correction_date trade_date,
+           (nvl(pfd.user_price, 0) + nvl(pfd.adjustment_price, 0)) price,
+           pum.price_unit_id,
+           pum.price_unit_name price_unit,
+           decode(pcm.purchase_sales, 'P', -1, 'S', 1) *
+           nvl(pfd.hedge_amount, 0) hedging_amount,
+           cm_pay.cur_id exposure_cur_id,
+           cm_pay.cur_code exposure_currency,
+           cm_base.cur_id,
+           cm_base.cur_code base_currency,
+           1,
+           pcm.purchase_sales
+      from pcdi_pc_delivery_item          pcdi,
+           pcm_physical_contract_main     pcm,
+           poch_price_opt_call_off_header poch,
+           pocd_price_option_calloff_dtls pocd,
+           pofh_price_opt_fixation_header pofh,
+           pfd_price_fixation_details     pfd,
+           ak_corporate                   akc,
+           ak_corporate_user              akcu,
+           gab_globaladdressbook          gab,
+           pcpd_pc_product_definition     pcpd,
+           cpc_corporate_profit_center    cpc,
+           pdm_productmaster              pdm,
+           cm_currency_master             cm_base,
+           cm_currency_master             cm_pay,
+           v_ppu_pum                      ppu,
+           pum_price_unit_master          pum,
+           qum_quantity_unit_master       qum,
+           aml_attribute_master_list      aml
+     where pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+       and pcdi.pcdi_id = poch.pcdi_id
+       and poch.poch_id = pocd.poch_id
+       and pocd.pocd_id = pofh.pocd_id(+)
+       and pofh.pofh_id = pfd.pofh_id
+       and pfd.is_active = 'Y'
+       and pcm.corporate_id = akc.corporate_id
+       and pcm.trader_id = akcu.user_id(+)
+       and akcu.gabid = gab.gabid
+       and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
+       and pcpd.profit_center_id = cpc.profit_center_id
+       and poch.element_id = aml.attribute_id
+       and aml.underlying_product_id = pdm.product_id
+       and akc.base_cur_id = cm_base.cur_id
+       and pocd.pay_in_cur_id = cm_pay.cur_id
+       and pfd.price_unit_id = ppu.product_price_unit_id(+)
+       and ppu.price_unit_id = pum.price_unit_id(+)
+       and pocd.qty_to_be_fixed_unit_id = qum.qty_unit_id
+       and pcpd.input_output = 'Input'
+       and pcdi.is_active = 'Y'
+       and pcm.is_active = 'Y'
+       and pcm.contract_status <> 'Cancelled'
+       and poch.is_active = 'Y'
+       and pocd.is_active = 'Y'
+       and pofh.is_active(+) = 'Y'
+       and pfd.hedge_amount is not null
+       and pfd.is_hedge_correction = 'Y'
+       and nvl(pfd.is_cancel, 'N') = 'N'
+       and nvl(pfd.is_exposure, 'Y') = 'Y'
+       and pcm.process_id = pc_process_id
+       and pcdi.process_id = pc_process_id
+       and pcpd.process_id = pc_process_id
+       and pcm.corporate_id = pc_corporate_id
+       and pfd.fx_correction_date > vd_prev_eom_date
+       and pfd.fx_correction_date <= pd_trade_date;
+  commit;
+  ---  10 Vat invoices
+  insert into fxar_fx_allocation_report
+    (process_id,
+     eod_trade_date,
+     corporate_id,
+     corporate_name,
+     section_name,
+     main_section,
+     profit_center_id,
+     profit_center_name,
+     product_id,
+     product_desc,
+     trader_id,
+     trader_name,
+     internal_contract_ref_no,
+     delivery_item_no,
+     pcdi_id,
+     purchase_qty,
+     sales_qty,
+     qty_unit_id,
+     qty_unit,
+     exposure_date,
+     price,
+     price_unit_id,
+     price_unit_name,
+     hedge_amount,
+     exposure_cur_id,
+     exposure_cur_name,
+     base_cur_id,
+     base_cur_name,
+     exchange_rate,
+     purchase_sales)
+    select pc_process_id,
+           pd_trade_date,
+           akc.corporate_id,
+           akc.corporate_name,
+           'Physicals' main_section,
+           'Vat' section,
+           cpc.profit_center_id,
+           cpc.profit_center_short_name profit_center,
+           pdm.product_id,
+           pdm.product_desc product,
+           pcm.trader_id trader_id,
+           gab.firstname || ' ' || gab.lastname trader,
+           pcm.contract_ref_no,
+           pcm.contract_ref_no || ' - ' || iid.delivery_item_ref_no delivery_item_ref_no,
+           null pcdi_id,
+           null purchase_qty,
+           null sales_qty,
+           null qty_unit,
+           null qty_unit_id,
+           iis.invoice_created_date trade_date,
+           null price,
+           null price_unit_id,
+           null price_unit,
+           (decode(iis.payable_receivable, 'Payable', 1, 'Receivable', -1) *
+           abs(ivd.vat_amount_in_vat_cur)) hedging_amount,
+           cm_pay.cur_id exposure_cur_id,
+           cm_pay.cur_code exposure_currency,
+           cm_base.cur_id,
+           cm_base.cur_code base_currency,
+           1,
+           pcm.purchase_sales
+    
+      from ivd_invoice_vat_details ivd,
+           (select iid.internal_contract_item_ref_no,
+                   iid.internal_contract_ref_no,
+                   ii.delivery_item_ref_no,
+                   iid.internal_invoice_ref_no,
+                   iid.internal_gmr_ref_no,
+                   sum(iid.invoiced_qty)
+              from iid_invoicable_item_details iid,
+                   ii_invoicable_item          ii
+             where iid.is_active = 'Y'
+               and iid.invoicable_item_id = ii.invoicable_item_id
+               and ii.is_active = 'Y'
+             group by iid.internal_contract_item_ref_no,
+                      iid.internal_contract_ref_no,
+                      iid.internal_gmr_ref_no,
+                      iid.internal_invoice_ref_no,
+                      ii.delivery_item_ref_no) iid,
+           is_invoice_summary iis,
+           gmr_goods_movement_record gmr,
+           pcm_physical_contract_main pcm,
+           ak_corporate akc,
+           ak_corporate_user akcu,
+           gab_globaladdressbook gab,
+           pcpd_pc_product_definition pcpd,
+           pym_payment_terms_master pym,
+           cpc_corporate_profit_center cpc,
+           pdm_productmaster pdm,
+           cm_currency_master cm_base,
+           cm_currency_master cm_pay,
+           cm_currency_master cm_vat,
+           cm_currency_master cm_invoice
+     where ivd.internal_invoice_ref_no = iid.internal_invoice_ref_no
+       and iid.internal_invoice_ref_no = iis.internal_invoice_ref_no
+       and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+       and iid.internal_contract_ref_no = pcm.internal_contract_ref_no
+       and ivd.is_separate_invoice = 'N'
+       and ivd.vat_remit_cur_id <> ivd.invoice_cur_id
+       and pcm.corporate_id = akc.corporate_id
+       and pcm.trader_id = akcu.user_id(+)
+       and akcu.gabid = gab.gabid
+       and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
+       and pcpd.input_output = 'Input'
+       and pcm.payment_term_id = pym.payment_term_id
+       and pcpd.profit_center_id = cpc.profit_center_id
+       and pcpd.product_id = pdm.product_id
+       and akc.base_cur_id = cm_base.cur_id
+       and ivd.vat_remit_cur_id = cm_pay.cur_id
+       and akc.base_cur_id = cm_base.cur_id
+       and ivd.vat_remit_cur_id = cm_vat.cur_id
+       and ivd.invoice_cur_id = cm_invoice.cur_id
+       and iis.is_active = 'Y'
+       and gmr.is_deleted = 'N'
+       and nvl(ivd.vat_amount_in_vat_cur, 0) <> 0
+       and pcm.process_id = pc_process_id
+       and pcpd.process_id = pc_process_id
+       and iis.process_id = pc_process_id
+       and gmr.process_id = pc_process_id
+       and iis.invoice_created_date > vd_prev_eom_date
+       and iis.invoice_created_date <= pd_trade_date;
+  commit;
+
+  -- 11  VAT Exposure in INVOICE CURRENCY( for Invoice CCY <> VAT Remit With VAT as "Same Invoice" :-
+  insert into fxar_fx_allocation_report
+    (process_id,
+     eod_trade_date,
+     corporate_id,
+     corporate_name,
+     section_name,
+     main_section,
+     profit_center_id,
+     profit_center_name,
+     product_id,
+     product_desc,
+     trader_id,
+     trader_name,
+     internal_contract_ref_no,
+     delivery_item_no,
+     pcdi_id,
+     purchase_qty,
+     sales_qty,
+     qty_unit_id,
+     qty_unit,
+     exposure_date,
+     price,
+     price_unit_id,
+     price_unit_name,
+     hedge_amount,
+     exposure_cur_id,
+     exposure_cur_name,
+     base_cur_id,
+     base_cur_name,
+     exchange_rate,
+     purchase_sales)
+    select pc_process_id,
+           pd_trade_date,
+           akc.corporate_id,
+           akc.corporate_name,
+           'Physicals' main_section,
+           'Vat' section,
+           cpc.profit_center_id,
+           cpc.profit_center_short_name profit_center,
+           pdm.product_id,
+           pdm.product_desc product,
+           pcm.trader_id trader_id,
+           gab.firstname || ' ' || gab.lastname trader,
+           pcm.contract_ref_no,
+           pcm.contract_ref_no || ' - ' || iid.delivery_item_ref_no delivery_item_ref_no,
+           null pcdi_id,
+           null purchase_qty,
+           null sales_qty,
+           null qty_unit,
+           null qty_unit_id,
+           iis.invoice_created_date trade_date,
+           null price,
+           null price_unit_id,
+           null price_unit,
+           (decode(iis.payable_receivable, 'Payable', -1, 'Receivable', 1) *
+           abs(ivd.vat_amount_in_inv_cur)) hedging_amount,
+           cm_pay.cur_id exposure_cur_id,
+           cm_pay.cur_code exposure_currency,
+           cm_base.cur_id,
+           cm_base.cur_code base_currency,
+           1,
+           pcm.purchase_sales
+    
+      from ivd_invoice_vat_details ivd,
+           (select iid.internal_contract_item_ref_no,
+                   iid.internal_contract_ref_no,
+                   ii.delivery_item_ref_no,
+                   iid.internal_invoice_ref_no,
+                   iid.internal_gmr_ref_no,
+                   sum(iid.invoiced_qty)
+              from iid_invoicable_item_details iid,
+                   ii_invoicable_item          ii
+             where iid.is_active = 'Y'
+               and iid.invoicable_item_id = ii.invoicable_item_id
+               and ii.is_active = 'Y'
+             group by iid.internal_contract_item_ref_no,
+                      iid.internal_contract_ref_no,
+                      iid.internal_gmr_ref_no,
+                      iid.internal_invoice_ref_no,
+                      ii.delivery_item_ref_no) iid,
+           is_invoice_summary iis,
+           gmr_goods_movement_record gmr,
+           pcm_physical_contract_main pcm,
+           ak_corporate akc,
+           ak_corporate_user akcu,
+           gab_globaladdressbook gab,
+           pcpd_pc_product_definition pcpd,
+           cpc_corporate_profit_center cpc,
+           pdm_productmaster pdm,
+           cm_currency_master cm_base,
+           cm_currency_master cm_pay,
+           cm_currency_master cm_vat,
+           cm_currency_master cm_invoice
+     where ivd.internal_invoice_ref_no = iid.internal_invoice_ref_no
+       and iid.internal_invoice_ref_no = iis.internal_invoice_ref_no
+       and iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+       and iid.internal_contract_ref_no = pcm.internal_contract_ref_no
+       and ivd.is_separate_invoice = 'N'
+       and ivd.vat_remit_cur_id <> ivd.invoice_cur_id
+       and pcm.corporate_id = akc.corporate_id
+       and pcm.trader_id = akcu.user_id(+)
+       and akcu.gabid = gab.gabid
+       and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
+       and pcpd.input_output = 'Input'
+       and pcpd.profit_center_id = cpc.profit_center_id
+       and pcpd.product_id = pdm.product_id
+       and akc.base_cur_id = cm_base.cur_id
+       and ivd.invoice_cur_id = cm_pay.cur_id
+       and akc.base_cur_id = cm_base.cur_id
+       and ivd.vat_remit_cur_id = cm_vat.cur_id
+       and ivd.invoice_cur_id = cm_invoice.cur_id
+       and iis.is_active = 'Y'
+       and gmr.is_deleted = 'N'
+       and nvl(ivd.vat_amount_in_inv_cur, 0) <> 0
+       and pcm.process_id = pc_process_id
+       and gmr.process_id = pc_process_id
+       and pcpd.process_id = pc_process_id
+       and iis.process_id = pc_process_id
+       and iis.invoice_created_date > vd_prev_eom_date
+       and iis.invoice_created_date <= pd_trade_date;
+  commit;
+
+  --- 12. Fx trades
+  insert into fxar_fx_allocation_report
+    (process_id,
+     eod_trade_date,
+     corporate_id,
+     corporate_name,
+     section_name,
+     main_section,
+     profit_center_id,
+     profit_center_name,
+     product_id,
+     product_desc,
+     trader_id,
+     trader_name,
+     external_ref_no,
+     trade_ref_no,
+     purchase_qty,
+     sales_qty,
+     qty_unit_id,
+     qty_unit,
+     exposure_date,
+     price,
+     price_unit_id,
+     price_unit_name,
+     hedge_amount,
+     exposure_cur_id,
+     exposure_cur_name,
+     base_cur_id,
+     base_cur_name,
+     exchange_rate,
+     instrument_id,
+     instrument_name,
+     value_date)
+    select pc_process_id,
+           pd_trade_date,
+           ak.corporate_id,
+           ak.corporate_name,
+           'Derivatives' main_section,
+           'FX Trades' section,
+           cpc.profit_center_id,
+           cpc.profit_center_short_name profit_center,
+           pdm.product_id,
+           pdm.product_desc product,
+           ct.trader_id trader_id,
+           gab.firstname || ' ' || gab.lastname trader,
+           ct.external_ref_no,
+           ct.treasury_ref_no,
+           (case
+             when crtd.trade_type = 'Buy' then
+              (1) * crtd.amount
+             else
+              0
+           end) purchase_qty,
+           (case
+             when crtd.trade_type = 'Sell' then
+              (-1) * crtd.amount
+             else
+              0
+           end) sales_qty,
+           null qty_unit,
+           null qty_unit_id,
+           ct.trade_date trade_date,
+           round(crtd.amount, 4) * (case
+                                      when upper(crtd.trade_type) = 'BUY' then
+                                       1
+                                      else
+                                       -1
+                                    end) price,
+           null price_unit_id,
+           null price_unit,
+           round(((case
+                   when ak.base_cur_id = crtd.cur_id then
+                    1
+                   else
+                    pkg_general.f_get_converted_currency_amt(ct.corporate_id,
+                                                             crtd.cur_id,
+                                                             ak.base_cur_id,
+                                                             ct.trade_date,
+                                                             1)
+                 end) * round(crtd.amount, 4) * (case
+                   when upper(crtd.trade_type) = 'BUY' then
+                    1
+                   else
+                    -1
+                 end)),
+                 4) hedging_amount,
+           crtd_cm.cur_id exposure_cur_id,
+           crtd_cm.cur_code exposure_currency,
+           cm_base.cur_id,
+           cm_base.cur_code base_currency,
+           1,
+           dim.instrument_id,
+           dim.instrument_name,
+           ct.value_date
+    
+      from ct_currency_trade            ct,
+           ak_corporate                 ak,
+           cm_currency_master           cm_base,
+           cpc_corporate_profit_center  cpc,
+           cm_currency_master           cpc_cm,
+           css_corporate_strategy_setup css,
+           crtd_cur_trade_details       crtd,
+           cm_currency_master           crtd_cm,
+           drm_derivative_master        drm,
+           dim_der_instrument_master    dim,
+           pdd_product_derivative_def   pdd,
+           pdm_productmaster            pdm,
+           ak_corporate_user            akc,
+           gab_globaladdressbook        gab
+     where ct.corporate_id = ak.corporate_id
+       and ak.base_cur_id = cm_base.cur_id
+       and ct.profit_center_id = cpc.profit_center_id
+       and ct.strategy_id = css.strategy_id(+)
+       and ct.internal_treasury_ref_no = crtd.internal_treasury_ref_no
+       and crtd.cur_id = crtd_cm.cur_id(+)
+       and ct.bank_charges_cur_id = cpc_cm.cur_id(+)
+       and ct.dr_id = drm.dr_id
+       and drm.instrument_id = dim.instrument_id
+       and dim.product_derivative_id = pdd.derivative_def_id
+       and pdd.product_id = pdm.product_id
+       and ct.trader_id = akc.user_id
+       and akc.gabid = gab.gabid
+       and upper(ct.status) = 'VERIFIED'
+       and ct.process_id = pc_process_id
+       and crtd.process_id = pc_process_id
+       and ct.trade_date > vd_prev_eom_date
+       and ct.trade_date <= pd_trade_date;
+  commit;
+  ---update the exchange rate for physicals
+  for cur_exp_exch_rate in (select fxar.exposure_cur_id,
+                                   fxar.base_cur_id,
+                                   fxar.exposure_date
+                              from fxar_fx_allocation_report fxar
+                             where fxar.process_id = pc_process_id
+                             having
+                             fxar.exposure_cur_id <> fxar.base_cur_id
+                             group by fxar.exposure_cur_id,
+                                      fxar.base_cur_id,
+                                      fxar.exposure_date)
+  loop
+    select pkg_general.f_get_converted_currency_amt(pc_corporate_id,
+                                                    cur_exp_exch_rate.exposure_cur_id,
+                                                    cur_exp_exch_rate.base_cur_id,
+                                                    cur_exp_exch_rate.exposure_date,
+                                                    1)
+      into vn_exch_rate
+      from dual;
+    update fxar_fx_allocation_report fxar
+       set fxar.exchange_rate = vn_exch_rate
+     where fxar.process_id = pc_process_id
+       and fxar.exposure_date = cur_exp_exch_rate.exposure_date
+       and fxar.exposure_cur_id=cur_exp_exch_rate.exposure_cur_id;
+  end loop;
+  commit;
+   exception
+    when others then
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure pkg_phy_mbv_report.sp_fx_allocation_report',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm ||
+                                                           '  Error Msg: ' ||
+                                                           vc_error_msg,
+                                                           '',
+                                                           pc_process,
+                                                           null,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
+end;
 end; 
 /
