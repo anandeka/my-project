@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1659
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Varaprasad B
+ 
+Created on*        		:  28-Jun-2013 
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  79006
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Debit/Credit 
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+====================================================================================================================================
+
+Revision: 132556
+Author: varaprasad.b
+Date: 20:52:43, 28 June 2013
+Message:
+Bug #79006 (Updated to remove duplicate dgm entries for debit/credit note)
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_613.sql
+
+====================================================================================================================================
