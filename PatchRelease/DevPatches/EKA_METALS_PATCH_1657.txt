@@ -2,13 +2,13 @@ Patch No*          		:  EKA_METALS_PATCH_1657
 
 Project / Product* 		:  METALS
 ==================================================================
-Created by*        		:  Ravi Kumar B
+Created by*        		:  Varaprasad B
  
 Created on*        		:  28-Jun-2013 
 
 Bug / Enhancement*		:  Bug
 
-Bug ID*            		:  79050,78773
+Bug ID*            		:  79006
 ==================================================================
 Branch (DEV / REL)*		:  Dev
 ==================================================================
@@ -17,7 +17,7 @@ Module / Feature Group:
 ==================================================================
 Module  		   	 :  Invoice
 
-Sub-Module  			 :  Invoice Output Doc
+Sub-Module  			 :  Debit/Credit 
  
 Section   		   	 :  N/A
  
@@ -35,20 +35,12 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* : Transaction
 ====================================================================================================================================
 
-Revision: 132539
-Author: b.ravikumar
-Date: 8:14:57 PM, Friday, June 28, 2013
+Revision: 132542
+Author: varaprasad.b
+Date: 20:18:13, 28 June 2013
 Message:
-Bug 79050,78773 Fix: Service Invoice Document Issue.
+Bug #79006 (CDC entries updated)
 ----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_463.sql
-======================================================================================================================================
-Revision: 132541
-Author: b.ravikumar
-Date: 8:16:35 PM, Friday, June 28, 2013
-Message:
-Bug 79050,78773 Fix: Service Invoice Document Issue.
-----
-Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_612.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_128.sql
 
 ====================================================================================================================================
