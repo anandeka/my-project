@@ -1,0 +1,48 @@
+Patch No*          		:  EKA_METALS_PATCH_1656
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  28-Jun-2013 
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  81031
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Output Doc
+
+Sub-Module  			 :  Output Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+====================================================================================================================================
+
+Revision: 132529
+Author: rajuga
+Date: 7:44:02 PM, Friday, June 28, 2013
+Message:
+Bug 81031 - Invoice Output Document shows Net Payable % as header
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument_DFI.rpt
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_doc_invoice.sql
+
+====================================================================================================================================
