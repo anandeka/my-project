@@ -65,7 +65,7 @@ select 'Invoice' section_name,
        iscp.sub_lot_no || ' : ' || iscp.assay_content || ' ' ||
        iscp.assay_content_unit assay_details,
        iscp.net_payable net_payable_percentage,
-       null net_payable_percentage_unit,
+       iscp.assay_content_unit net_payable_percentage_unit,
        (case
           when (isd.is_free_metal = 'Y' or isd.is_pledge = 'Y' or isd.contract_type = 'BASEMETAL') then
            (case
