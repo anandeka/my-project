@@ -1429,6 +1429,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        qty_to_be_priced,
        pcbph_id,
        description,
+       valuation_price_percentage,
        dbd_id)
       select ul.pcbpdul_id,
              ul.internal_action_ref_no,
@@ -1446,6 +1447,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.qty_to_be_priced,
              ul.pcbph_id,
              ul.description,
+             ul.valuation_price_percentage,
              pc_dbd_id
         from pcbpdul_pc_base_price_dtl_ul@eka_appdb ul,
              eod_eom_axsdata@eka_appdb           axs

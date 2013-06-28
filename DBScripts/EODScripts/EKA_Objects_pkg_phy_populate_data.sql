@@ -4292,6 +4292,7 @@ commit;
        fx_to_base,
        qty_to_be_priced,
        pcbph_id,
+       valuation_price_percentage,
        dbd_id,
        process_id)
       select decode(pcbpd_id, 'Empty_String', null, pcbpd_id),
@@ -4309,6 +4310,7 @@ commit;
                     null,
                     qty_to_be_priced),
              decode(pcbph_id, 'Empty_String', null, pcbph_id),
+             decode(valuation_price_percentage, 'Empty_String', null, valuation_price_percentage),
              gvc_dbd_id,
              pkg_phy_populate_data.gvc_process_id
         from (select pcbpdul.pcbpd_id,
@@ -4378,6 +4380,12 @@ commit;
                                    pcbpdul.pcbph_id
                                 end),
                             24) pcbph_id,
+                      substr(max(case
+                                  when pcbpdul.valuation_price_percentage is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pcbpdul.valuation_price_percentage
+                                end),
+                            24) valuation_price_percentage,       
                      gvc_dbd_id
                 from pcbpdul_pc_base_price_dtl_ul pcbpdul,
                      axs_action_summary           axs,
