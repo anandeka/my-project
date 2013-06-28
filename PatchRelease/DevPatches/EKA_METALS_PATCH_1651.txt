@@ -1,0 +1,47 @@
+Patch No*          		:  EKA_METALS_PATCH_1651
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  28-Jun-2013 
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Contract
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 132423
+Author: abhishek.vijay
+Date: 3:29:34 PM, Friday, June 28, 2013
+Message:
+Populate the value in new column PCBPD valuation percentage 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_49.sql
+
+
+
+
