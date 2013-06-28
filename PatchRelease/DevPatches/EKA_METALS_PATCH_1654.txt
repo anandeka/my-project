@@ -1,0 +1,74 @@
+Patch No*          		:  EKA_METALS_PATCH_1654
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  28-Jun-2013 
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		: 75787
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  APP
+
+Sub-Module  			 :  APP
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 132470
+Author: suresh.gottipati
+Date: 5:08:30 PM, Friday, June 28, 2013
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_611.sql
+
+
+Revision: 132468
+Author: suresh.gottipati
+Date: 5:07:29 PM, Friday, June 28, 2013
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_127.sql
+
+
+Revision: 132473
+Author: suresh.gottipati
+Date: 5:09:44 PM, Friday, June 28, 2013
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_462.sql
+
+
+
+Revision: 132476
+Author: suresh.gottipati
+Date: 5:12:49 PM, Friday, June 28, 2013
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/FXAllocationReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/FXAllocationReport_Excel.rpt
+
