@@ -4009,6 +4009,8 @@ commit;
 	 where process_id = pc_process_id;
 	 delete iids_iid_summary where process_id = pc_process_id;
      delete iocd_ioc_details where process_id = pc_process_id;
+  delete from fxar_fx_allocation_report
+     where process_id = pc_process_id;
     commit;
 
     sp_eodeom_process_log(pc_corporate_id,
