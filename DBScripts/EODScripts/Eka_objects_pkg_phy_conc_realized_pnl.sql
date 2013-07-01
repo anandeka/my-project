@@ -724,7 +724,10 @@ create or replace package body pkg_phy_conc_realized_pnl is
                    cur_realized_rows.internal_gmr_ref_no
                and iid.internal_invoice_ref_no =
                    iied.internal_invoice_ref_no
-               and iied.element_id = cur_realized_rows.element_id;
+               and iied.element_id = cur_realized_rows.element_id
+               and iied.grd_id = iid.stock_id
+               and iid.stock_id = cur_realized_rows.internal_grd_ref_no
+               and rownum < 2; -- Because IIED data at sub lots with same price, different quantity
           exception
             when others then
               vc_error_msg := '639';
@@ -4055,7 +4058,10 @@ create or replace package body pkg_phy_conc_realized_pnl is
                    cur_realized_rows.internal_gmr_ref_no
                and iid.internal_invoice_ref_no =
                    iied.internal_invoice_ref_no
-               and iied.element_id = cur_realized_rows.element_id;
+               and iied.element_id = cur_realized_rows.element_id
+               and iied.grd_id = iid.stock_id
+               and iid.stock_id = cur_realized_rows.internal_grd_ref_no
+               and rownum < 2; -- Because IIED data at sub lots with same price, different quantity;
           exception
             when others then
               -- REMOVE THIS LATER, NOT SURE HOW INVOICE IS WORKING

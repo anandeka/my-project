@@ -13655,7 +13655,7 @@ commit;
                           pc_dbd_id,
                           gvn_log_counter,
                           'GMR Contract Details Update process_gmr 1');  
-  for cur_gmr in (select grd.internal_gmr_ref_no,
+  /*for cur_gmr in (select grd.internal_gmr_ref_no,
                          pcm.contract_ref_no,
                          pcm.internal_contract_ref_no,
                          pcm.contract_type,
@@ -13718,6 +13718,90 @@ commit;
       vn_row_cnt := 0;
     end if;
      
+  end loop;*/
+  
+  delete from tgmrc_gmr_contract_details
+   where corporate_id = pc_corporate_id;
+  commit;
+  insert into tgmrc_gmr_contract_details
+    (corporate_id,
+     internal_gmr_ref_no,
+     contract_ref_no,
+     internal_contract_ref_no,
+     contract_type,
+     cp_id,
+     cp_name,
+     invoice_cur_id,
+     invoice_cur_code,
+     invoice_cur_decimals,
+     is_tolling_contract,
+     pcm_contract_type)
+    select pc_corporate_id,
+           grd.internal_gmr_ref_no,
+           pcm.contract_ref_no,
+           pcm.internal_contract_ref_no,
+           pcm.contract_type,
+           pcm.cp_id,
+           phd.companyname cp_name,
+           cm.cur_id,
+           cm.cur_code,
+           cm.decimals,
+           pcm.is_tolling_contract,
+           decode(pcm.purchase_sales, 'P', 'Purchase', 'Sales') pcm_contract_type
+      from process_grd                grd,
+           pci_physical_contract_item pci,
+           pcdi_pc_delivery_item      pcdi,
+           pcm_physical_contract_main pcm,
+           phd_profileheaderdetails   phd,
+           cm_currency_master         cm
+     where grd.internal_contract_item_ref_no =
+           pci.internal_contract_item_ref_no
+       and pci.pcdi_id = pcdi.pcdi_id
+       and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+       and pcm.cp_id = phd.profileid
+       and pcm.invoice_currency_id = cm.cur_id
+       and grd.dbd_id = pc_dbd_id
+       and grd.corporate_id = pc_corporate_id
+       and pci.dbd_id = pc_dbd_id
+       and pcdi.dbd_id = pc_dbd_id
+       and pcm.dbd_id = pc_dbd_id
+     group by grd.internal_gmr_ref_no,
+              pcm.contract_ref_no,
+              pcm.internal_contract_ref_no,
+              pcm.contract_type,
+              pcm.cp_id,
+              phd.companyname,
+              cm.cur_id,
+              cm.cur_code,
+              cm.decimals,
+              pcm.is_tolling_contract,
+              decode(pcm.purchase_sales, 'P', 'Purchase', 'Sales');
+  commit;
+  for cur_gmr in (
+  select * from tgmrc_gmr_contract_details 
+  where corporate_id = pc_corporate_id) loop
+  update process_gmr gmr
+       set gmr.contract_ref_no          = cur_gmr.contract_ref_no,
+           gmr.gmr_type                 = cur_gmr.contract_type,
+           gmr.cp_id                    = cur_gmr.cp_id,
+           gmr.cp_name                  = cur_gmr.cp_name,
+           gmr.invoice_cur_id           = cur_gmr.invoice_cur_id,
+           gmr.invoice_cur_code         = cur_gmr.invoice_cur_code,
+           gmr.invoice_cur_decimals     = cur_gmr.invoice_cur_decimals,
+           gmr.internal_contract_ref_no = decode(gmr.internal_contract_ref_no,
+                                                 null,
+                                                 cur_gmr.internal_contract_ref_no,
+                                                 gmr.internal_contract_ref_no),
+          gmr.is_tolling_contract       = cur_gmr.is_tolling_contract,
+          gmr.pcm_contract_type = cur_gmr.pcm_contract_type
+     where gmr.internal_gmr_ref_no = cur_gmr.internal_gmr_ref_no
+     and gmr.dbd_id = pc_dbd_id
+     and gmr.corporate_id = pc_corporate_id;
+    vn_row_cnt := vn_row_cnt + 1;
+    if vn_row_cnt >= 500 then
+      commit;
+      vn_row_cnt := 0;
+    end if;
   end loop;
   commit;
   gvn_log_counter := gvn_log_counter +1;
@@ -13907,7 +13991,7 @@ sp_precheck_process_log(pc_corporate_id,
                           pc_dbd_id,
                           gvn_log_counter,
                           'End of spq,grd stats');  
-  for cur_grd_dry_qty in (select spq.internal_grd_ref_no,
+  /*for cur_grd_dry_qty in (select spq.internal_grd_ref_no,
                                  min((nvl(asm.dry_wet_qty_ratio, 100) / 100)) dry_wet_qty_ratio,
                                  max(spq.assay_header_id) assay_header_id,
                                  max(spq.weg_avg_pricing_assay_id) weg_avg_pricing_assay_id
@@ -13933,7 +14017,46 @@ sp_precheck_process_log(pc_corporate_id,
           commit;
           vn_row_cnt := 0;
         end if;
-  end loop;
+  end loop;*/
+  delete tspq_temp_spq_asm where corporate_id = pc_corporate_id;
+  commit;
+  insert into tspq_temp_spq_asm
+    (corporate_id,
+     internal_grd_ref_no,
+     dry_wet_qty_ratio,
+     assay_header_id,
+     weg_avg_pricing_assay_id)
+    select pc_corporate_id,
+           spq.internal_grd_ref_no,
+           min((nvl(asm.dry_wet_qty_ratio, 100) / 100)) dry_wet_qty_ratio,
+           max(spq.assay_header_id) assay_header_id,
+           max(spq.weg_avg_pricing_assay_id) weg_avg_pricing_assay_id
+      from process_spq              spq,
+           asm_assay_sublot_mapping asm
+     where spq.is_stock_split = 'N'
+       and spq.weg_avg_pricing_assay_id = asm.ash_id
+       and spq.is_active = 'Y'
+       and spq.dbd_id = pc_dbd_id
+       and spq.corporate_id = pc_corporate_id
+     group by spq.internal_grd_ref_no;
+  commit;
+   gvn_log_counter :=  gvn_log_counter + 1;
+ sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of insert tspq');  
+
+update process_grd grd
+   set (grd.dry_qty, grd.dry_wet_ratio, grd.assay_header_id, grd.weg_avg_pricing_assay_id) = --
+        (select tspq.dry_wet_qty_ratio * grd.qty,
+                tspq.dry_wet_qty_ratio,
+                tspq.assay_header_id,
+                tspq.weg_avg_pricing_assay_id
+           from tspq_temp_spq_asm tspq
+          where tspq.corporate_id = pc_corporate_id
+          and tspq.internal_grd_ref_no = grd.internal_grd_ref_no)
+ where grd.corporate_id = pc_corporate_id;
   commit;
  gvn_log_counter :=  gvn_log_counter + 1;
  sp_precheck_process_log(pc_corporate_id,
@@ -14782,15 +14905,44 @@ sp_precheck_process_log(pc_corporate_id,
                           pc_dbd_id,
                           gvn_log_counter,
                           'End of GMR Tolling Service Type Update'); 
-update process_grd grd
+/*update process_grd grd
    set grd.supp_gmr_ref_no = (select gmr_supp.gmr_ref_no
                                 from process_gmr gmr_supp
                                where gmr_supp.internal_gmr_ref_no = grd.supp_internal_gmr_ref_no
                                and gmr_supp.dbd_id = pc_dbd_id
                                and gmr_supp.corporate_id = pc_corporate_id )
  where grd.dbd_id = pc_dbd_id
- and grd.corporate_id = pc_corporate_id;
+ and grd.corporate_id = pc_corporate_id;*/
 
+delete from tgg_temp_grd_gmr where corporate_id = pc_corporate_id;
+ commit;
+ insert into tgg_temp_grd_gmr
+   (corporate_id, supp_internal_gmr_ref_no, supp_gmr_ref_no)
+   select pc_corporate_id,
+          grd.supp_internal_gmr_ref_no,
+          gmr_supp.gmr_ref_no supp_gmr_ref_no
+     from process_gmr gmr_supp,
+          process_grd grd
+    where gmr_supp.internal_gmr_ref_no = grd.supp_internal_gmr_ref_no
+      and gmr_supp.corporate_id = pc_corporate_id
+      and grd.corporate_id = pc_corporate_id
+    group by grd.supp_internal_gmr_ref_no,
+             gmr_supp.gmr_ref_no;
+commit; 
+gvn_log_counter :=  gvn_log_counter + 1;
+sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of tgg_temp_grd_gmr Insert'); 
+
+update process_grd grd
+       set grd.supp_gmr_ref_no = (select t1.supp_gmr_ref_no
+                                    from tgg_temp_grd_gmr t1
+                                   where t1.supp_internal_gmr_ref_no =
+                                         grd.supp_internal_gmr_ref_no
+                                         and t1.corporate_id = pc_corporate_id)
+     where grd.corporate_id = pc_corporate_id;
 commit;
 gvn_log_counter :=  gvn_log_counter + 1;
 sp_precheck_process_log(pc_corporate_id,

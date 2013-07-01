@@ -17103,8 +17103,11 @@ gvn_log_counter := gvn_log_counter + 1;
                         'Payable For Purchase Over');                  
 --
 -- Penalty Data for Purchase Contracts (SCT and Concentrate Purchase)
---               
-insert into art_arrival_report_temp
+-- 
+DELETE art1_arrival_report_temp1 WHERE corporate_id = pc_corporate_id;
+COMMIT;
+
+insert into art1_arrival_report_temp1
   (gmr_ref_no,
    internal_gmr_ref_no,
    internal_grd_ref_no,
@@ -17164,18 +17167,18 @@ insert into art_arrival_report_temp
          grd.dry_qty,
          grd.qty_unit_id qty_unit_id,
          grd.qty_unit qty_unit,
-         ped.element_id,
-         aml.attribute_name,
+         null element_id,
+         NULL attribute_name,
          null underlying_product_id,
          null underlying_product_name,
          null base_quantity_unit_id,
          null base_quantity_unit,
-         ped.assay_qty assay_content,
-         ped.assay_qty_unit_id assay_qty_unit_id,
-         qum_ped.qty_unit assay_qty_unit,
+         null assay_content,
+         null assay_qty_unit_id,
+         null assay_qty_unit,
          0 payable_qty,
-         ped.assay_qty_unit_id payable_qty_unit_id,
-         qum_ped.qty_unit payable_qty_unit,
+         null payable_qty_unit_id,
+         null payable_qty_unit,
          gmr.gmr_arrival_status arrival_status,
          grd.base_qty_unit_id conc_base_qty_unit_id,
          grd.base_qty_unit conc_base_qty_unit,
@@ -17190,10 +17193,7 @@ insert into art_arrival_report_temp
          gmr.wet_qty,
          'Arrival' arrival_or_delivery
     from process_gmr   gmr,
-         process_grd     grd,
-         ped_penalty_element_details ped,
-         aml_attribute_master_list   aml,
-         qum_quantity_unit_master    qum_ped
+         process_grd     grd
    where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
      and grd.status = 'Active'
      and grd.tolling_stock_type = 'None Tolling'
@@ -17203,15 +17203,113 @@ insert into art_arrival_report_temp
      and gmr.is_deleted = 'N'
      and gmr.process_id = pc_process_id
      and grd.process_id = pc_process_id
-     and ped.process_id = pc_process_id
-     and ped.internal_gmr_ref_no = grd.internal_gmr_ref_no
-     and ped.internal_grd_ref_no = grd.internal_grd_ref_no
-     and ped.element_id = aml.attribute_id
-     and ped.assay_qty_unit_id = qum_ped.qty_unit_id
      and (gmr.is_new_mtd_ar = 'Y' or gmr.is_new_ytd_ar = 'Y' or
          gmr.is_assay_updated_mtd_ar = 'Y' or
          gmr.is_assay_updated_ytd_ar = 'Y');
-commit;
+         commit;
+gvn_log_counter := gvn_log_counter + 1; 
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'Insert into ART1 Over');                       
+insert into art_arrival_report_temp
+  (gmr_ref_no,
+   internal_gmr_ref_no,
+   internal_grd_ref_no,
+   internal_stock_ref_no,
+   corporate_id,
+   warehouse_profile_id,
+   warehouse_name,
+   shed_id,
+   storage_location_name,
+   product_id,
+   product_name,
+   quality_id,
+   quality_name,
+   wet_qty,
+   dry_qty,
+   qty_unit_id,
+   qty_unit,
+   element_id,
+   attribute_name,
+   underlying_product_id,
+   underlying_product_name,
+   base_quantity_unit_id,
+   base_quantity_unit,
+   assay_content,
+   assay_qty_unit_id,
+   assay_qty_unit,
+   payable_qty,
+   payable_qty_unit_id,
+   payable_qty_unit,
+   arrival_status,
+   conc_base_qty_unit_id,
+   conc_base_qty_unit,
+   grd_base_qty_conv_factor,
+   pcdi_id,
+   pay_cur_id,
+   pay_cur_code,
+   pay_cur_decimals,
+   section_name,
+   grd_to_gmr_qty_factor,
+   qty_type,
+   gmr_wet_qty,
+   arrival_or_delivery)
+  select art1.gmr_ref_no,
+         art1.internal_gmr_ref_no,
+         art1.internal_grd_ref_no,
+         art1.internal_stock_ref_no,
+         art1.corporate_id,
+         art1.warehouse_profile_id,
+         art1.warehouse_name,
+         art1.shed_id,
+         art1.storage_location_name,
+         art1.product_id,
+         art1.product_name,
+         art1.quality_id,
+         art1.quality_name,
+         art1.wet_qty,
+         art1.dry_qty,
+         art1.qty_unit_id,
+         art1.qty_unit,
+         ped.element_id,
+         aml.attribute_name,
+         null underlying_product_id,
+         null underlying_product_name,
+         null base_quantity_unit_id,
+         null base_quantity_unit,
+         ped.assay_qty assay_content,
+         ped.assay_qty_unit_id assay_qty_unit_id,
+         qum_ped.qty_unit assay_qty_unit,
+         0 payable_qty,
+         ped.assay_qty_unit_id payable_qty_unit_id,
+         art1.payable_qty_unit,
+         art1.arrival_status,
+         art1.conc_base_qty_unit_id,
+         art1.conc_base_qty_unit,
+         art1.grd_base_qty_conv_factor,
+         art1.pcdi_id,
+         art1.pay_cur_id,
+         art1.pay_cur_code,
+         art1.pay_cur_decimals,
+         'Penalty' section_name,
+         art1.grd_to_gmr_qty_factor,
+         'Penalty' qty_type,
+         art1.wet_qty,
+         'Arrival' arrival_or_delivery
+    from art1_arrival_report_temp1 art1,
+         ped_penalty_element_details ped,
+         aml_attribute_master_list   aml,
+         qum_quantity_unit_master    qum_ped
+   where ped.process_id = pc_process_id
+     and art1.corporate_id = pc_corporate_id
+     and ped.internal_gmr_ref_no = art1.internal_gmr_ref_no
+     and ped.internal_grd_ref_no = art1.internal_grd_ref_no
+     and ped.element_id = aml.attribute_id
+     and ped.assay_qty_unit_id = qum_ped.qty_unit_id;
+commit;              
+
 gvn_log_counter := gvn_log_counter + 1; 
   sp_eodeom_process_log(pc_corporate_id,
                         pd_trade_date,
@@ -19381,7 +19479,16 @@ begin
                         pc_process_id,
                         gvn_log_counter,
                         'Insert fct_fc_temp Payable Over');
-  insert into fct_fc_temp
+  delete from fct1_fc_temp1 where corporate_id = pc_corporate_id;
+commit;
+
+gvn_log_counter := gvn_log_counter + 1;
+sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'Delete fct1_fc_temp1 Over');
+ insert into fct1_fc_temp1
     (gmr_ref_no,
      internal_gmr_ref_no,
      internal_grd_ref_no,
@@ -19450,8 +19557,8 @@ begin
            grd.dry_qty dry_qty,
            grd.qty_unit_id qty_unit_id,
            grd.qty_unit qty_unit,
-           ped.element_id,
-           ped.element_name attribute_name,
+           null element_id,
+           null attribute_name,
            null underlying_product_id,
            null underlying_product_name,
            null base_quantity_unit_id,
@@ -19468,7 +19575,7 @@ begin
            grd.invoice_cur_id pay_cur_id,
            grd.invoice_cur_code pay_cur_code,
            'Penalty' qty_type,
-           ped.parent_stock_ref_no,
+           null parent_stock_ref_no,
            'Penalty' section_name,
            nvl(grd.base_qty_conv_factor, 1) grd_base_qty_conv_factor,
            grd.supplier_pcdi_id pcdi_id,
@@ -19477,11 +19584,8 @@ begin
            gmr.feeding_point_name,
            nvl(grd.grd_to_gmr_qty_factor, 1)
       from process_gmr   gmr,
-           process_grd     grd,
-           ped_penalty_element_details ped
+           process_grd     grd
      where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-       and grd.internal_gmr_ref_no = ped.internal_gmr_ref_no
-       and grd.internal_grd_ref_no = ped.internal_grd_ref_no
        and grd.status = 'Active'
        and grd.tolling_stock_type = 'Clone Stock'
        and gmr.tolling_service_type = 'P'
@@ -19491,10 +19595,117 @@ begin
        and grd.process_id = pc_process_id
        and grd.corporate_id = pc_corporate_id
        and gmr.corporate_id = pc_corporate_id
-       and ped.process_id = pc_process_id
        and (gmr.is_new_mtd = 'Y' or gmr.is_new_ytd = 'Y' or
            gmr.is_assay_updated_mtd = 'Y' or
            gmr.is_assay_updated_ytd = 'Y');
+commit;
+ gvn_log_counter := gvn_log_counter + 1;
+sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'Insert fct1_fc_temp1 Over');                                  
+  insert into fct_fc_temp
+    (gmr_ref_no,
+     internal_gmr_ref_no,
+     internal_grd_ref_no,
+     internal_stock_ref_no,
+     supp_internal_gmr_ref_no,
+     supp_gmr_ref_no,
+     corporate_id,
+     warehouse_profile_id,
+     companyname,
+     shed_id,
+     storage_location_name,
+     product_id,
+     product_desc,
+     quality_id,
+     quality_name,
+     qty,
+     dry_wet_qty_ratio,
+     wet_qty,
+     dry_qty,
+     qty_unit_id,
+     qty_unit,
+     element_id,
+     attribute_name,
+     underlying_product_id,
+     underlying_product_name,
+     base_quantity_unit_id,
+     base_quantity_unit,
+     assay_qty,
+     assay_qty_unit_id,
+     assay_qty_unit,
+     payable_qty,
+     payable_qty_unit_id,
+     payable_qty_unit,
+     pool_name,
+     conc_base_qty_unit_id,
+     conc_base_qty_unit,
+     pay_cur_id,
+     pay_cur_code,
+     qty_type,
+     parent_internal_grd_ref_no,
+     section_name,
+     grd_base_qty_conv_factor,
+     pcdi_id,
+     pay_cur_decimals,
+     feeding_point_id,
+     feeding_point_name,
+     grd_to_gmr_qty_factor)
+    select fct1.gmr_ref_no,
+           fct1.internal_gmr_ref_no,
+           fct1.internal_grd_ref_no,
+           fct1.internal_stock_ref_no,
+           fct1.supp_internal_gmr_ref_no,
+           fct1.supp_gmr_ref_no,
+           fct1.corporate_id,
+           fct1.warehouse_profile_id,
+           fct1.companyname,
+           fct1.shed_id,
+           fct1.storage_location_name,
+           fct1.product_id,
+           fct1.product_desc,
+           fct1.quality_id,
+           fct1.quality_name,
+           fct1.qty,
+           null as dry_wet_qty_ratio,
+           fct1.wet_qty,
+           fct1.dry_qty,
+           fct1.qty_unit_id,
+           fct1.qty_unit,
+           ped.element_id,
+           ped.element_name attribute_name,
+           null underlying_product_id,
+           null underlying_product_name,
+           null base_quantity_unit_id,
+           null base_quantity_unit,
+           0 assay_qty,
+           null assay_qty_unit_id,
+           null assay_qty_unit,
+           0 payable_qty,
+           null payable_qty_unit_id,
+           null payable_qty_unit,
+           fct1.pool_name,
+           fct1.conc_base_qty_unit_id,
+           fct1.conc_base_qty_unit,
+           fct1.pay_cur_id,
+           fct1.pay_cur_code,
+           'Penalty' qty_type,
+           ped.parent_stock_ref_no,
+           'Penalty' section_name,
+           fct1.grd_base_qty_conv_factor,
+           fct1.pcdi_id,
+           fct1.pay_cur_decimals,
+           fct1.feeding_point_id,
+           fct1.feeding_point_name,
+           fct1.grd_to_gmr_qty_factor
+      from fct1_fc_temp1 fct1,
+           ped_penalty_element_details ped
+     where fct1.internal_gmr_ref_no = ped.internal_gmr_ref_no
+       and fct1.internal_grd_ref_no = ped.internal_grd_ref_no
+       and ped.process_id = pc_process_id
+       and fct1.corporate_id = pc_corporate_id;
   commit;
   gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
@@ -22021,7 +22232,7 @@ begin
                         pc_process_id,
                         gvn_log_counter,
                         'CB update CBT_CB_TEMP parent_internal_gmr_ref_no started');
-  update cbt_cb_temp ct
+  /*update cbt_cb_temp ct
      set ct.parent_internal_gmr_ref_no = (select max(grd.internal_gmr_ref_no)
                                             from process_grd grd
                                            where grd.internal_grd_ref_no =
@@ -22029,7 +22240,34 @@ begin
                                              and grd.process_id =
                                                  pc_process_id)
    where ct.parent_internal_gmr_ref_no is null
-     and ct.corporate_id = pc_corporate_id;
+     and ct.corporate_id = pc_corporate_id;*/
+     delete from tcbp_temp_cb_parent_grd where corporate_id = pc_corporate_id;
+commit;
+insert into tcbp_temp_cb_parent_grd
+  (corporate_id, parent_internal_grd_ref_no, parent_internal_gmr_ref_no)
+  select pc_corporate_id,
+         ct.parent_internal_grd_ref_no,
+         max(grd.internal_gmr_ref_no) parent_internal_gmr_ref_no
+    from process_grd grd,
+         cbt_cb_temp ct
+   where grd.internal_grd_ref_no = ct.parent_internal_grd_ref_no
+     and grd.corporate_id = pc_corporate_id
+     and ct.corporate_id = pc_corporate_id
+   group by ct.parent_internal_grd_ref_no;
+  commit;
+gvn_log_counter := gvn_log_counter + 1;
+sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'Insert into tcbp_temp_cb_parent_grd over');  
+update cbt_cb_temp ct
+   set ct.parent_internal_gmr_ref_no = (select t.parent_internal_gmr_ref_no
+                                          from tcbp_temp_cb_parent_grd t
+                                         where t.corporate_id = pc_corporate_id
+                                           and t.parent_internal_grd_ref_no =
+                                               ct.parent_internal_grd_ref_no)
+ where ct.corporate_id = pc_corporate_id;
   commit;
   gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
@@ -22311,6 +22549,16 @@ begin
            gmr.gmr_ref_no
       from process_gmr   gmr,
            process_grd     grd,
+           (select t.corporate_id,
+               t.internal_gmr_ref_no,
+               t.internal_grd_ref_no,
+               t.latest_ash_id
+          from temp_stock_latest_assay t
+         where t.corporate_id = pc_corporate_id
+         group by t.corporate_id,
+                  t.internal_gmr_ref_no,
+                  t.internal_grd_ref_no,
+                  t.latest_ash_id) grd_assay,
            ash_assay_header            ash,
            asm_assay_sublot_mapping    asm,
            pqca_pq_chemical_attributes pqca,
@@ -22322,11 +22570,11 @@ begin
        and grd.status = 'Active'
        and grd.current_qty <> 0
        and grd.tolling_stock_type in ('None Tolling')
-       and ash.is_active = 'Y'
-       and asm.is_active = 'Y'
-       and ash.pricing_assay_ash_id = grd.assay_header_id
-       and ash.assay_type = 'Weighted Avg Pricing Assay'
+       and grd.internal_grd_ref_no = grd_assay.internal_grd_ref_no
+       and grd.internal_gmr_ref_no = grd_assay.internal_gmr_ref_no 
+       and grd_assay.latest_ash_id = ash.ash_id
        and ash.ash_id = asm.ash_id
+       and asm.is_active = 'Y'
        and asm.asm_id = pqca.asm_id
        and pqca.is_elem_for_pricing = 'N'
        and pqca.element_id = aml.attribute_id
