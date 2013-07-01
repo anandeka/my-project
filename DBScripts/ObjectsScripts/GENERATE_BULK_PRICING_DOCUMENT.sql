@@ -1,4 +1,4 @@
-
+/* Formatted on 2013/07/01 11:49 (Formatter Plus v4.8.8) */
 CREATE OR REPLACE PROCEDURE "GENERATE_BULK_PRICING_DOCUMENT" (
    p_internal_gmr_ref_no   VARCHAR2,
    p_docrefno              VARCHAR2,
@@ -412,20 +412,19 @@ BEGIN
                      AND pcdi.pcdi_id = poch.pcdi_id
                      AND poch.poch_id = pocd.poch_id
                      AND pocd.pocd_id = pofh.pocd_id
-                     AND pocd.element_id = gepd.element_id
+                     AND poch.element_id = gepd.element_id
                      AND pcdi.is_active = 'Y'
                      AND pocd.is_active = 'Y'
                      AND pofh.is_active = 'Y'
                      AND poch.is_active = 'Y'
                      AND pocd.pcbpd_id = pcbpd.pcbpd_id
-                     AND pcbpd.pcbpd_id = ppfh.pcbpd_id
-                     AND pfqpp.ppfh_id = ppfh.ppfh_id
+                     AND pcbpd.pcbpd_id = ppfh.pcbpd_id(+)
+                     AND ppfh.ppfh_id = pfqpp.ppfh_id(+)
                      AND pcbpd.is_active = 'Y'
                      AND ppfh.is_active = 'Y'
-                     AND ppfh.ppfh_id = pfqpp.ppfh_id
                      AND pcdi.internal_contract_ref_no =
                                                   pcm.internal_contract_ref_no
-                     AND pcbpd.pffxd_id = pffxd.pffxd_id
+                     AND pcbpd.pffxd_id = pffxd.pffxd_id(+)
                      AND gepd.product_id = pdm.product_id
                      AND pcm.corporate_id = ak.corporate_id
                      AND pcm.invoice_currency_id = cm.cur_id
