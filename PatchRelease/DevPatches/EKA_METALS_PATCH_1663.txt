@@ -4,7 +4,7 @@ Project / Product* 		:  METALS
 ==================================================================
 Created by*        		:  Janna
  
-Created on*        		:  01-Ju-2013 
+Created on*        		:  01-Jul-2013 
 
 Bug / Enhancement*		:  Bug
 
@@ -34,4 +34,24 @@ Dependent patches:		 :  N/A
 ==================================================================
 Schema type (Transaction / EOD)* : Transaction
 ==================================================================
+
+Revision: 132797
+Author: janna
+Date: 8:11:58 PM, Monday, July 01, 2013
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_464.sql
+
+
+Revision: 132796
+Author: janna
+Date: 8:10:26 PM, Monday, July 01, 2013
+Message:
+Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PriceFixationReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PriceFixationReport_Excel.rpt
+
+
 

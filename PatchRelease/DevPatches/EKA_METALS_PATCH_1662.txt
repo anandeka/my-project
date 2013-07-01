@@ -35,3 +35,17 @@ Dependent patches:		 :  N/A
 Schema type (Transaction / EOD)* : EOD
 ==================================================================
 
+Revision: 132795
+Author: janna
+Date: 8:10:09 PM, Monday, July 01, 2013
+Message:
+MBV changes, realized PNL fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/149_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_populate_data.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_bm_realized_pnl.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_mbv_report.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_objects_pkg_phy_conc_realized_pnl.sql
+
+
