@@ -1,0 +1,57 @@
+Patch No*          		:  EKA_METALS_PATCH_1667
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Varaprasad B
+ 
+Created on*        		:  02-Jul-2013 
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  78773
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Service Invoice
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+====================================================================================================================================
+
+Revision: 132936
+Author: varaprasad.b
+Date: 16:25:20, 02 July 2013
+Message:
+Bug #78773 fix.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_616.sql
+
+==================================================================================================================================
+
+Revision: 132937
+Author: varaprasad.b
+Date: 16:29:52, 02 July 2013
+Message:
+Bug #78773 fix.(Update to increase the column size while selecting the multiple gmrs and to add extra column in DCS_DRAFT_COST_STORE)
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_465.sql
+
+====================================================================================================================================
+
