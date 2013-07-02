@@ -42,7 +42,7 @@ create or replace package "PKG_PHY_TRANSFER_DATA" is
                                    pc_user_id      varchar2,
                                    pc_process      varchar2);
 
-end pkg_phy_transfer_data; 
+end pkg_phy_transfer_data;
 /
 create or replace package body "PKG_PHY_TRANSFER_DATA" is
 
@@ -173,7 +173,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
                           pc_user_id,
                           pc_process,
                           pc_dbd_id,
-                          pd_trade_date,vc_app_eodeom_id);
+                          pd_trade_date,
+                          vc_app_eodeom_id);
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
@@ -589,6 +590,8 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
       dbms_mview.refresh('FMPFH_PRICE_FIXATION_HEADER', 'f');
       dbms_mview.refresh('PFAM_PRICE_FIX_ACTION_MAPPING', 'f');
       dbms_mview.refresh('IVD_INVOICE_VAT_DETAILS', 'f');
+      dbms_mview.refresh('FMPFD_PRICE_FIXATION_DETAILS', 'f');
+      dbms_mview.refresh('FMPFAM_PRICE_ACTION_MAPPING', 'f');
     end if;
   exception
     when others then
@@ -633,13 +636,13 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
    pc_dbd_id             varchar2,
    pd_trade_date         date,
    pc_app_eodeom_id      varchar2) is
-   vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
-   vn_eel_error_count number := 1;
-   vn_logno           number;
-   vc_dbd_id          varchar2(15);
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;
+    vn_logno           number;
+    vc_dbd_id          varchar2(15);
   begin
-  vn_logno:= 0;
-  vc_dbd_id := pc_dbd_id;
+    vn_logno  := 0;
+    vc_dbd_id := pc_dbd_id;
     insert into agdul_alloc_group_detail_ul
       (internal_action_ref_no,
        int_alloc_group_detail_id,
@@ -686,13 +689,13 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.handled_as,
              pc_dbd_id
         from agdul_alloc_group_detail_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb           axs
+             eod_eom_axsdata@eka_appdb             axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
@@ -746,19 +749,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.partnership_type,
              pc_dbd_id
         from aghul_alloc_group_header_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb          axs
+             eod_eom_axsdata@eka_appdb             axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:aghul_alloc_group_header_ul');
-    
+  
     insert into cigcul_contrct_itm_gmr_cost_ul
       (cogul_ref_no,
        internal_action_ref_no,
@@ -791,19 +794,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.gmr_activity_type,
              pc_dbd_id
         from cigcul_contrct_itm_gmr_cost_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb             axs
+             eod_eom_axsdata@eka_appdb                axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:cigcul_contrct_itm_gmr_cost_ul');
-    
+  
     insert into csul_cost_store_ul
       (internal_cost_ul_id,
        internal_cost_id,
@@ -884,19 +887,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.delta_cost_in_base_price_id,
              ul.reversal_type
         from csul_cost_store_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb axs
+             eod_eom_axsdata@eka_appdb    axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:csul_cost_store_ul');
-    
+  
     insert into cdl_cost_delta_log
       (cdl_id,
        internal_action_ref_no,
@@ -911,19 +914,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.version,
              pc_dbd_id
         from cdl_cost_delta_log@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb axs
+             eod_eom_axsdata@eka_appdb    axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:cdl_cost_delta_log');
-      
+  
     insert into dgrdul_delivered_grd_ul
       (internal_action_ref_no,
        internal_dgrd_ref_no,
@@ -1096,19 +1099,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.tolling_stock_type,
              ul.pcdi_id
         from dgrdul_delivered_grd_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb      axs
+             eod_eom_axsdata@eka_appdb         axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:dgrdul_delivered_grd_ul');
-
+  
     insert into gmrul_gmr_ul
       (internal_action_ref_no,
        internal_gmr_ref_no,
@@ -1304,14 +1307,14 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.wns_status,
              ul.base_conc_mix_type,
              pc_dbd_id
-        from gmrul_gmr_ul@eka_appdb       ul,
+        from gmrul_gmr_ul@eka_appdb    ul,
              eod_eom_axsdata@eka_appdb axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
@@ -1345,19 +1348,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.gross_weight,
              pc_dbd_id
         from mogrdul_moved_out_grd_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb       axs
+             eod_eom_axsdata@eka_appdb          axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
-         commit;
-    vn_logno  := vn_logno + 1;
+    commit;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:mogrdul_moved_out_grd_ul');
-           
+  
     insert into pcadul_pc_agency_detail_ul
       (pcadul_id,
        internal_action_ref_no,
@@ -1400,19 +1403,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_active,
              pc_dbd_id
         from pcadul_pc_agency_detail_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb         axs
+             eod_eom_axsdata@eka_appdb            axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcadul_pc_agency_detail_ul');
-    
+  
     insert into pcbpdul_pc_base_price_dtl_ul
       (pcbpdul_id,
        internal_action_ref_no,
@@ -1451,19 +1454,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.valuation_price_percentage,
              pc_dbd_id
         from pcbpdul_pc_base_price_dtl_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb           axs
+             eod_eom_axsdata@eka_appdb              axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcbpdul_pc_base_price_dtl_ul');
-           
+  
     insert into pcbphul_pc_base_prc_header_ul
       (pcbphul_id,
        internal_action_ref_no,
@@ -1494,19 +1497,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              is_balance_pricing,
              pc_dbd_id
         from pcbphul_pc_base_prc_header_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb            axs
+             eod_eom_axsdata@eka_appdb               axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcbphul_pc_base_prc_header_ul');
-    
+  
     insert into pcdbul_pc_delivery_basis_ul
       (pcdbul_id,
        internal_action_ref_no,
@@ -1551,19 +1554,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.pffxd_id,
              pc_dbd_id
         from pcdbul_pc_delivery_basis_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb          axs
+             eod_eom_axsdata@eka_appdb             axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
-         commit;
-    vn_logno  := vn_logno + 1;
+    commit;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcdbul_pc_delivery_basis_ul');
-           
+  
     insert into pcddul_document_details_ul
       (pcddul_id,
        internal_action_ref_no,
@@ -1586,19 +1589,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.internal_contract_ref_no,
              pc_dbd_id
         from pcddul_document_details_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb         axs
+             eod_eom_axsdata@eka_appdb            axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcddul_document_details_ul');
-    
+  
     insert into pcdiobul_di_optional_basis_ul
       (pcdiobul_id,
        internal_action_ref_no,
@@ -1619,19 +1622,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_active,
              pc_dbd_id
         from pcdiobul_di_optional_basis_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb            axs
+             eod_eom_axsdata@eka_appdb               axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
-         commit;
-    vn_logno  := vn_logno + 1;
+    commit;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcdiobul_di_optional_basis_ul');
-           
+  
     insert into pcdipeul_di_pricing_elemnt_ul
       (pcdipeul_id,
        internal_action_ref_no,
@@ -1652,19 +1655,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_active,
              pc_dbd_id
         from pcdipeul_di_pricing_elemnt_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb            axs
+             eod_eom_axsdata@eka_appdb               axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcdipeul_di_pricing_elemnt_ul');
-    
+  
     insert into pcdiqdul_di_quality_detail_ul
       (pcdiqdul_id,
        internal_action_ref_no,
@@ -1685,19 +1688,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_active,
              pc_dbd_id
         from pcdiqdul_di_quality_detail_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb            axs
+             eod_eom_axsdata@eka_appdb               axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
-         commit;  
-    vn_logno  := vn_logno + 1;
+    commit;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcdiqdul_di_quality_detail_ul');
-         
+  
     insert into pcdiul_pc_delivery_item_ul
       (pcdiul_id,
        internal_action_ref_no,
@@ -1794,19 +1797,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.price_allocation_method,
              pc_dbd_id
         from pcdiul_pc_delivery_item_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb         axs
+             eod_eom_axsdata@eka_appdb            axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcdiul_pc_delivery_item_ul');
-    
+  
     insert into pcipful_pci_pricing_formula_ul
       (pcipful_id,
        internal_action_ref_no,
@@ -1827,19 +1830,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_active,
              pc_dbd_id
         from pcipful_pci_pricing_formula_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb             axs
+             eod_eom_axsdata@eka_appdb                axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcipful_pci_pricing_formula_ul');
-    
+  
     insert into pciul_phy_contract_item_ul
       (pciul_id,
        internal_action_ref_no,
@@ -1902,19 +1905,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.expected_qp_end_date,
              pc_dbd_id
         from pciul_phy_contract_item_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb         axs
+             eod_eom_axsdata@eka_appdb            axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pciul_phy_contract_item_ul');
-    
+  
     insert into pcjvul_pc_jv_detail_ul
       (pcjvul_id,
        internal_action_ref_no,
@@ -1941,19 +1944,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_active,
              pc_dbd_id
         from pcjvul_pc_jv_detail_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb     axs
+             eod_eom_axsdata@eka_appdb        axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcjvul_pc_jv_detail_ul');
-   
+  
     insert into pcmul_phy_contract_main_ul
       (pcmul_id,
        internal_action_ref_no,
@@ -2062,19 +2065,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_lot_level_invoice,
              pc_dbd_id
         from pcmul_phy_contract_main_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb         axs
+             eod_eom_axsdata@eka_appdb            axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcmul_phy_contract_main_ul');
-    
+  
     insert into pcpdqdul_pd_quality_dtl_ul
       (pcpdqdul_id,
        internal_action_ref_no,
@@ -2097,19 +2100,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.quality_name,
              pc_dbd_id
         from pcpdqdul_pd_quality_dtl_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb         axs
+             eod_eom_axsdata@eka_appdb            axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
-         commit;
-    vn_logno  := vn_logno + 1;
+    commit;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcpdqdul_pd_quality_dtl_ul');
-           
+  
     insert into pcpdul_pc_product_defintn_ul
       (pcpdul_id,
        internal_action_ref_no,
@@ -2168,19 +2171,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.input_output,
              pc_dbd_id
         from pcpdul_pc_product_defintn_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb           axs
+             eod_eom_axsdata@eka_appdb              axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcpdul_pc_product_defintn_ul');
-    
+  
     insert into pcpqul_pc_product_quality_ul
       (pcpqul_id,
        internal_action_ref_no,
@@ -2225,19 +2228,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.comments,
              pc_dbd_id
         from pcpqul_pc_product_quality_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb           axs
+             eod_eom_axsdata@eka_appdb              axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcpqul_pc_product_quality_ul');
-    
+  
     insert into pcqpdul_pc_qual_prm_discnt_ul
       (pcqpdul_id,
        internal_action_ref_no,
@@ -2266,19 +2269,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_active,
              pc_dbd_id
         from pcqpdul_pc_qual_prm_discnt_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb            axs
+             eod_eom_axsdata@eka_appdb               axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcqpdul_pc_qual_prm_discnt_ul');
-    
+  
     insert into pffxdul_phy_formula_fx_dtl_ul
       (pffxdul_id,
        internal_action_ref_no,
@@ -2335,19 +2338,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.internal_contract_ref_no,
              pc_dbd_id
         from pffxdul_phy_formula_fx_dtl_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb            axs
+             eod_eom_axsdata@eka_appdb               axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pffxdul_phy_formula_fx_dtl_ul');
-    
+  
     insert into pfqppul_phy_formula_qp_prc_ul
       (pfqppul_id,
        internal_action_ref_no,
@@ -2406,19 +2409,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_spot_pricing,
              pc_dbd_id
         from pfqppul_phy_formula_qp_prc_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb            axs
+             eod_eom_axsdata@eka_appdb               axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pfqppul_phy_formula_qp_prc_ul');
-    
+  
     insert into ppfdul_phy_price_frmula_dtl_ul
       (ppfdul_id,
        internal_action_ref_no,
@@ -2459,19 +2462,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_active,
              pc_dbd_id
         from ppfdul_phy_price_frmula_dtl_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb             axs
+             eod_eom_axsdata@eka_appdb                axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:ppfdul_phy_price_frmula_dtl_ul');
-    
+  
     insert into ppfhul_phy_price_frmla_hdr_ul
       (ppfhul_id,
        internal_action_ref_no,
@@ -2500,19 +2503,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.price_unit_id,
              pc_dbd_id
         from ppfhul_phy_price_frmla_hdr_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb            axs
+             eod_eom_axsdata@eka_appdb               axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:ppfhul_phy_price_frmla_hdr_ul');
-    
+  
     insert into ciqsl_contract_itm_qty_sts_log
       (ciqs_id,
        internal_action_ref_no,
@@ -2557,19 +2560,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_active,
              pc_dbd_id
         from ciqsl_contract_itm_qty_sts_log@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb             axs
+             eod_eom_axsdata@eka_appdb                axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:ciqsl_contract_itm_qty_sts_log');
-    
+  
     insert into ciqsl_contract_itm_qty_sts_log
       (ciqs_id,
        internal_action_ref_no,
@@ -2630,13 +2633,13 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:ciqsl_contract_itm_qty_sts_log');
-    
+  
     insert into diqsl_delivery_itm_qty_sts_log
       (diqs_id,
        internal_action_ref_no,
@@ -2683,19 +2686,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.called_off_qty_delta,
              pc_dbd_id
         from diqsl_delivery_itm_qty_sts_log@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb             axs
+             eod_eom_axsdata@eka_appdb                axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:diqsl_delivery_itm_qty_sts_log');
-    
+  
     insert into cqsl_contract_qty_status_log
       (cqs_id,
        internal_action_ref_no,
@@ -2742,19 +2745,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.called_off_qty_delta,
              pc_dbd_id
         from cqsl_contract_qty_status_log@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb           axs
+             eod_eom_axsdata@eka_appdb              axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:cqsl_contract_qty_status_log');
-    
+  
     insert into grdl_goods_record_detail_log
       (internal_grd_ref_no,
        internal_action_ref_no,
@@ -2981,20 +2984,20 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              pc_dbd_id,
              pc_process
         from grdl_goods_record_detail_log@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb           axs
+             eod_eom_axsdata@eka_appdb              axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process
          and ul.cot_int_action_ref_no is null;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:grdl_goods_record_detail_log');
-    
+  
     insert into grdl_goods_record_detail_log
       (internal_grd_ref_no,
        internal_action_ref_no,
@@ -3221,20 +3224,20 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              pc_dbd_id,
              pc_process
         from grdl_goods_record_detail_log@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb           axs
+             eod_eom_axsdata@eka_appdb              axs
        where ul.cot_int_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process
          and ul.cot_int_action_ref_no is not null;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:grdl_goods_record_detail_log');
-    
+  
     insert into vdul_voyage_detail_ul
       (internal_gmr_ref_no,
        internal_action_ref_no,
@@ -3353,19 +3356,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.handling_instructions,
              pc_dbd_id
         from vdul_voyage_detail_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb    axs
+             eod_eom_axsdata@eka_appdb       axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:vdul_voyage_detail_ul');
-    
+  
     insert into pcpchul_payble_contnt_headr_ul
       (pcpchul_id,
        internal_action_ref_no,
@@ -3394,19 +3397,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.payable_type,
              pc_dbd_id
         from pcpchul_payble_contnt_headr_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb             axs
+             eod_eom_axsdata@eka_appdb                axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcpchul_payble_contnt_headr_ul');
-    
+  
     insert into pqdul_payable_quality_dtl_ul
       (pqdul_id,
        internal_action_ref_no,
@@ -3429,19 +3432,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.quality_name,
              pc_dbd_id
         from pqdul_payable_quality_dtl_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb           axs
+             eod_eom_axsdata@eka_appdb              axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pqdul_payable_quality_dtl_ul');
-    
+  
     insert into pcepcul_elem_payble_content_ul
       (pcepcul_id,
        internal_action_ref_no,
@@ -3486,19 +3489,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.position,
              pc_dbd_id
         from pcepcul_elem_payble_content_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb             axs
+             eod_eom_axsdata@eka_appdb                axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
-         commit;
-    vn_logno  := vn_logno + 1;
+    commit;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcepcul_elem_payble_content_ul');
-           
+  
     insert into pcthul_treatment_header_ul
       (pcthul_id,
        internal_action_ref_no,
@@ -3525,19 +3528,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_active,
              pc_dbd_id
         from pcthul_treatment_header_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb         axs
+             eod_eom_axsdata@eka_appdb            axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcthul_treatment_header_ul');
-    
+  
     insert into tedul_treatment_element_dtl_ul
       (tedul_id,
        internal_action_ref_no,
@@ -3560,19 +3563,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.element_name,
              pc_dbd_id
         from tedul_treatment_element_dtl_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb             axs
+             eod_eom_axsdata@eka_appdb                axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:tedul_treatment_element_dtl_ul');
-    
+  
     insert into tqdul_treatment_quality_dtl_ul
       (tqdul_id,
        internal_action_ref_no,
@@ -3595,19 +3598,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.quality_name,
              pc_dbd_id
         from tqdul_treatment_quality_dtl_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb             axs
+             eod_eom_axsdata@eka_appdb                axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
-         commit;
-    vn_logno  := vn_logno + 1;
+    commit;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:tqdul_treatment_quality_dtl_ul');
-           
+  
     insert into pcetcul_elem_treatmnt_chrg_ul
       (pcetcul_id,
        internal_action_ref_no,
@@ -3650,19 +3653,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.charge_type,
              pc_dbd_id
         from pcetcul_elem_treatmnt_chrg_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb            axs
+             eod_eom_axsdata@eka_appdb               axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcetcul_elem_treatmnt_chrg_ul');
-    
+  
     insert into pcarul_assaying_rules_ul
       (pcarul_id,
        internal_action_ref_no,
@@ -3697,19 +3700,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.quality_id,
              pc_dbd_id
         from pcarul_assaying_rules_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb       axs
+             eod_eom_axsdata@eka_appdb          axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcarul_assaying_rules_ul');
-    
+  
     insert into pcaeslul_assay_elm_splt_lmt_ul
       (pcaeslul_id,
        internal_action_ref_no,
@@ -3738,19 +3741,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_active,
              pc_dbd_id
         from pcaeslul_assay_elm_splt_lmt_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb             axs
+             eod_eom_axsdata@eka_appdb                axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcaeslul_assay_elm_splt_lmt_ul');
-    
+  
     insert into arqdul_assay_quality_dtl_ul
       (arqdul_id,
        internal_action_ref_no,
@@ -3773,19 +3776,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.quality_name,
              pc_dbd_id
         from arqdul_assay_quality_dtl_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb          axs
+             eod_eom_axsdata@eka_appdb             axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:arqdul_assay_quality_dtl_ul');
-    
+  
     insert into pcaphul_attr_penalty_header_ul
       (pcaphul_id,
        internal_action_ref_no,
@@ -3810,19 +3813,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_active,
              pc_dbd_id
         from pcaphul_attr_penalty_header_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb             axs
+             eod_eom_axsdata@eka_appdb                axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcaphul_attr_penalty_header_ul');
-    
+  
     insert into pcapul_attribute_penalty_ul
       (pcapul_id,
        internal_action_ref_no,
@@ -3873,19 +3876,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.position,
              pc_dbd_id
         from pcapul_attribute_penalty_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb          axs
+             eod_eom_axsdata@eka_appdb             axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcapul_attribute_penalty_ul');
-    
+  
     insert into pqdul_penalty_quality_dtl_ul
       (pqdul_id,
        internal_action_ref_no,
@@ -3906,19 +3909,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_active,
              pc_dbd_id
         from pqdul_penalty_quality_dtl_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb           axs
+             eod_eom_axsdata@eka_appdb              axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pqdul_penalty_quality_dtl_ul');
-    
+  
     insert into padul_penalty_attribute_dtl_ul
       (padul_id,
        internal_action_ref_no,
@@ -3941,19 +3944,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_active,
              pc_dbd_id
         from padul_penalty_attribute_dtl_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb             axs
+             eod_eom_axsdata@eka_appdb                axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:padul_penalty_attribute_dtl_ul');
-    
+  
     insert into pcrhul_refining_header_ul
       (pcrhul_id,
        internal_action_ref_no,
@@ -3980,19 +3983,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_active,
              pc_dbd_id
         from pcrhul_refining_header_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb        axs
+             eod_eom_axsdata@eka_appdb           axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcrhul_refining_header_ul');
-    
+  
     insert into rqdul_refining_quality_dtl_ul
       (rqdul_id,
        internal_action_ref_no,
@@ -4015,19 +4018,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.quality_name,
              pc_dbd_id
         from rqdul_refining_quality_dtl_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb            axs
+             eod_eom_axsdata@eka_appdb               axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:rqdul_refining_quality_dtl_ul');
-    
+  
     insert into redul_refining_element_dtl_ul
       (redul_id,
        internal_action_ref_no,
@@ -4050,19 +4053,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.element_name,
              pc_dbd_id
         from redul_refining_element_dtl_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb            axs
+             eod_eom_axsdata@eka_appdb               axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:redul_refining_element_dtl_ul');
-    
+  
     insert into pcercul_elem_refing_charge_ul
       (pcercul_id,
        internal_action_ref_no,
@@ -4105,19 +4108,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_active,
              pc_dbd_id
         from pcercul_elem_refing_charge_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb            axs
+             eod_eom_axsdata@eka_appdb               axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:pcercul_elem_refing_charge_ul');
-    
+  
     insert into dithul_di_treatment_header_ul
       (dithul_id,
        internal_action_ref_no,
@@ -4138,13 +4141,13 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_active,
              pc_dbd_id
         from dithul_di_treatment_header_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb            axs
+             eod_eom_axsdata@eka_appdb               axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
@@ -4171,13 +4174,13 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_active,
              pc_dbd_id
         from dirhul_di_refining_header_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb           axs
+             eod_eom_axsdata@eka_appdb              axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
@@ -4204,13 +4207,13 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_active,
              pc_dbd_id
         from diphul_di_penalty_header_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb          axs
+             eod_eom_axsdata@eka_appdb             axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
@@ -4241,13 +4244,13 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.qty_type,
              pc_dbd_id
         from cipql_ctrt_itm_payable_qty_log@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb             axs
+             eod_eom_axsdata@eka_appdb                axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
@@ -4282,13 +4285,13 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.qty_type,
              pc_dbd_id
         from dipql_del_itm_payble_qty_log@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb           axs
+             eod_eom_axsdata@eka_appdb              axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
@@ -4363,20 +4366,20 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              pc_dbd_id,
              pc_process
         from spql_stock_payable_qty_log@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb         axs
+             eod_eom_axsdata@eka_appdb            axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and ul.cot_int_action_ref_no is null
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:spql_stock_payable_qty_log');
-    
+  
     insert into spql_stock_payable_qty_log
       (spq_id,
        internal_action_ref_no,
@@ -4445,20 +4448,20 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              pc_dbd_id,
              pc_process
         from spql_stock_payable_qty_log@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb         axs
+             eod_eom_axsdata@eka_appdb            axs
        where ul.cot_int_action_ref_no = axs.internal_action_ref_no
          and ul.cot_int_action_ref_no is not null
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:spql_stock_payable_qty_log');
-    
+  
     insert into dipchul_di_payblecon_header_ul
       (dipchul_id,
        internal_action_ref_no,
@@ -4479,22 +4482,21 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_active,
              pc_dbd_id
         from dipchul_di_payblecon_header_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb             axs
+             eod_eom_axsdata@eka_appdb                axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
-         commit;
-    vn_logno  := vn_logno + 1;
+    commit;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:dipchul_di_payblecon_header_ul');
-           
+  
     insert into sswh_spe_settle_washout_header
-      (
-       sswh_id,
+      (sswh_id,
        internal_action_ref_no,
        settlement_qty,
        settlement_qty_unit_id,
@@ -4525,19 +4527,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              activity_type,
              cancellation_date
         from sswh_spe_settle_washout_header@eka_appdb sswh,
-             eod_eom_axsdata@eka_appdb             axs
+             eod_eom_axsdata@eka_appdb                axs
        where sswh.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
-         commit;
-    vn_logno  := vn_logno + 1;
+    commit;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:sswh_spe_settle_washout_header');
-         
+  
     insert into sswd_spe_settle_washout_detail
       (sswd_id,
        sswh_id,
@@ -4577,13 +4579,13 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
                 from sswh_spe_settle_washout_header sswh
                where sswh.dbd_id = pc_dbd_id);
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:sswd_spe_settle_washout_detail');
-    
+  
     --- Added Suresh 
     insert into pca_physical_contract_action
       (pca_id,
@@ -4599,13 +4601,13 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              pca.is_active,
              pc_dbd_id
         from pca_physical_contract_action@eka_appdb pca,
-             eod_eom_axsdata@eka_appdb           axs
+             eod_eom_axsdata@eka_appdb              axs
        where pca.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
@@ -4644,19 +4646,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              cod.call_off_date,
              pc_dbd_id
         from cod_call_off_details@eka_appdb cod,
-             eod_eom_axsdata@eka_appdb   axs
+             eod_eom_axsdata@eka_appdb      axs
        where cod.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:cod_call_off_details');
-    
+  
     insert into gthul_gmr_treatment_header_ul
       (gthul_id,
        gth_id,
@@ -4679,19 +4681,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              pc_process,
              pc_dbd_id
         from gthul_gmr_treatment_header_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb            axs
+             eod_eom_axsdata@eka_appdb               axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:gthul_gmr_treatment_header_ul');
-    
+  
     insert into grhul_gmr_refining_header_ul
       (grhul_id,
        grh_id,
@@ -4714,19 +4716,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              pc_process,
              pc_dbd_id
         from grhul_gmr_refining_header_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb           axs
+             eod_eom_axsdata@eka_appdb              axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
     commit;
-    vn_logno  := vn_logno + 1;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:grhul_gmr_refining_header_ul');
-    
+  
     insert into gphul_gmr_penalty_header_ul
       (gphul_id,
        gph_id,
@@ -4749,19 +4751,19 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              pc_process,
              pc_dbd_id
         from gphul_gmr_penalty_header_ul@eka_appdb ul,
-             eod_eom_axsdata@eka_appdb          axs
+             eod_eom_axsdata@eka_appdb             axs
        where ul.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eodeom_id = pc_app_eodeom_id
          and axs.process = pc_process;
-         commit;
-    vn_logno  := vn_logno + 1;
+    commit;
+    vn_logno := vn_logno + 1;
     sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             vc_dbd_id,
                             vn_logno,
                             'D:gphul_gmr_penalty_header_ul');
-          
+  
   exception
     when others then
       vobj_error_log.extend;
@@ -5247,5 +5249,5 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
     
   end;
 
-end pkg_phy_transfer_data; 
+end pkg_phy_transfer_data;
 /
