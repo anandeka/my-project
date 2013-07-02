@@ -49,3 +49,12 @@ Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_p
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_objects_pkg_phy_conc_realized_pnl.sql
 
 
+Revision: 132838
+Author: janna
+Date: 9:41:42 AM, Tuesday, July 02, 2013
+Message:
+Free Metal Tables refresh added
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_transfer_data.sql
+
+
