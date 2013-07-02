@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1664
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  02-Jul-2013 
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  81008
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Output Document
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+====================================================================================================================================
+
+Revision: 132846
+Author: rajuga
+Date: 11:08:06 AM, Tuesday, July 02, 2013
+Message:
+Bug 81008 - Issues in secondary provisisonal assay output document
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AssayDocument.rpt
+
+====================================================================================================================================
