@@ -1118,7 +1118,7 @@ insert into pfrhe_pfrh_extension
            and pfrhe.purchase_sales = 'Purchase'
            and pfrhe.product_id = cur_pfrh.product_id
            and pfrhe.section_name = 'List of Consumed Fixations for Realization'
-         order by pfrhe.section_name) loop -- Balance First and New PFC Next
+         order by pfrhe.from_section_name) loop -- Balance First and New PFC Next
          -- While consuming we should take into account of previous consumed qty if any
         If vn_qty_to_consume <=  cur_consumed.fixed_qty - cur_consumed.prev_consumed_qty then
             vn_consumed_for_this_fixation := vn_qty_to_consume;
