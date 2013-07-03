@@ -1,0 +1,79 @@
+Patch No*          		:  EKA_METALS_PATCH_1670
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  03-Jun-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+
+
+Revision: 133221
+Author: janna
+Date: 7:48:50 PM, Wednesday, July 03, 2013
+Message:
+MBV Report Fixes
+
+1) Contract Status Priced Quanity is considerd even when the price fixation date in in future. bug
+2) Price Fixation and Allocation Report(MBV) price fixation date is shown as as on date instead of actual price fixation date
+3) Physical Diff Report to be sorted by contract type 
+4) Contango / Backwardation Due to Qty and Price logic corrected in Allocation Report bug
+5) Price Fixation / Allocation report showing duplicate data where EOD and EOM present for same date bug
+6) Price Fixation Report Incorrect Quantity in List of Price Fixations from Previous Month bug 
+7) Contract Status Excel Report not showing Free Metal Data bug
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/150_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process_boliden.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process_tata.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+Revision: 133227
+Author: janna
+Date: 8:00:52 PM, Wednesday, July 03, 2013
+Message:
+Consumption ordering corrected
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_mbv_report.sql
+
+
+RPT files
+
+Revision: 133212
+Author: janna
+Date: 7:35:36 PM, Wednesday, July 03, 2013
+Message:
+MBV Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AllocationReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyContractStatusReport_Excel.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PhysicalDiffReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PriceFixationReport.rpt
