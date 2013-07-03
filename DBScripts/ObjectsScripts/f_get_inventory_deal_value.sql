@@ -1,5 +1,4 @@
-/* Formatted on 2011/08/07 18:04 (Formatter Plus v4.8.8) */
-CREATE OR REPLACE FUNCTION f_get_inventory_deal_value (
+CREATE OR REPLACE FUNCTION "F_GET_INVENTORY_DEAL_VALUE" (
    open_deal_id   VARCHAR2,
    corp_id        VARCHAR2
 )
@@ -25,19 +24,22 @@ IS
    grd_ref             VARCHAR2 (20);
    grd_int             VARCHAR2 (20);
    grd_gmr             VARCHAR2 (20);
+   grd_con_no        varchar2(100);
 BEGIN
    FOR eachitem IN open_items
    LOOP
+   grd_con_no:= null;
       SELECT grd.current_qty, grd.qty_unit_id, grd.product_id,
              grd.internal_grd_ref_no, grd.internal_gmr_ref_no,
-             grd.internal_contract_item_ref_no
+             grd.internal_contract_item_ref_no,
+             grd.container_no
         INTO pc_open_qty, grd_from_qty_id, grd_product_id,
              grd_ref, grd_gmr,
-             grd_int
+             grd_int,grd_con_no
         FROM grd_goods_record_detail grd
        WHERE grd.internal_grd_ref_no = eachitem.item_id;
 
-      grd_str := grd_gmr || '-' || grd_ref || '-' || grd_int || '-';
+      grd_str := grd_gmr || '-' || grd_ref || '-' || grd_int || '-'||grd_con_no;
 
       SELECT pdm.base_quantity_unit
         INTO base_unit_unit_id
@@ -78,5 +80,5 @@ BEGIN
 
    --deal_item_value  := RESULT + curr_code ;
    RETURN (RESULT);
-END;
+END; 
 /
