@@ -238,12 +238,12 @@ select akc.base_cur_id
                 pfrhe.product_id,
                 pfrhe.product_name,
                 pfrhe.purchase_sales,
-                sum(fixed_qty + pfrhe.consumed_qty), -- Need to show the total qty here,
+                sum(fixed_qty), -- Need to show the total qty here,
                 case
-                  when sum(fixed_qty + pfrhe.consumed_qty) = 0 then
+                  when sum(fixed_qty) = 0 then
                    0
                   else
-                   sum((fixed_qty + pfrhe.consumed_qty) * weighted_avg_price) / sum(fixed_qty + pfrhe.consumed_qty)
+                   sum((fixed_qty ) * weighted_avg_price) / sum(fixed_qty)
                 end,
                 'NA', -- Thought this is from List of Balance Price Fixations from EOM, this is not required for any logic
                 'List of Balance Price Fixations from previous Month',
@@ -455,7 +455,8 @@ insert into pfrd_price_fix_report_detail
      and ucm_price.is_active = 'Y'
      and ppu_base.product_id = pdm_aml.product_id
      and ppu_base.cur_id = akc.base_cur_id
-     and ppu_base.weight_unit_id = pdm_aml.base_quantity_unit;
+     and ppu_base.weight_unit_id = pdm_aml.base_quantity_unit
+     and axs.process = 'EOM';
          commit;
     --
     -- New PFC for this Month for Base Metal
@@ -571,9 +572,7 @@ insert into pfrd_price_fix_report_detail
          ucm_unit_conversion_master     ucm,
          qum_quantity_unit_master       qum_qty,
          ucm_unit_conversion_master     ucm_price,
-         
          v_ppu_pum ppu_base
-  
    where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
      and pcdi.pcdi_id = poch.pcdi_id
      and poch.poch_id = pocd.poch_id
@@ -610,7 +609,8 @@ insert into pfrd_price_fix_report_detail
      and ucm_price.is_active = 'Y'
      and ppu_base.product_id = pdm.product_id
      and ppu_base.cur_id = akc.base_cur_id
-     and ppu_base.weight_unit_id = pdm.base_quantity_unit;
+     and ppu_base.weight_unit_id = pdm.base_quantity_unit
+     and axs.process = 'EOM';
 
     commit;
     vc_error_msg := 'Add Free Metal';
@@ -679,7 +679,7 @@ insert into pfrd_price_fix_report_detail
           'P' contract_type,
           null pcdi_id,
           null contract_ref_no_del_item_no,
-          fmpfd.as_of_date price_fixed_date,
+          axs.eff_date price_fixed_date,
           axs.internal_action_ref_no,
           fmed.fmed_id pfd_id,
           'Y' is_new_pfc,
@@ -868,7 +868,25 @@ insert into pfrh_price_fix_report_header
             ppu_base.product_price_unit_id,
             ppu_base.price_unit_name;
         commit;
-        
+ vc_error_msg := 'Update Previous Month Realized Qty';
+        --
+        -- Update Previous Month Realized Qty, Price Fixation Qty OB for Purchase and Sales
+        --
+        for cur_pfhr_prev_real_qty in (select pfrh_prev.product_id,
+                                              pfrh_prev.realized_qty realized_qty_prev_month,
+                                              pfrh_prev.price_fix_qty_purchase_new - pfrh_prev.realized_qty price_fix_qty_purchase_ob,
+                                              pfrh_prev.price_fix_qty_sales_new - pfrh_prev.realized_qty price_fix_qty_sales_ob
+                                         from pfrh_price_fix_report_header pfrh_prev
+                                        where pfrh_prev.process_id = vc_previous_eom_id)
+        loop
+          update pfrh_price_fix_report_header pfrh
+             set pfrh.realized_qty_prev_month = cur_pfhr_prev_real_qty.realized_qty_prev_month,
+             pfrh.price_fix_qty_purchase_ob = cur_pfhr_prev_real_qty.price_fix_qty_purchase_ob,
+             pfrh.price_fix_qty_sales_ob = cur_pfhr_prev_real_qty.price_fix_qty_sales_ob
+           where pfrh.process_id = pc_process_id
+             and pfrh.product_id = cur_pfhr_prev_real_qty.product_id;
+        end loop;
+        commit;       
  vc_error_msg := 'Open Purchase And Sales Price Fixation Qty';             
         --
         -- PFRH Aggregated available data from PFRD
@@ -1045,25 +1063,7 @@ insert into pfrhe_pfrh_extension
          pfrh.base_price_unit_name
     from pfrh_price_fix_report_header pfrh
    where pfrh.process_id = pc_process_id;
-        vc_error_msg := 'Update Previous Month Realized Qty';
-        --
-        -- Update Previous Month Realized Qty, Price Fixation Qty OB for Purchase and Sales
-        --
-        for cur_pfhr_prev_real_qty in (select pfrh_prev.product_id,
-                                              pfrh_prev.realized_qty realized_qty_prev_month,
-                                              pfrh_prev.price_fix_qty_purchase_new - pfrh_prev.realized_qty price_fix_qty_purchase_ob,
-                                              pfrh_prev.price_fix_qty_sales_new - pfrh_prev.realized_qty price_fix_qty_sales_ob
-                                         from pfrh_price_fix_report_header pfrh_prev
-                                        where pfrh_prev.process_id = vc_previous_eom_id)
-        loop
-          update pfrh_price_fix_report_header pfrh
-             set pfrh.realized_qty_prev_month = cur_pfhr_prev_real_qty.realized_qty_prev_month,
-             pfrh.price_fix_qty_purchase_ob = cur_pfhr_prev_real_qty.price_fix_qty_purchase_ob,
-             pfrh.price_fix_qty_sales_ob = cur_pfhr_prev_real_qty.price_fix_qty_sales_ob
-           where pfrh.process_id = pc_process_id
-             and pfrh.product_id = cur_pfhr_prev_real_qty.product_id;
-        end loop;
-        commit;
+        
         vc_error_msg := 'Update Priced and Arrived Qty and Priced and Delivered Qty';     
         --
         -- Update Priced and Arrived Qty and Priced and Delivered Qty
@@ -2385,7 +2385,6 @@ vc_error_msg := 'End of sp_calc_mbv_report';
                                  'dd-Mon-yyyy'))
              end) delivery_date,
              poch.element_id
-      
         from pcm_physical_contract_main     pcm,
              pcdi_pc_delivery_item          pcdi,
              poch_price_opt_call_off_header poch,
@@ -2482,7 +2481,6 @@ vc_error_msg := 'End of sp_calc_mbv_report';
              pum_price_unit_master          pum,
              pdd_product_derivative_def     pdd,
              v_ppu_pum                      ppu
-      
        where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
          and pcm.process_id = pc_process_id
          and pcm.contract_status = 'In Position'
@@ -3482,7 +3480,6 @@ end;
              ak_corporate akc,
              ucm_unit_conversion_master ucm,
              qum_quantity_unit_master qum_qty
-      
        where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
          and pcdi.pcdi_id = poch.pcdi_id
          and poch.poch_id = pocd.poch_id
@@ -3515,6 +3512,7 @@ end;
          and pfd.hedge_correction_date > vd_prev_eom_date
          and pfd.hedge_correction_date <= pd_trade_date
          and pcm.is_pass_through ='N'
+         and axs.process ='EOM'
       union all
       select pc_process_id,
              pd_trade_date,
@@ -3620,7 +3618,8 @@ end;
          and pcpd.is_active = 'Y'
          and pcm.contract_type = 'BASEMETAL'
          and pfd.hedge_correction_date > vd_prev_eom_date
-         and pfd.hedge_correction_date <= pd_trade_date;
+         and pfd.hedge_correction_date <= pd_trade_date
+         and axs.process ='EOM';
     commit;
     vc_error_msg :='Start of Derivatives';
     -- derivatives
@@ -3790,7 +3789,7 @@ end;
         null prompt_month_year,
         1 fx_rate_price_to_base,
         fmed.provisional_price price_in_base_ccy,
-        fmpfd.as_of_date price_fixed_date,
+        axs.eff_date price_fixed_date,
         fmpfd.user_price * fmpfd.qty_fixed * ucm.multiplication_factor amount,
         akc.base_cur_id,
         akc.base_currency_name,

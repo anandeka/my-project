@@ -93,10 +93,6 @@ create or replace package pkg_phy_eod_reports is
                                    pc_process      varchar2,
                                    pc_dbd_id       varchar2);
 
-  procedure sp_calc_freight_other_charge(pc_corporate_id varchar2,
-                                         pd_trade_date   date,
-                                         pc_process_id   varchar2,
-                                         pc_process      varchar2);
   procedure sp_delta_updates(pc_corporate_id varchar2,
                              pd_trade_date   date,
                              pc_process_id   varchar2,
@@ -2477,10 +2473,7 @@ create or replace package body pkg_phy_eod_reports is
                                  pc_process_id,
                                  'EOM',
                                  null);
-    sp_calc_freight_other_charge(pc_corporate_id,
-                                 pd_trade_date,
-                                 pc_process_id,
-                                 'EOM');
+    
     vn_log_counter := vn_log_counter + 1;
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -9686,65 +9679,94 @@ sp_eodeom_process_log(pc_corporate_id,
                           gvn_log_counter,
                           'Contract Status Report over');      
 -- added suresh for freemetal
+ insert into csfm_cont_status_free_metal
+   (process_id,
+    corporate_id,
+    corporate_name,
+    eod_trade_date,
+    utility_ref_no,
+    element_id,
+    element_name,
+    payable_qty,
+    payable_qty_unit_id,
+    payable_qty_unit,
+    priced_qty,
+    unpriced_qty,
+    element_desc,
+    smelter_id,
+    smelter_name)
+   select pc_process_id,
+          fmuh.corporate_id,
+          akc.corporate_name,
+          pd_trade_date,
+          fmuh.utility_ref_no,
+          fmed.element_id,
+          fmed.element_name,
+          fmpfh.qty_to_be_fixed,
+          fmed.qty_unit_id,
+          qum.qty_unit,
+          sum(case
+                when axs_fm.eff_date <= pd_trade_date then
+                 nvl(fmpfd.qty_fixed, 0)
+                else
+                 0
+              end) priced_qty,
+          (fmpfh.qty_to_be_fixed - sum(case
+                                         when axs_fm.eff_date <= pd_trade_date then
+                                          nvl(fmpfd.qty_fixed, 0)
+                                         else
+                                          0
+                                       end)) unpriced_qty,
+          pdm.product_desc,
+          fmuh.smelter_id,
+          phd.companyname
+     from fmuh_free_metal_utility_header fmuh,
+          fmed_free_metal_elemt_details  fmed,
+          fmpfh_price_fixation_header    fmpfh,
+          ak_corporate                   akc,
+          qum_quantity_unit_master       qum,
+          phd_profileheaderdetails       phd,
+          aml_attribute_master_list      aml,
+          pdm_productmaster              pdm,
+          axs_action_summary             axs,
+          fmpfd_price_fixation_details   fmpfd,
+          fmpfam_price_action_mapping    fmpfam,
+          axs_action_summary             axs_fm
+    where fmuh.fmuh_id = fmed.fmuh_id
+      and fmed.fmed_id = fmpfh.fmed_id
+      and fmed.element_id = fmpfh.element_id
+      and fmuh.is_active = 'Y'
+      and fmed.is_active = 'Y'
+      and fmpfh.is_active = 'Y'
+      and fmuh.corporate_id = akc.corporate_id
+      and fmed.qty_unit_id = qum.qty_unit_id
+      and phd.profileid = fmuh.smelter_id
+      and fmed.element_id = aml.attribute_id
+      and aml.underlying_product_id = pdm.product_id
+      and fmuh.internal_action_ref_no = axs.internal_action_ref_no
+      and axs.corporate_id = pc_corporate_id
+      and axs.eff_date <= pd_trade_date
+      and axs.process = 'EOM'
+      and fmpfh.fmpfh_id = fmpfd.fmpfh_id
+      and fmpfd.fmpfd_id = fmpfam.fmpfd_id
+      and fmpfd.is_active = 'Y'
+      and fmpfam.is_active = 'Y'
+      and fmpfam.internal_action_ref_no = axs_fm.internal_action_ref_no
+      and axs_fm.process = 'EOM'
+    group by fmuh.corporate_id,
+             akc.corporate_name,
+             fmuh.utility_ref_no,
+             fmed.element_id,
+             fmed.element_name,
+             fmpfh.qty_to_be_fixed,
+             fmed.qty_unit_id,
+             axs.eff_date,
+             qum.qty_unit,
+             fmpfh.qty_to_be_fixed,
+             pdm.product_desc,
+             fmuh.smelter_id,
+             phd.companyname;
 
-insert into csfm_cont_status_free_metal
-  (process_id,
-   corporate_id,
-   corporate_name,
-   eod_trade_date,
-   utility_ref_no,
-   element_id,
-   element_name,
-   payable_qty,
-   payable_qty_unit_id,
-   payable_qty_unit,
-   priced_qty,
-   unpriced_qty,
-   element_desc,
-   smelter_id,
-   smelter_name)
-  select pc_process_id,
-         fmuh.corporate_id,
-         akc.corporate_name,
-         pd_trade_date,
-         fmuh.utility_ref_no,
-         fmed.element_id,
-         fmed.element_name,
-         fmpfh.qty_to_be_fixed,
-         fmed.qty_unit_id,
-         qum.qty_unit,
-         nvl(fmpfh.priced_qty, 0),
-         (fmpfh.qty_to_be_fixed - nvl(fmpfh.priced_qty, 0)),
-         pdm.product_desc,
-         fmuh.smelter_id,
-         phd.companyname
-    from fmuh_free_metal_utility_header fmuh,
-         fmed_free_metal_elemt_details  fmed,
-         fmpfh_price_fixation_header    fmpfh,
-         ak_corporate                   akc,
-         qum_quantity_unit_master       qum,
-         phd_profileheaderdetails       phd,
-         aml_attribute_master_list      aml,
-         pdm_productmaster              pdm,
-         axs_action_summary             axs
-   where fmuh.fmuh_id = fmed.fmuh_id
-     and fmed.fmed_id = fmpfh.fmed_id
-     and fmed.element_id = fmpfh.element_id  
-     and fmuh.is_active = 'Y'
-     and fmed.is_active = 'Y'
-     and fmpfh.is_active = 'Y'
-     and fmuh.corporate_id=akc.corporate_id
-     and fmed.qty_unit_id=qum.qty_unit_id
-     and phd.profileid=fmuh.smelter_id
-     and fmed.element_id=aml.attribute_id
-     and aml.underlying_product_id=pdm.product_id
-     and fmuh.internal_action_ref_no=axs.internal_action_ref_no
-     and axs.corporate_id=pc_corporate_id
-     and axs.eff_date<=pd_trade_date
-     and aml.is_deleted='N'
-     and pdm.is_deleted='N'
-     and phd.is_deleted='N'
-     and axs.process='EOM';
    commit;  
    --    
    -- Populate CSS (Summary Information for MBV)
@@ -24972,419 +24994,7 @@ exception
   
 end;
 
-procedure sp_calc_freight_other_charge(pc_corporate_id varchar2,
-                                       pd_trade_date   date,
-                                       pc_process_id   varchar2,
-                                       pc_process      varchar2) is
-
-  --------------------------------------------------------------------------------------------------------------------------
-  --        procedure name                            : sp_calc_freight_other_charge
-  --        author                                    : 
-  --        created date                              : 2nd Jan 2013
-  --        purpose                                   : Populate Freight and Other Charges for all GMRS
-  --
-  --        parameters
-
-  --        modification history
-  --        modified date                             : 
-  --        modified by                               : 
-  --        modify description                        :
-  --------------------------------------------------------------------------------------------------------------------------
-  vobj_error_log                tableofpelerrorlog := tableofpelerrorlog();
-  vn_eel_error_count            number := 1;
-  vn_sampling_charge            number;
-  vn_handling_charges           number;
-  vn_location_value             number;
-  vn_freight_allowance          number;
-  vn_small_lot_charge           number;
-  vn_container_charge           number;
-  vn_total_containers           number;
-  vn_dummy                      number;
-  vn_wet_dry_qty_in_charge_unit number; -- Used for Small lot charges
-  vc_error_msg                  varchar2(100);
-  cursor cur_all_gmr is
-    select gmr.internal_gmr_ref_no,
-           decode(gmr.wns_status, 'Completed', 'Y', 'N') is_wns_created,
-           nvl(gmr.no_of_bags, 0) no_of_bags,
-           gmr.dry_qty,
-           gmr.wet_qty,
-           nvl(gmr.is_apply_container_charge, 'N') is_apply_container_charge,
-           nvl(gmr.is_apply_freight_allowance, 'N') is_apply_freight_allowance,
-           case
-             when nvl(gmr.is_final_invoiced, 'N') = 'Y' then
-              'Y'
-             when nvl(gmr.is_provisional_invoiced, 'N') = 'Y' then
-              'Y'
-             else
-              'N'
-           end is_invoiced,
-           gmr.latest_internal_invoice_ref_no,
-           gmr.shipped_qty,
-           gmr.qty_unit_id gmr_qty_unit_id,
-           pcmac.int_contract_ref_no,
-           gmr.no_of_stocks_wns_done
-      from pcmac_pcm_addn_charges    pcmac,
-           process_gmr gmr
-     where gmr.internal_contract_ref_no = pcmac.int_contract_ref_no
-       and pcmac.is_active = 'Y'
-       and pcmac.is_automatic_charge = 'Y'
-       and pcmac.corporate_id = pc_corporate_id
-       and gmr.process_id = pc_process_id
-      -- and gmr.internal_gmr_ref_no = 'GMR-4304'
-     group by gmr.internal_gmr_ref_no,
-              decode(gmr.wns_status, 'Completed', 'Y', 'N'),
-              nvl(gmr.no_of_bags, 0),
-              gmr.dry_qty,
-              gmr.wet_qty,
-              nvl(gmr.is_apply_container_charge, 'N'),
-              nvl(gmr.is_apply_freight_allowance, 'N'),
-              case
-                when nvl(gmr.is_final_invoiced, 'N') = 'Y' then
-                 'Y'
-                when nvl(gmr.is_provisional_invoiced, 'N') = 'Y' then
-                 'Y'
-                else
-                 'N'
-              end,
-              gmr.latest_internal_invoice_ref_no,
-              gmr.shipped_qty,
-              gmr.qty_unit_id,
-              pcmac.int_contract_ref_no,
-              gmr.no_of_stocks_wns_done;
-  cursor cur_each_gmr(pc_internal_gmr_ref_no varchar2) is
-    select gmr.internal_gmr_ref_no,
-           decode(gmr.wns_status, 'Completed', 'Y', 'N') is_wns_created,
-           nvl(gmr.no_of_bags, 0) no_of_bags,
-           gmr.dry_qty,
-           gmr.wet_qty,
-           nvl(gmr.is_apply_container_charge, 'N') is_apply_container_charge,
-           nvl(gmr.is_apply_freight_allowance, 'N') is_apply_freight_allowance,
-           case
-             when nvl(gmr.is_final_invoiced, 'N') = 'Y' then
-              'Y'
-             when nvl(gmr.is_provisional_invoiced, 'N') = 'Y' then
-              'Y'
-             else
-              'N'
-           end is_invoiced,
-           gmr.latest_internal_invoice_ref_no,
-           gmr.shipped_qty,
-           gmr.qty_unit_id gmr_qty_unit_id,
-           pcmac.*,
-           nvl(gmr.no_of_stocks_wns_done, 0) no_of_stocks_wns_done,
-           gmr.pcm_contract_type
-      from pcmac_pcm_addn_charges    pcmac,
-           process_gmr gmr
-     where gmr.internal_contract_ref_no = pcmac.int_contract_ref_no
-       and pcmac.is_active = 'Y'
-       and pcmac.is_automatic_charge = 'Y'
-       and pcmac.corporate_id = pc_corporate_id
-       and gmr.process_id = pc_process_id
-       and gmr.internal_gmr_ref_no = pc_internal_gmr_ref_no
-     order by gmr.internal_gmr_ref_no,
-              pcmac.addn_charge_id;
-begin
- vc_error_msg := '1';
-  gvn_log_counter := gvn_log_counter + 1;
-  for cur_all_gmr_rows in cur_all_gmr
-  loop
-  vc_error_msg := 'Int GMR: '|| cur_all_gmr_rows.internal_gmr_ref_no ||' line at : 2';
-    vn_sampling_charge   := 0;
-    vn_handling_charges  := 0;
-    vn_location_value    := 0;
-    vn_freight_allowance := 0;
-    vn_small_lot_charge  := 0;
-    vn_container_charge  := 0;
-    for cur_each_gmr_rows in cur_each_gmr(cur_all_gmr_rows.internal_gmr_ref_no)
-    loop
-vc_error_msg := 'Int GMR: '|| cur_all_gmr_rows.internal_gmr_ref_no ||' line at : 3';    
-      --
-      -- Sampling Charges, If WNS is created for the GMR and Flat, apply the Flat Rate (on shipment)
-      -- If Charge Type is Rate, Multiply the Rate by Number of Stocks for which WNS is completed (on WNS Stocks)
-      --
-      if cur_each_gmr_rows.addn_charge_name = 'SamplingCharge' or
-         cur_each_gmr_rows.addn_charge_name = 'Sampling Charge' then
-        if cur_each_gmr_rows.is_wns_created = 'Y' and
-           cur_each_gmr_rows.charge_type = 'Flat' then
-          vn_sampling_charge := cur_each_gmr_rows.charge *
-                                cur_each_gmr_rows.fx_rate;
-        elsif cur_each_gmr_rows.charge_type = 'Rate' then
-          vn_sampling_charge := cur_each_gmr_rows.charge *
-                                cur_each_gmr_rows.fx_rate *
-                                cur_each_gmr_rows.no_of_stocks_wns_done;
-        end if;
-      end if;
-vc_error_msg := 'Int GMR: '|| cur_all_gmr_rows.internal_gmr_ref_no ||' line at : 4';      
-      --
-      -- Handling Charges, If Rate then multiply by total no of sub lots for the GMR, If Flat take the value as is
-      --
-      if cur_each_gmr_rows.addn_charge_name = 'Handling Charge' then
-        if cur_each_gmr_rows.charge_type = 'Rate' then
-          vn_handling_charges := cur_each_gmr_rows.charge *
-                                 cur_each_gmr_rows.fx_rate *
-                                 cur_each_gmr_rows.no_of_bags;
-        else
-          vn_handling_charges := cur_each_gmr_rows.charge *
-                                 cur_each_gmr_rows.fx_rate;
-        end if;
-      end if;
-vc_error_msg := 'Int GMR: '|| cur_all_gmr_rows.internal_gmr_ref_no ||' line at : 5';      
-      --
-      -- Location Value , If Rate then multiply by dry or wet quantity, If Flat take the value as is
-      --
-      if cur_each_gmr_rows.addn_charge_name = 'Location Value' then
-        if cur_each_gmr_rows.charge_type = 'Rate' then
-          if cur_each_gmr_rows.charge_rate_basis = 'Dry' then
-            vn_location_value := cur_each_gmr_rows.charge *
-                                 cur_each_gmr_rows.fx_rate *
-                                 cur_each_gmr_rows.dry_qty;
-          else
-            vn_location_value := cur_each_gmr_rows.charge *
-                                 cur_each_gmr_rows.fx_rate *
-                                 cur_each_gmr_rows.wet_qty;
-          end if;
-        else
-          vn_location_value := cur_each_gmr_rows.charge *
-                               cur_each_gmr_rows.fx_rate;
-        end if;
-      end if;
-    vc_error_msg := 'Int GMR: '|| cur_all_gmr_rows.internal_gmr_ref_no ||' line at : 6';
-      --
-      -- Freight Allowance , If Rate then multiply by GMR shipped quantity for the GMR, If Flat take the value as is
-      --
-      if cur_each_gmr_rows.addn_charge_name = 'Freight Allowance' and
-         cur_each_gmr_rows.is_apply_freight_allowance = 'Y' then
-        if cur_each_gmr_rows.charge_type = 'Rate' then
-          vn_freight_allowance := cur_each_gmr_rows.charge *
-                                  cur_each_gmr_rows.fx_rate *
-                                  cur_each_gmr_rows.shipped_qty;
-        else
-          vn_freight_allowance := cur_each_gmr_rows.charge *
-                                  cur_each_gmr_rows.fx_rate;
-        end if;
-      end if;
-vc_error_msg := 'Int GMR: '|| cur_all_gmr_rows.internal_gmr_ref_no ||' line at : 7';      
-      --
-      -- Small Lot Charge, This will be like a slab, if the GMR wetor dry qty in the range, multiply the value by GMR Wet or Dry Qty
-      -- Convert GMR wet quantity unit to Charge Qty unit
-      --
-      if cur_each_gmr_rows.addn_charge_name = 'Small Lot Charges' then
-        begin
-        vc_error_msg := 'Int GMR: '|| cur_all_gmr_rows.internal_gmr_ref_no ||' line at : 7_00';        
-          select ucm.multiplication_factor
-            into vn_wet_dry_qty_in_charge_unit
-            from ucm_unit_conversion_master ucm
-           where ucm.from_qty_unit_id = cur_each_gmr_rows.gmr_qty_unit_id
-             and ucm.to_qty_unit_id = cur_each_gmr_rows.qty_unit_id;
-        exception
-          when others then
-            vn_wet_dry_qty_in_charge_unit := 1;
-        end;
-        vc_error_msg := 'Int GMR: '|| cur_all_gmr_rows.internal_gmr_ref_no ||' line at : 7_01';
-        if cur_each_gmr_rows.charge_rate_basis = 'Wet' then
-          vn_wet_dry_qty_in_charge_unit := vn_wet_dry_qty_in_charge_unit *
-                                           cur_each_gmr_rows.wet_qty;
-        else
-          vn_wet_dry_qty_in_charge_unit := vn_wet_dry_qty_in_charge_unit *
-                                           cur_each_gmr_rows.dry_qty;
-        end if;
-        vc_error_msg := 'Int GMR: '|| cur_all_gmr_rows.internal_gmr_ref_no ||' line at : 7_02';        
-        if (cur_each_gmr_rows.position = 'Range Begining' and
-           cur_each_gmr_rows.range_max_op = '<=' and
-           vn_wet_dry_qty_in_charge_unit <=
-           cur_each_gmr_rows.range_max_value) or
-           (cur_each_gmr_rows.position = 'Range Begining' and
-           cur_each_gmr_rows.range_max_op = '<' and
-           vn_wet_dry_qty_in_charge_unit <
-           cur_each_gmr_rows.range_max_value) or
-           (cur_each_gmr_rows.position = 'Range End' and
-           cur_each_gmr_rows.range_min_op = '>=' and
-           vn_wet_dry_qty_in_charge_unit >=
-           cur_each_gmr_rows.range_min_value) or
-           (cur_each_gmr_rows.position = 'Range End' and
-           cur_each_gmr_rows.range_min_op = '>' and
-           vn_wet_dry_qty_in_charge_unit >
-           cur_each_gmr_rows.range_min_value) or
-           (cur_each_gmr_rows.position is null and
-           cur_each_gmr_rows.range_min_op = '>' and
-           cur_each_gmr_rows.range_max_op = '<' and
-           vn_wet_dry_qty_in_charge_unit >
-           cur_each_gmr_rows.range_min_value and
-           vn_wet_dry_qty_in_charge_unit <
-           cur_each_gmr_rows.range_max_value) or
-           (cur_each_gmr_rows.position is null and
-           cur_each_gmr_rows.range_min_op = '>=' and
-           cur_each_gmr_rows.range_max_op = '<' and
-           vn_wet_dry_qty_in_charge_unit >=
-           cur_each_gmr_rows.range_min_value and
-           vn_wet_dry_qty_in_charge_unit <
-           cur_each_gmr_rows.range_max_value) or
-           (cur_each_gmr_rows.position is null and
-           cur_each_gmr_rows.range_min_op = '>' and
-           cur_each_gmr_rows.range_max_op = '<=' and
-           vn_wet_dry_qty_in_charge_unit >
-           cur_each_gmr_rows.range_min_value and
-           vn_wet_dry_qty_in_charge_unit <=
-           cur_each_gmr_rows.range_max_value) or
-           (cur_each_gmr_rows.position is null and
-           cur_each_gmr_rows.range_min_op = '>=' and
-           cur_each_gmr_rows.range_max_op = '<=' and
-           vn_wet_dry_qty_in_charge_unit >=
-           cur_each_gmr_rows.range_min_value and
-           vn_wet_dry_qty_in_charge_unit <=
-           cur_each_gmr_rows.range_max_value) then
-        vc_error_msg := 'Int GMR: '|| cur_all_gmr_rows.internal_gmr_ref_no ||' line at : 7_03';           
-          vn_small_lot_charge := vn_wet_dry_qty_in_charge_unit *
-                                 cur_each_gmr_rows.charge *
-                                 cur_each_gmr_rows.fx_rate;
-        vc_error_msg := 'Int GMR: '|| cur_all_gmr_rows.internal_gmr_ref_no ||' line at : 7_04';                                 
-        end if;
-      end if;
-      --
-      -- Container Charge, Get the unique container numbers from gmr and size
-      -- If Not Invoiced calcualte
-      -- If invoiced, caldcualte only if container charge is applied in Invoice, else zero
-      -- 
-      if cur_each_gmr_rows.addn_charge_name = 'Container Charges' and
-         cur_each_gmr_rows.is_apply_container_charge = 'Y' then
-        if cur_each_gmr_rows.is_invoiced = 'Y' then
-        vc_error_msg := 'Int GMR: '|| cur_all_gmr_rows.internal_gmr_ref_no ||' line at : 7_05';        
-          select count(*)
-            into vn_dummy
-            from ioc_invoice_other_charge ioc
-           where ioc.internal_invoice_ref_no =
-                 cur_each_gmr_rows.latest_internal_invoice_ref_no
-             and ioc.other_charge_cost_id in
-                 (select scm.cost_id
-                    from scm_service_charge_master scm
-                   where scm.cost_component_name = 'Container Charges'); -- Hard code value for Container Charges
-        end if;
-        vc_error_msg := 'Int GMR: '|| cur_all_gmr_rows.internal_gmr_ref_no ||' line at : 7_06';        
-        if cur_each_gmr_rows.is_invoiced = 'N' or
-           (cur_each_gmr_rows.is_invoiced = 'Y' and vn_dummy > 0) then
-        --  begin
-            If cur_each_gmr_rows.pcm_contract_type ='Sales' Then
-            select count(distinct agrd.container_no)
-              into vn_total_containers
-              from agmr_action_gmr           agmr,
-                   adgrd_action_dgrd@eka_appdb agrd
-             where agrd.action_no = agmr.action_no
-               and agrd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-               and agrd.status = 'Active'
-               and agrd.status = 'Active'
-               and agmr.is_apply_container_charge = 'Y'
-               and agmr.gmr_latest_action_action_id in
-                   ('shipmentAdvise','railAdvice','truckAdvice','airAdvice','releaseOrder')
-               and agmr.is_internal_movement = 'N'
-               and agmr.is_deleted = 'N'
-               and agmr.internal_gmr_ref_no =
-                   cur_each_gmr_rows.internal_gmr_ref_no
-               and agrd.container_size = cur_each_gmr_rows.container_size;
-               else
-            select count(distinct agrd.container_no)
-              into vn_total_containers
-              from agmr_action_gmr           agmr,
-                   agrd_action_grd@eka_appdb agrd
-             where agrd.action_no = agmr.action_no
-               and agrd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-               and agrd.status = 'Active'
-               and agrd.is_deleted = 'N'
-               and agmr.is_apply_container_charge = 'Y'
-               and agmr.gmr_latest_action_action_id in
-                   ('airDetail', 'shipmentDetail', 'railDetail',
-                    'truckDetail', 'warehouseReceipt')
-               and agmr.is_internal_movement = 'N'
-               and agmr.is_deleted = 'N'
-               and agmr.internal_gmr_ref_no =
-                   cur_each_gmr_rows.internal_gmr_ref_no
-               and agrd.container_size = cur_each_gmr_rows.container_size;
-               end if;
-        vc_error_msg := 'Int GMR: '|| cur_all_gmr_rows.internal_gmr_ref_no ||' line at : 7_07';               
-               dbms_output.put_line(vn_total_containers|| ','||cur_each_gmr_rows.fx_rate|| ' '||cur_each_gmr_rows.internal_gmr_ref_no );
-            -- We have multipe container sizes, we need to keep adding for this GMR                  
-            vn_container_charge := vn_container_charge +
-                                   (cur_each_gmr_rows.charge *
-                                   cur_each_gmr_rows.fx_rate *
-                                   vn_total_containers);
-        vc_error_msg := 'Int GMR: '|| cur_all_gmr_rows.internal_gmr_ref_no ||' line at : 7_08';                                   
-          /*exception
-            when no_data_found then
-              null;
-          end;*/
-        end if;
-        vc_error_msg := 'Int GMR: '|| cur_all_gmr_rows.internal_gmr_ref_no ||' line at : 8';        
-      end if;
-    end loop;
-        vc_error_msg := 'Int GMR: '|| cur_all_gmr_rows.internal_gmr_ref_no ||' line at : 9';    
-    insert into gfoc_gmr_freight_other_charge
-      (process_id,
-       internal_gmr_ref_no,
-       internal_contract_ref_no,
-       is_wns_created,
-       is_invoiced,
-       no_of_bags,
-       dry_qty,
-       wet_qty,
-       small_lot_charge,
-       container_charge,
-       sampling_charge,
-       handling_charge,
-       location_value,
-       freight_allowance,
-       is_apply_container_charge,
-       is_apply_freight_allowance,
-       latest_internal_invoice_ref_no,
-       shipped_qty,
-       gmr_qty_unit_id,
-       no_of_stocks_wns_done)
-    values
-      (pc_process_id,
-       cur_all_gmr_rows.internal_gmr_ref_no,
-       cur_all_gmr_rows.int_contract_ref_no,
-       cur_all_gmr_rows.is_wns_created,
-       cur_all_gmr_rows.is_invoiced,
-       cur_all_gmr_rows.no_of_bags,
-       cur_all_gmr_rows.dry_qty,
-       cur_all_gmr_rows.wet_qty,
-       vn_small_lot_charge,
-       vn_container_charge,
-       vn_sampling_charge,
-       vn_handling_charges,
-       vn_location_value,
-       vn_freight_allowance,
-       cur_all_gmr_rows.is_apply_container_charge,
-       cur_all_gmr_rows.is_apply_freight_allowance,
-       cur_all_gmr_rows.latest_internal_invoice_ref_no,
-       cur_all_gmr_rows.shipped_qty,
-       cur_all_gmr_rows.gmr_qty_unit_id,
-       cur_all_gmr_rows.no_of_stocks_wns_done);
-          vc_error_msg := 'Int GMR: '|| cur_all_gmr_rows.internal_gmr_ref_no ||' line at : 10';
-  end loop;
-  commit;
-  gvn_log_counter := gvn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'GMR Freight And Other Charge Population Over');
-
-exception
-  when others then
-    vobj_error_log.extend;
-    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                         'procedure sp_calc_freight_other_charge',
-                                                         'M2M-013',
-                                                         'Code:' || sqlcode ||
-                                                         'Message:' ||
-                                                         sqlerrm || vc_error_msg,
-                                                         '',
-                                                         pc_process,
-                                                         '',
-                                                         sysdate,
-                                                         pd_trade_date);
-  sp_insert_error_log(vobj_error_log);                                                         
-end;
-                                         
+                                        
 procedure sp_delta_updates(pc_corporate_id varchar2,
                           pd_trade_date   date,
                           pc_process_id   varchar2,

@@ -3938,8 +3938,6 @@ commit;
     delete from tpr_traders_position_report
      where process_id = pc_process_id;
     commit;
-    delete from gfoc_gmr_freight_other_charge
-     where process_id = pc_process_id;
     delete from ped_penalty_element_details
      where process_id = pc_process_id;
     delete from ped_penalty_element_details
@@ -4009,7 +4007,7 @@ commit;
 	 where process_id = pc_process_id;
 	 delete iids_iid_summary where process_id = pc_process_id;
      delete iocd_ioc_details where process_id = pc_process_id;
-  delete from fxar_fx_allocation_report
+     delete from fxar_fx_allocation_report
      where process_id = pc_process_id;
     commit;
 

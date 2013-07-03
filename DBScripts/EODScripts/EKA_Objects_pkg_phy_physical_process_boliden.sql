@@ -3837,8 +3837,6 @@ create or replace package body pkg_phy_physical_process is
      where dbd_id = vc_dbd_id;
     delete from page_price_alloc_gmr_exchange
      where process_id = pc_process_id;
-    delete from gfoc_gmr_freight_other_charge
-     where process_id = pc_process_id;
     delete from ped_penalty_element_details
      where process_id = pc_process_id;
     delete from ped_penalty_element_details
@@ -3913,8 +3911,7 @@ create or replace package body pkg_phy_physical_process is
     delete from css_contract_status_summary
      where process_id = pc_process_id;
     delete from pfrhe_pfrh_extension where process_id = pc_process_id;
-     delete from fxar_fx_allocation_report
-     where process_id = pc_process_id;
+    delete from fxar_fx_allocation_report where process_id = pc_process_id;
     commit;
     delete iids_iid_summary where process_id = pc_process_id;
     delete iocd_ioc_details where process_id = pc_process_id;
