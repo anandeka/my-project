@@ -872,12 +872,22 @@ insert into pfrh_price_fix_report_header
         --
         -- Update Previous Month Realized Qty, Price Fixation Qty OB for Purchase and Sales
         --
-        for cur_pfhr_prev_real_qty in (select pfrh_prev.product_id,
-                                              pfrh_prev.realized_qty realized_qty_prev_month,
-                                              pfrh_prev.price_fix_qty_purchase_new - pfrh_prev.realized_qty price_fix_qty_purchase_ob,
-                                              pfrh_prev.price_fix_qty_sales_new - pfrh_prev.realized_qty price_fix_qty_sales_ob
-                                         from pfrh_price_fix_report_header pfrh_prev
-                                        where pfrh_prev.process_id = vc_previous_eom_id)
+        for cur_pfhr_prev_real_qty in ( 
+            select pfrh_prev.product_id,
+                        sum(case
+                              when pfrh_prev.eod_trade_date = vd_prev_eom_date then
+                               pfrh_prev.realized_qty
+                              else
+                               0
+                            end) realized_qty_prev_month,
+                        sum(pfrh_prev.price_fix_qty_purchase_new) -
+                        sum(pfrh_prev.realized_qty) price_fix_qty_purchase_ob,
+                        sum(pfrh_prev.price_fix_qty_sales_new) -
+                        sum(pfrh_prev.realized_qty) price_fix_qty_sales_ob
+                   from pfrh_price_fix_report_header pfrh_prev
+                  where pfrh_prev.eod_trade_date <= vd_prev_eom_date
+                  and pfrh_prev.corporate_id = pc_corporate_id
+                  group by pfrh_prev.product_id)
         loop
           update pfrh_price_fix_report_header pfrh
              set pfrh.realized_qty_prev_month = cur_pfhr_prev_real_qty.realized_qty_prev_month,
