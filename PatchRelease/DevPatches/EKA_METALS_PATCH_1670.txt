@@ -17,7 +17,7 @@ Module / Feature Group:
 ==================================================================
 Module  		   	 :  EOD
 
-Sub-Module  			 :  N/A
+Sub-Module  			 :  MBV Reports
  
 Section   		   	 :  N/A
  
@@ -56,14 +56,13 @@ Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_p
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_physical_process_tata.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
 
-Revision: 133227
+Revision: 133267
 Author: janna
-Date: 8:00:52 PM, Wednesday, July 03, 2013
+Date: 6:43:02 AM, Thursday, July 04, 2013
 Message:
-Consumption ordering corrected
+Updation of OB for PF Report corrected
 ----
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_mbv_report.sql
-
 
 RPT files
 
@@ -77,3 +76,5 @@ Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/All
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyContractStatusReport_Excel.rpt
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PhysicalDiffReport.rpt
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PriceFixationReport.rpt
+
+
