@@ -81,11 +81,6 @@ create or replace package pkg_phy_custom_reports is
                                         pc_process_id      varchar2,
                                         pc_user_id         varchar2,
                                         pc_prev_process_id varchar2);
-  procedure sp_cdc_bank_fx_rate(pc_corporate_id     in varchar2,
-                                pd_trade_date       in date,
-                                pc_from_cur_id      in varchar2,
-                                pc_to_cur_id        in varchar2,
-                                pc_settlement_price out number);
 end; 
 /
 create or replace package body pkg_phy_custom_reports is
@@ -6267,6 +6262,8 @@ create or replace package body pkg_phy_custom_reports is
                                                 pc_process_id
                                             and cipd.price_unit_id =
                                                 pum.product_price_unit_id
+                                           and (diqs.total_qty -
+                                                diqs.final_invoiced_qty)<>0     
                                           group by pcdi.pcdi_id,
                                                    (diqs.total_qty -
                                                    diqs.final_invoiced_qty),
@@ -6549,6 +6546,8 @@ create or replace package body pkg_phy_custom_reports is
                                                pc_process_id
                                            and cipd.price_unit_id =
                                                pum.product_price_unit_id
+                                          and (diqs.total_qty -
+                                                  diqs.final_invoiced_qty)<>0     
                                          group by pcdi.pcdi_id,
                                                   (diqs.total_qty -
                                                   diqs.final_invoiced_qty),
@@ -6627,6 +6626,7 @@ create or replace package body pkg_phy_custom_reports is
                                           pcdi.qty_unit_id
                                       and tmpc.base_price_unit_id_in_ppu =
                                           pum.product_price_unit_id
+                                       and grd.current_qty<>0
                                     group by nvl(tmpc.pcdi_id, grd.pcdi_id),
                                              tmpc.base_price_unit_id_in_ppu,
                                              pum.price_unit_name
@@ -7951,146 +7951,215 @@ create or replace package body pkg_phy_custom_reports is
     commit;    
     
     -- variable contracts                      
-    insert into temp_tpr
-      (corporate_id,
-       section_name,
-       section_id,
-       product_id,
-       product_desc,
-       profit_center_id,
-       profit_center_short_name,
-       profit_center_name,
-       delivery_date,
-       delivery_month_display,
-       quantity,
-       quantity_unit_id,
-       quantity_unit,
-       strategy_id,
-       strategy_name,
-       approval_status)
-      select pcm.corporate_id,
-             'Physical Total' section_name,
-             '13' section_id,
-             pcpd.product_id,
-             pdm.product_desc,
-             pcpd.profit_center_id,
-             cpc.profit_center_short_name,
-             cpc.profit_center_name,
-             trunc(to_date('01-' || 'Jan-1900'), 'Mon') delivery_date,
-             'Opening Balance' delivery_month,
-             sum(ucm.multiplication_factor *
-                 round(least(diqs.gmr_qty, diqs.price_fixed_qty), 4)) qty,
-             qum_base.qty_unit_id,
-             qum_base.qty_unit,
-             null strategy_id,
-             'Physical Total' strategy_name,
-             nvl(pcm.approval_status, 'Approved') approval_status
-        from pcm_physical_contract_main    pcm,
-             pcdi_pc_delivery_item         pcdi,
-             diqs_delivery_item_qty_status diqs,
-             pcpd_pc_product_definition    pcpd,
-             pdm_productmaster             pdm,
-             qum_quantity_unit_master      qum_base,
-             cpc_corporate_profit_center   cpc,
-             qum_quantity_unit_master      qum,
-             ucm_unit_conversion_master    ucm
-       where pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
-         and pcdi.pcdi_id = diqs.pcdi_id
-         and pcm.process_id = pc_process_id
-         and pcdi.process_id = pc_process_id
-         and diqs.process_id = pc_process_id
-         and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-         and pcpd.input_output = 'Input'
-         and pcpd.process_id = pc_process_id
-         and pcpd.product_id = pdm.product_id
-         and pcpd.profit_center_id = cpc.profit_center_id
-         and diqs.item_qty_unit_id = qum.qty_unit_id
-         and pdm.base_quantity_unit = qum_base.qty_unit_id
-         and pcm.contract_type = 'BASEMETAL'
-         and pcdi.item_price_type<>'Fixed'
-         and ucm.from_qty_unit_id = qum.qty_unit_id
-         and ucm.to_qty_unit_id = qum_base.qty_unit_id
-         and nvl(pcm.contract_status, 'NA') <> 'Cancelled'
-         and pcm.purchase_sales = 'P'
-         and pcm.corporate_id = pc_corporate_id
-         and pcm.is_active = 'Y'
-         and pcdi.shipment_date is not null
-         and pcdi.shipment_date < pd_trade_date
-       group by pcm.corporate_id,
-                pcpd.product_id,
-                pdm.product_desc,
-                pcpd.profit_center_id,
-                cpc.profit_center_short_name,
-                cpc.profit_center_name,
-                trunc(pcdi.shipment_date, 'Mon'),
-                to_char(pcdi.shipment_date, 'Mon-YYYY'),
-                qum_base.qty_unit_id,
-                qum_base.qty_unit,
-                nvl(pcm.approval_status, 'Approved')
-      union all
-      select pcm.corporate_id,
-             'Physical Total' section_name,
-             '13' section_id,
-             pcpd.product_id,
-             pdm.product_desc,
-             pcpd.profit_center_id,
-             cpc.profit_center_short_name,
-             cpc.profit_center_name,
-             trunc(to_date('01-' || 'Jan-1900'), 'Mon') delivery_date,
-             'Opening Balance' delivery_month,
-             sum((case
+    
+insert into temp_tpr
+  (corporate_id,
+   section_name,
+   section_id,
+   product_id,
+   product_desc,
+   profit_center_id,
+   profit_center_short_name,
+   profit_center_name,
+   delivery_date,
+   delivery_month_display,
+   quantity,
+   quantity_unit_id,
+   quantity_unit,
+   strategy_id,
+   strategy_name,
+   approval_status)
+  select t.corporate_id,
+         t.section_name,
+         t.section_id,
+         t.product_id,
+         t.product_desc,
+         t.profit_center_id,
+         t.profit_center_short_name,
+         t.profit_center_name,
+         t.delivery_date,
+         t.delivery_month,
+         sum(t.priced_arrived_qty + t.price_not_arrived_qty +
+             t.priced_delivered_qty + t.price_not_delivered_qty),
+         t.qty_unit_id,
+         t.qty_unit,
+         t.strategy_id,
+         t.strategy_name,
+         t.approval_status
+    from (select pcm.corporate_id,
+                 'Physical Total' section_name,
+                 '13' section_id,
+                 pcpd.product_id,
+                 pdm.product_desc,
+                 pcpd.profit_center_id,
+                 cpc.profit_center_short_name,
+                 cpc.profit_center_name,
+                 trunc(to_date('01-' || 'Jan-1900'), 'Mon') delivery_date,
+                 'Opening Balance' delivery_month,
+                /* sum(ucm.multiplication_factor *
+                 round(least(diqs.gmr_qty, diqs.price_fixed_qty), 4)) qty,*/
+                 sum(ucm.multiplication_factor*case
+                       when nvl(diqs.gmr_qty, 0) < nvl(diqs.price_fixed_qty, 0) then
+                        nvl(diqs.gmr_qty, 0)
+                       else
+                        nvl(diqs.price_fixed_qty, 0)
+                     end)  priced_arrived_qty,
+                 
+                 sum(ucm.multiplication_factor*(nvl(diqs.price_fixed_qty, 0) -
+                     (case
+                        when nvl(diqs.gmr_qty, 0) < nvl(diqs.price_fixed_qty, 0) then
+                         nvl(diqs.gmr_qty, 0)
+                        else
+                         nvl(diqs.price_fixed_qty, 0)
+                      end)))  price_not_arrived_qty,
+                 0 priced_delivered_qty,
+                 0 price_not_delivered_qty,
+                 qum_base.qty_unit_id,
+                 qum_base.qty_unit,
+                 null strategy_id,
+                 'Physical Total' strategy_name,
+                 nvl(pcm.approval_status, 'Approved') approval_status
+            from pcm_physical_contract_main    pcm,
+                 pcdi_pc_delivery_item         pcdi,
+                 diqs_delivery_item_qty_status diqs,
+                 pcpd_pc_product_definition    pcpd,
+                 pdm_productmaster             pdm,
+                 qum_quantity_unit_master      qum_base,
+                 cpc_corporate_profit_center   cpc,
+                 qum_quantity_unit_master      qum,
+                 ucm_unit_conversion_master    ucm
+           where pcdi.internal_contract_ref_no =
+                 pcm.internal_contract_ref_no
+             and pcdi.pcdi_id = diqs.pcdi_id
+             and pcm.process_id = pc_process_id
+             and pcdi.process_id = pc_process_id
+             and diqs.process_id = pc_process_id
+             and pcm.internal_contract_ref_no =
+                 pcpd.internal_contract_ref_no
+             and pcpd.input_output = 'Input'
+             and pcpd.process_id = pc_process_id
+             and pcpd.product_id = pdm.product_id
+             and pcpd.profit_center_id = cpc.profit_center_id
+             and diqs.item_qty_unit_id = qum.qty_unit_id
+             and pdm.base_quantity_unit = qum_base.qty_unit_id
+             and pcm.contract_type = 'BASEMETAL'
+             and pcdi.item_price_type <> 'Fixed'
+             and ucm.from_qty_unit_id = qum.qty_unit_id
+             and ucm.to_qty_unit_id = qum_base.qty_unit_id
+             and nvl(pcm.contract_status, 'NA') <> 'Cancelled'
+             and pcm.purchase_sales = 'P'
+             and pcm.corporate_id = pc_corporate_id
+             and pcm.is_active = 'Y'
+             and pcdi.shipment_date is not null
+             and pcdi.shipment_date < pd_trade_date
+           group by pcm.corporate_id,
+                    pcpd.product_id,
+                    pdm.product_desc,
+                    pcpd.profit_center_id,
+                    cpc.profit_center_short_name,
+                    cpc.profit_center_name,
+                    trunc(pcdi.shipment_date, 'Mon'),
+                    to_char(pcdi.shipment_date, 'Mon-YYYY'),
+                    qum_base.qty_unit_id,
+                    qum_base.qty_unit,
+                    nvl(pcm.approval_status, 'Approved')
+          union all
+          select pcm.corporate_id,
+                 'Physical Total' section_name,
+                 '13' section_id,
+                 pcpd.product_id,
+                 pdm.product_desc,
+                 pcpd.profit_center_id,
+                 cpc.profit_center_short_name,
+                 cpc.profit_center_name,
+                 trunc(to_date('01-' || 'Jan-1900'), 'Mon') delivery_date,
+                 'Opening Balance' delivery_month,
+                /*sum((case
                    when round(diqs.price_fixed_qty, 4) - diqs.gmr_qty > 0 then
                     round(diqs.price_fixed_qty, 4) - diqs.gmr_qty
                    else
                     0
-                 end) * -1 * ucm.multiplication_factor) qty,
-             qum_base.qty_unit_id,
-             qum_base.qty_unit,
-             null strategy_id,
-             'Physical Total' strategy_name,
-             nvl(pcm.approval_status, 'Approved') approval_status
-        from pcm_physical_contract_main    pcm,
-             pcdi_pc_delivery_item         pcdi,
-             diqs_delivery_item_qty_status diqs,
-             pcpd_pc_product_definition    pcpd,
-             pdm_productmaster             pdm,
-             qum_quantity_unit_master      qum_base,
-             cpc_corporate_profit_center   cpc,
-             qum_quantity_unit_master      qum,
-             ucm_unit_conversion_master    ucm
-       where pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
-         and pcdi.pcdi_id = diqs.pcdi_id
-         and pcm.process_id = pc_process_id
-         and pcdi.process_id = pc_process_id
-         and diqs.process_id = pc_process_id
-         and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-         and pcpd.input_output = 'Input'
-         and pcpd.process_id = pc_process_id
-         and pcpd.product_id = pdm.product_id
-         and pcpd.profit_center_id = cpc.profit_center_id
-         and diqs.item_qty_unit_id = qum.qty_unit_id
-         and pdm.base_quantity_unit = qum_base.qty_unit_id
-         and pcm.contract_type = 'BASEMETAL'
-         and pcdi.item_price_type<>'Fixed'
-         and ucm.from_qty_unit_id = qum.qty_unit_id
-         and ucm.to_qty_unit_id = qum_base.qty_unit_id
-         and nvl(pcm.contract_status, 'NA') <> 'Cancelled'
-         and pcm.purchase_sales = 'S'
-         and pcm.corporate_id = pc_corporate_id
-         and pcm.is_active = 'Y'
-         and pcdi.shipment_date is not null
-         and pcdi.shipment_date < pd_trade_date
-       group by pcm.corporate_id,
-                pcpd.product_id,
-                pdm.product_desc,
-                pcpd.profit_center_id,
-                cpc.profit_center_short_name,
-                cpc.profit_center_name,
-                trunc(pcdi.shipment_date, 'Mon'),
-                to_char(pcdi.shipment_date, 'Mon-YYYY'),
-                qum_base.qty_unit_id,
-                qum_base.qty_unit,
-                nvl(pcm.approval_status, 'Approved');
+                 end) * -1 * ucm.multiplication_factor) qty,*/                 
+                 0 priced_arrived_qty,
+                 0 price_not_arrived_qty,
+                 sum(ucm.multiplication_factor*case
+                       when nvl(diqs.gmr_qty, 0) < nvl(diqs.price_fixed_qty, 0) then
+                        nvl(diqs.gmr_qty, 0)
+                       else
+                        nvl(diqs.price_fixed_qty, 0)
+                     end)*-1 priced_delivered_qty,
+                 
+               sum(ucm.multiplication_factor*(nvl(diqs.price_fixed_qty, 0) -
+                     (case
+                        when nvl(diqs.gmr_qty, 0) < nvl(diqs.price_fixed_qty, 0) then
+                         nvl(diqs.gmr_qty, 0)
+                        else
+                         nvl(diqs.price_fixed_qty, 0)
+                      end))) *-1   priced_not_delivered_qty,                 
+                 qum_base.qty_unit_id,
+                 qum_base.qty_unit,
+                 null strategy_id,
+                 'Physical Total' strategy_name,
+                 nvl(pcm.approval_status, 'Approved') approval_status
+            from pcm_physical_contract_main    pcm,
+                 pcdi_pc_delivery_item         pcdi,
+                 diqs_delivery_item_qty_status diqs,
+                 pcpd_pc_product_definition    pcpd,
+                 pdm_productmaster             pdm,
+                 qum_quantity_unit_master      qum_base,
+                 cpc_corporate_profit_center   cpc,
+                 qum_quantity_unit_master      qum,
+                 ucm_unit_conversion_master    ucm
+           where pcdi.internal_contract_ref_no =
+                 pcm.internal_contract_ref_no
+             and pcdi.pcdi_id = diqs.pcdi_id
+             and pcm.process_id = pc_process_id
+             and pcdi.process_id = pc_process_id
+             and diqs.process_id = pc_process_id
+             and pcm.internal_contract_ref_no =
+                 pcpd.internal_contract_ref_no
+             and pcpd.input_output = 'Input'
+             and pcpd.process_id = pc_process_id
+             and pcpd.product_id = pdm.product_id
+             and pcpd.profit_center_id = cpc.profit_center_id
+             and diqs.item_qty_unit_id = qum.qty_unit_id
+             and pdm.base_quantity_unit = qum_base.qty_unit_id
+             and pcm.contract_type = 'BASEMETAL'
+             and pcdi.item_price_type <> 'Fixed'
+             and ucm.from_qty_unit_id = qum.qty_unit_id
+             and ucm.to_qty_unit_id = qum_base.qty_unit_id
+             and nvl(pcm.contract_status, 'NA') <> 'Cancelled'
+             and pcm.purchase_sales = 'S'
+             and pcm.corporate_id = pc_corporate_id
+             and pcm.is_active = 'Y'
+             and pcdi.shipment_date is not null
+             and pcdi.shipment_date < pd_trade_date
+           group by pcm.corporate_id,
+                    pcpd.product_id,
+                    pdm.product_desc,
+                    pcpd.profit_center_id,
+                    cpc.profit_center_short_name,
+                    cpc.profit_center_name,
+                    trunc(pcdi.shipment_date, 'Mon'),
+                    to_char(pcdi.shipment_date, 'Mon-YYYY'),
+                    qum_base.qty_unit_id,
+                    qum_base.qty_unit,
+                    nvl(pcm.approval_status, 'Approved')) t
+   group by t.corporate_id,
+            t.section_name,
+            t.section_id,
+            t.product_id,
+            t.product_desc,
+            t.profit_center_id,
+            t.profit_center_short_name,
+            t.profit_center_name,
+            t.delivery_date,
+            t.delivery_month,
+            t.qty_unit_id,
+            t.qty_unit,
+            t.strategy_id,
+            t.strategy_name,
+            t.approval_status;
     commit;
     vn_logno := vn_logno + 1;
     sp_eodeom_process_log(pc_corporate_id,
@@ -9184,11 +9253,14 @@ create or replace package body pkg_phy_custom_reports is
       end if;
     
       ----- pnl in base with bank fx rate
-      sp_cdc_bank_fx_rate(cur_unrealized_rows.corporate_id,
+      if cur_unrealized_rows.trade_cur_id is not null and cur_unrealized_rows.base_cur_id is not null then
+      pkg_cdc_derivatives_process.sp_cdc_bank_fx_rate(cur_unrealized_rows.corporate_id,
                           pd_trade_date,
                           cur_unrealized_rows.trade_cur_id,
                           cur_unrealized_rows.base_cur_id,
+                          pc_process,
                           vn_trade_to_base_bank_fxrate);
+      end if;
                           
       if cur_unrealized_rows.position_type = 'Derivatives' then
         vn_pnl_base_cur_cp_fxrate := vn_pnl_value_in_trade_cur *
@@ -9199,11 +9271,14 @@ create or replace package body pkg_phy_custom_reports is
       end if;
       
       -- clearer come to base with bank fx rate
-      sp_cdc_bank_fx_rate(cur_unrealized_rows.corporate_id,
+      if cur_unrealized_rows.clearer_comm_cur_id is not null and cur_unrealized_rows.base_cur_id is not null then
+      pkg_cdc_derivatives_process.sp_cdc_bank_fx_rate(cur_unrealized_rows.corporate_id,
                           pd_trade_date,
                           cur_unrealized_rows.clearer_comm_cur_id,
                           cur_unrealized_rows.base_cur_id,
+                          pc_process,
                           vn_clearer_to_base_bank_fxrate);
+      end if;
       if cur_unrealized_rows.position_type = 'Derivatives' then
       vn_clearer_to_base:= cur_unrealized_rows.clearer_comm_amt*vn_clearer_to_base_bank_fxrate;
       else
@@ -9407,151 +9482,6 @@ create or replace package body pkg_phy_custom_reports is
                                                           0)
      where bdp.process_id = pc_process_id;
     commit;
-  
-  end;
-  procedure sp_cdc_bank_fx_rate(pc_corporate_id     in varchar2,
-                                pd_trade_date       in date,
-                                pc_from_cur_id      in varchar2,
-                                pc_to_cur_id        in varchar2,
-                                pc_settlement_price out number) is
-  
-    vd_maturity_date date;
-  begin
-    if pc_from_cur_id = pc_to_cur_id then
-      pc_settlement_price := 1;
-    else
-      select max(cfq.trade_date)
-        into vd_maturity_date
-        from cfq_currency_forward_quotes    cfq,
-             cfqd_currency_fwd_quote_detail cfqd,
-             div_der_instrument_valuation   div,
-             dim_der_instrument_master      dim,
-             cci_corp_currency_instrument   cci,
-             pdd_product_derivative_def     pdd,
-             pdm_productmaster              pdm
-       where cfq.cfq_id = cfqd.cfq_id
-         and cfq.instrument_id = div.instrument_id
-         and cfq.price_source_id = div.price_source_id
-         and cfq.instrument_id = cci.instrument_id
-         and cfq.instrument_id = dim.instrument_id
-         and dim.product_derivative_id = pdd.derivative_def_id
-         and pdd.product_id = pdm.product_id
-         and pdm.base_cur_id = pc_from_cur_id
-         and pdm.quote_cur_id = pc_to_cur_id
-         and cfq.corporate_id = pc_corporate_id
-         and cfq.is_deleted = 'N'
-         and cfqd.is_deleted = 'N'
-         and div.is_deleted = 'N'
-         and dim.is_active = 'Y'
-         and cci.is_deleted = 'N'
-         and pdd.is_deleted = 'N'
-         and pdm.is_deleted = 'N'
-         and cci.corporate_id = pc_corporate_id
-         and cfq.trade_date <= pd_trade_date;
-    
-      begin
-        select cfqd.rate
-          into pc_settlement_price
-          from cfq_currency_forward_quotes    cfq,
-               cfqd_currency_fwd_quote_detail cfqd,
-               div_der_instrument_valuation   div,
-               dim_der_instrument_master      dim,
-               cci_corp_currency_instrument   cci,
-               pdd_product_derivative_def     pdd,
-               pdm_productmaster              pdm
-         where cfq.cfq_id = cfqd.cfq_id
-           and cfq.instrument_id = div.instrument_id
-           and cfq.price_source_id = div.price_source_id
-           and cfq.instrument_id = cci.instrument_id
-           and cfq.instrument_id = dim.instrument_id
-           and dim.product_derivative_id = pdd.derivative_def_id
-           and pdd.product_id = pdm.product_id
-           and pdm.base_cur_id = pc_from_cur_id
-           and pdm.quote_cur_id = pc_to_cur_id
-           and cfq.corporate_id = pc_corporate_id
-           and cfq.is_deleted = 'N'
-           and cfqd.is_deleted = 'N'
-           and div.is_deleted = 'N'
-           and dim.is_active = 'Y'
-           and cci.is_deleted = 'N'
-           and pdd.is_deleted = 'N'
-           and pdm.is_deleted = 'N'
-           and cfqd.is_spot = 'Y'
-           and cci.corporate_id = pc_corporate_id
-           and cfq.trade_date = vd_maturity_date;
-      exception
-        when no_data_found then
-          pc_settlement_price := 0;
-      end;
-    
-      if vd_maturity_date is null then
-        select max(cfq.trade_date)
-          into vd_maturity_date
-          from cfq_currency_forward_quotes    cfq,
-               cfqd_currency_fwd_quote_detail cfqd,
-               div_der_instrument_valuation   div,
-               dim_der_instrument_master      dim,
-               cci_corp_currency_instrument   cci,
-               pdd_product_derivative_def     pdd,
-               pdm_productmaster              pdm
-         where cfq.cfq_id = cfqd.cfq_id
-           and cfq.instrument_id = div.instrument_id
-           and cfq.price_source_id = div.price_source_id
-           and cfq.instrument_id = cci.instrument_id
-           and cfq.instrument_id = dim.instrument_id
-           and dim.product_derivative_id = pdd.derivative_def_id
-           and pdd.product_id = pdm.product_id
-           and pdm.base_cur_id = pc_to_cur_id
-           and pdm.quote_cur_id = pc_from_cur_id
-           and cfq.corporate_id = pc_corporate_id
-           and cfq.is_deleted = 'N'
-           and cfqd.is_deleted = 'N'
-           and div.is_deleted = 'N'
-           and dim.is_active = 'Y'
-           and cci.is_deleted = 'N'
-           and pdd.is_deleted = 'N'
-           and pdm.is_deleted = 'N'
-           and cfqd.is_spot = 'Y'
-           and cci.corporate_id = pc_corporate_id
-           and cfq.trade_date <= pd_trade_date;
-        begin
-          select 1 / cfqd.rate
-            into pc_settlement_price
-            from cfq_currency_forward_quotes    cfq,
-                 cfqd_currency_fwd_quote_detail cfqd,
-                 div_der_instrument_valuation   div,
-                 dim_der_instrument_master      dim,
-                 cci_corp_currency_instrument   cci,
-                 pdd_product_derivative_def     pdd,
-                 pdm_productmaster              pdm
-           where cfq.cfq_id = cfqd.cfq_id
-             and cfq.instrument_id = div.instrument_id
-             and cfq.price_source_id = div.price_source_id
-             and cfq.instrument_id = cci.instrument_id
-             and cfq.instrument_id = dim.instrument_id
-             and dim.product_derivative_id = pdd.derivative_def_id
-             and pdd.product_id = pdm.product_id
-             and pdm.base_cur_id = pc_to_cur_id
-             and pdm.quote_cur_id = pc_from_cur_id
-             and cfq.corporate_id = pc_corporate_id
-             and cfq.is_deleted = 'N'
-             and cfqd.is_deleted = 'N'
-             and div.is_deleted = 'N'
-             and dim.is_active = 'Y'
-             and cci.is_deleted = 'N'
-             and pdd.is_deleted = 'N'
-             and pdm.is_deleted = 'N'
-             and cfqd.is_spot = 'Y'
-             and cci.corporate_id = pc_corporate_id
-             and cfqd.is_spot = 'Y'
-             and cfq.trade_date = vd_maturity_date;
-        exception
-          when no_data_found then
-            pc_settlement_price := 0;
-        end;
-      end if;
-      pc_settlement_price := round(nvl(pc_settlement_price, 0), 10);
-    end if;
   
   end;
 end; 
