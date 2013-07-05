@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1675
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  05-Jul-2013
+
+Bug / Enhancement*		:  Enhancement
+
+Bug ID*            		:  81411
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Bulk Pricing Document
+
+Sub-Module  			 :  Pricing Document
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+====================================================================================================================================
+Revision: 133599
+Author: rajuga
+Date: 5:31:42 PM, Friday, July 05, 2013
+Message:
+Bug 81411
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/BulkPricingDocument.rpt
+====================================================================================================================================
+
