@@ -6,17 +6,17 @@ CREATE OR REPLACE PROCEDURE "GENERATE_BULK_PRICING_DOCUMENT" (
    p_doc_issue_date        VARCHAR2
 )
 IS
-   is_pledge_gmr   CHAR;
+   v_is_pledge_gmr   CHAR;
 BEGIN
 -- Check whether the gmr is pledged or not
    SELECT DECODE (COUNT (gepd.internal_gmr_ref_no), 0, 'N', 'Y')
-     INTO is_pledge_gmr
+     INTO v_is_pledge_gmr
      FROM gepd_gmr_element_pledge_detail gepd
     WHERE gepd.is_active = 'Y'
       AND gepd.internal_gmr_ref_no = p_internal_gmr_ref_no;
 
 -- Bulk Price fixation -- Header details
-   IF is_pledge_gmr = 'N'
+   IF v_is_pledge_gmr = 'N'
    THEN
       -- Header details for non pledge gmr
       INSERT INTO bpfd_bulk_pfd_d
@@ -25,7 +25,7 @@ BEGIN
                    cp_name, cp_person_in_charge, contract_type,
                    purchase_sales, contract_ref_no, delivery_item_ref_no,
                    pay_in_currency, product, quality, gmr_ref_no,
-                   quota_period)
+                   quota_period,is_pledge_gmr)
          SELECT DISTINCT p_docrefno, p_doc_issue_date, ak.corporate_name,
                          pad.address, cim.city_name, cym.country_name,
                          pad.zip, sm.state_name, phd.companyname companyname,
@@ -169,7 +169,7 @@ BEGIN
                                              )
                           END
                           END
-                         ) quotaperiod
+                         ) quotaperiod,v_is_pledge_gmr
                     FROM gmr_goods_movement_record gmr,
                          gcim_gmr_contract_item_mapping gcim,
                          pci_physical_contract_item pci,
@@ -226,7 +226,7 @@ BEGIN
                      AND pad.address_type(+) = 'Main'
                      AND pcm.cp_person_in_charge_id = gab.gabid(+)
                      AND gmr.internal_gmr_ref_no = p_internal_gmr_ref_no;
-   ELSIF is_pledge_gmr = 'Y'
+   ELSIF v_is_pledge_gmr = 'Y'
    THEN
       -- Header details for non pledge gmr
       INSERT INTO bpfd_bulk_pfd_d
@@ -235,7 +235,7 @@ BEGIN
                    cp_name, cp_person_in_charge, contract_type,
                    purchase_sales, contract_ref_no, delivery_item_ref_no,
                    pay_in_currency, product, quality, gmr_ref_no,
-                   quota_period)
+                   quota_period,is_pledge_gmr)
          SELECT DISTINCT p_docrefno, p_doc_issue_date, ak.corporate_name,
                          pad.address, cim.city_name, cym.country_name,
                          pad.zip, sm.state_name, phd.companyname companyname,
@@ -379,7 +379,7 @@ BEGIN
                                              )
                           END
                           END
-                         ) quotaperiod
+                         ) quotaperiod,v_is_pledge_gmr
                     FROM gmr_goods_movement_record gmr,
                          gcim_gmr_contract_item_mapping gcim,
                          pci_physical_contract_item pci,
