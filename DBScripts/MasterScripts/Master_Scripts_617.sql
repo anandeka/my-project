@@ -5,19 +5,16 @@ declare fetchQueryIGDConc clob :='INSERT INTO igd_inv_gmr_details_d
              moisture_unit_name, internal_doc_ref_no)
    SELECT   invs.internal_invoice_ref_no AS internal_invoice_ref_no,
          gmr.gmr_ref_no AS gmr_ref_no,
-         (SELECT stragg (DISTINCT NVL (adgrd.container_no, agrd.container_no)
-                        )
-            FROM adgrd_action_dgrd adgrd, agrd_action_grd agrd
-           WHERE (   adgrd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                  OR agrd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                 ))
-                                                            AS container_name,
-         stragg(distinct(NVL (gmr.mode_of_transport, ''''))) AS mode_of_transport,
-         gmr.bl_date AS bl_date, stragg(distinct(NVL (cim.city_name, ''''))) AS origin_city,
-         stragg(distinct(NVL (cym.country_name, ''''))) AS origin_country,
-         gmr.current_qty AS wet_qty, qum.qty_unit AS wet_qty_unit_name,
-           gmr.current_qty
-         - ((  gmr.current_qty
+         stragg (DISTINCT (NVL (adgrd.container_no, agrd.container_no))
+                ) AS container_name,
+         stragg (DISTINCT (NVL (gmr.mode_of_transport, ''''))
+                ) AS mode_of_transport,
+         gmr.bl_date AS bl_date,
+         stragg (DISTINCT (NVL (cim.city_name, ''''))) AS origin_city,
+         stragg (DISTINCT (NVL (cym.country_name, ''''))) AS origin_country,
+         invs.invoiced_qty AS wet_qty, qum.qty_unit AS wet_qty_unit_name,
+           invs.invoiced_qty
+         - ((  invs.invoiced_qty
              * (ROUND (  (  (SUM (asm.net_weight) - SUM (asm.dry_weight))
                           / SUM (asm.net_weight)
                          )
@@ -46,7 +43,9 @@ declare fetchQueryIGDConc clob :='INSERT INTO igd_inv_gmr_details_d
          iam_invoice_assay_mapping iam,
          cym_countrymaster cym,
          cim_citymaster cim,
-         qum_quantity_unit_master qum
+         qum_quantity_unit_master qum,
+         agrd_action_grd agrd,
+         adgrd_action_dgrd adgrd
    WHERE iid.internal_invoice_ref_no = invs.internal_invoice_ref_no
      AND iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
      AND iid.stock_id = grd.internal_grd_ref_no(+)
@@ -58,13 +57,15 @@ declare fetchQueryIGDConc clob :='INSERT INTO igd_inv_gmr_details_d
      AND qum.qty_unit_id = asm.net_weight_unit
      AND cym.country_id(+) = gmr.loading_country_id
      AND cim.city_id(+) = gmr.loading_city_id
+     AND iid.stock_id = agrd.internal_grd_ref_no(+)
+     AND iid.stock_id = adgrd.internal_dgrd_ref_no(+)
      AND invs.internal_invoice_ref_no = ?
 GROUP BY gmr.internal_gmr_ref_no,
-         gmr.current_qty,
          invs.internal_invoice_ref_no,
          gmr.bl_date,
          gmr.gmr_ref_no,
-         qum.qty_unit';
+         qum.qty_unit,
+         invs.invoiced_qty';
 
 fetchQueryIGDBase clob:='INSERT INTO igd_inv_gmr_details_d
             (internal_invoice_ref_no, gmr_ref_no, container_name,
@@ -72,16 +73,11 @@ fetchQueryIGDBase clob:='INSERT INTO igd_inv_gmr_details_d
              wet_qty_unit_name, internal_doc_ref_no)
 SELECT   invs.internal_invoice_ref_no AS internal_invoice_ref_no,
          gmr.gmr_ref_no AS gmr_ref_no,
-         (SELECT stragg (DISTINCT NVL (adgrd.container_no, agrd.container_no)
-                        )
-            FROM adgrd_action_dgrd adgrd, agrd_action_grd agrd
-           WHERE (   adgrd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                  OR agrd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                 ))
-                                                            AS container_name,
-         stragg(distinct(NVL (gmr.mode_of_transport, ''''))) AS mode_of_transport,
-         gmr.bl_date AS bl_date, stragg(distinct(NVL (cim.city_name, ''''))) AS origin_city,
-         stragg(distinct(NVL (cym.country_name, ''''))) AS origin_country, gmr.qty AS wet_qty,
+         stragg (DISTINCT (NVL (adgrd.container_no, agrd.container_no))
+                ) AS container_name,
+         stragg(distinct(NVL (gmr.mode_of_transport, ''''''''))) AS mode_of_transport,
+         gmr.bl_date AS bl_date, stragg(distinct(NVL (cim.city_name, ''''''''))) AS origin_city,
+         stragg(distinct(NVL (cym.country_name, ''''''''))) AS origin_country, gmr.qty AS wet_qty,
          qum.qty_unit AS wet_qty_unit_name, ?
     FROM is_invoice_summary invs,
          iid_invoicable_item_details iid,
@@ -90,7 +86,9 @@ SELECT   invs.internal_invoice_ref_no AS internal_invoice_ref_no,
          gmr_goods_movement_record gmr,
          cym_countrymaster cym,
          cim_citymaster cim,
-         qum_quantity_unit_master qum
+         qum_quantity_unit_master qum,
+         AGRD_ACTION_GRD agrd,
+         ADGRD_ACTION_DGRD adgrd
    WHERE iid.internal_invoice_ref_no = invs.internal_invoice_ref_no
      AND iid.internal_gmr_ref_no = gmr.internal_gmr_ref_no
      AND iid.stock_id = grd.internal_grd_ref_no(+)
@@ -98,6 +96,8 @@ SELECT   invs.internal_invoice_ref_no AS internal_invoice_ref_no,
      AND invs.invoiced_qty_unit_id = qum.qty_unit_id
      AND cym.country_id(+) = gmr.loading_country_id
      AND cim.city_id(+) = gmr.loading_city_id
+     and IID.STOCK_ID = AGRD.INTERNAL_GRD_REF_NO(+)
+     and IID.STOCK_ID = ADGRD.INTERNAL_DGRD_REF_NO(+)
      AND invs.internal_invoice_ref_no = ?
 GROUP BY gmr.internal_gmr_ref_no,
          gmr.qty,
