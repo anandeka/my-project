@@ -1,0 +1,49 @@
+Patch No*          		:  EKA_METALS_PATCH_1674
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Srinivasan Murugesan.
+ 
+Created on*        		:  05-Jun-2013
+
+Bug / Enhancement*		:  Enhancement
+
+Bug ID*            		:  
+
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Bulk Pricing Document
+
+Sub-Module  			 :  Pricing Document
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 133564
+Author: srinivasanmurugesan
+Date: Friday, July 05, 2013 3:35:34 PM
+Message:
+is_pledge_gmr column added in BPFD document table for Bulk pricing document.
+Procedure updated to populate is_pledge_gmr column.
+
+
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATE_BULK_PRICING_DOCUMENT.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_467.sql
+
