@@ -5872,7 +5872,8 @@ create or replace package body pkg_phy_custom_reports is
     vn_total_market_price       number(25, 5);
     vn_total_di_price           number(25, 5);
     vn_exchnage_rate            number;
-  
+    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    vn_eel_error_count number := 1;    
   begin
   
     for cur_di_detail in (select pcm.corporate_id,
@@ -6191,13 +6192,19 @@ create or replace package body pkg_phy_custom_reports is
     -- contract price with event based
   
     for cur_cont_price_event in (select t.pcdi_id,
-                                        sum(t.price * qty) / sum(qty) weight_avg_price,
+                                       (case when sum(qty)=0 then 0
+                                       else
+                                       sum(t.price * qty) / sum(qty)
+                                       end) weight_avg_price,
                                         t.price_unit_id di_item_price_unit_id,
                                         t.price_unit_name di_item_price_unit
                                    from (select pcdi.pcdi_id,
+                                                (case when  sum(pofh.qty_to_be_fixed)=0 then 0
+                                                else
                                                 sum(gpd.contract_price *
                                                     pofh.qty_to_be_fixed) /
-                                                sum(pofh.qty_to_be_fixed) price,
+                                                sum(pofh.qty_to_be_fixed)
+                                                end) price,
                                                 sum(pofh.qty_to_be_fixed) qty,
                                                 gpd.price_unit_id,
                                                 pum.price_unit_name
@@ -6262,8 +6269,6 @@ create or replace package body pkg_phy_custom_reports is
                                                 pc_process_id
                                             and cipd.price_unit_id =
                                                 pum.product_price_unit_id
-                                           and (diqs.total_qty -
-                                                diqs.final_invoiced_qty)<>0     
                                           group by pcdi.pcdi_id,
                                                    (diqs.total_qty -
                                                    diqs.final_invoiced_qty),
@@ -6290,16 +6295,23 @@ create or replace package body pkg_phy_custom_reports is
   
     -- contract price with fixed contracts
     for cur_fixed in (select t.pcdi_id,
-                             sum(t.price * qty) / sum(qty) market_price,
+                            (case when sum(qty)=0 then 0
+                             else                             
+                             sum(t.price * qty) / sum(qty)
+                             end) market_price,
                              t.market_price_unit_id,
                              t.market_price_unit,
                              t.market_price_cur_id
                         from (select nvl(tmpc.pcdi_id, grd.pcdi_id) pcdi_id,
+                                     (case when sum(grd.current_qty *
+                                         ucm.multiplication_factor)=0 then 0
+                                        else                                         
                                      sum(grd.current_qty *
                                          ucm.multiplication_factor *
                                          md.m2m_settlement_price) /
                                      sum(grd.current_qty *
-                                         ucm.multiplication_factor) price,
+                                         ucm.multiplication_factor)
+                                      end) price,
                                      sum(grd.current_qty *
                                          ucm.multiplication_factor) qty,
                                      md.m2m_price_unit_id market_price_unit_id,
@@ -6391,10 +6403,13 @@ create or replace package body pkg_phy_custom_reports is
                                     pum.price_unit_id premium_unit_id,
                                     pum.price_unit_name premium_unit,
                                     pum.cur_id premium_cur_id,
+                                    (case when sum(pci.item_qty) =0 then 0
+                                    else                                    
                                     sum(pci.item_qty *
                                         pcqpd.premium_disc_value) /
-                                    sum(pci.item_qty) avg_premium
-                             
+                                    sum(pci.item_qty)
+                                    end) avg_premium
+
                                from pcm_physical_contract_main     pcm,
                                     pcdi_pc_delivery_item          pcdi,
                                     pci_physical_contract_item     pci,
@@ -6474,14 +6489,20 @@ create or replace package body pkg_phy_custom_reports is
     -- Market price Event Based contracts
   
     for cur_mar_price_event in (select t.pcdi_id,
-                                       sum(t.price * qty) / sum(qty) weight_avg_price,
+                                       (case when sum(qty)=0 then 0
+                                       else
+                                       sum(t.price * qty) / sum(qty)
+                                       end) weight_avg_price,
                                        t.price_unit_id market_price_unit_id,
                                        t.price_unit_name market_price_unit,
                                        t.cur_id market_price_cur_id
                                   from (select pcdi.pcdi_id,
+                                               (case when sum(pofh.qty_to_be_fixed)=0 then 0
+                                               else
                                                sum(gpd.contract_price *
                                                    pofh.qty_to_be_fixed) /
-                                               sum(pofh.qty_to_be_fixed) price,
+                                               sum(pofh.qty_to_be_fixed)
+                                               end) price,
                                                sum(pofh.qty_to_be_fixed) qty,
                                                gpd.price_unit_id,
                                                pum.price_unit_name,
@@ -6546,8 +6567,6 @@ create or replace package body pkg_phy_custom_reports is
                                                pc_process_id
                                            and cipd.price_unit_id =
                                                pum.product_price_unit_id
-                                          and (diqs.total_qty -
-                                                  diqs.final_invoiced_qty)<>0     
                                          group by pcdi.pcdi_id,
                                                   (diqs.total_qty -
                                                   diqs.final_invoiced_qty),
@@ -6578,21 +6597,32 @@ create or replace package body pkg_phy_custom_reports is
     --   For updating the m2m Premium   
   
     for cc_m2m_premium in (select t.pcdi_id,
+                                 (case when  sum(qty)=0 then 0
+                                 else
                                   sum(t.quality_premium * qty) / sum(qty) +
-                                  sum(t.product_premium * qty) / sum(qty) market_premium,
+                                  sum(t.product_premium * qty) / sum(qty)
+                                  end) market_premium,
                                   t.market_premium_price_unit_id,
                                   t.market_premium_price_unit
                              from (select nvl(tmpc.pcdi_id, grd.pcdi_id) pcdi_id,
+                                          (case when sum(grd.current_qty *
+                                              ucm.multiplication_factor)=0 then 0
+                                            else
                                           sum(grd.current_qty *
                                               ucm.multiplication_factor *
                                               tmpc.m2m_qp_in_corporate_fx_rate) /
                                           sum(grd.current_qty *
-                                              ucm.multiplication_factor) quality_premium,
+                                              ucm.multiplication_factor)
+                                           end) quality_premium,
+                                          (case when sum(grd.current_qty *
+                                              ucm.multiplication_factor)=0 then 0
+                                            else
                                           sum(grd.current_qty *
                                               ucm.multiplication_factor *
                                               tmpc.m2m_pp_in_corporate_fx_rate) /
                                           sum(grd.current_qty *
-                                              ucm.multiplication_factor) product_premium,
+                                              ucm.multiplication_factor)
+                                           end) product_premium,
                                           sum(grd.current_qty *
                                               ucm.multiplication_factor) qty,
                                           tmpc.base_price_unit_id_in_ppu market_premium_price_unit_id,
@@ -6626,7 +6656,6 @@ create or replace package body pkg_phy_custom_reports is
                                           pcdi.qty_unit_id
                                       and tmpc.base_price_unit_id_in_ppu =
                                           pum.product_price_unit_id
-                                       and grd.current_qty<>0
                                     group by nvl(tmpc.pcdi_id, grd.pcdi_id),
                                              tmpc.base_price_unit_id_in_ppu,
                                              pum.price_unit_name
@@ -6784,7 +6813,20 @@ create or replace package body pkg_phy_custom_reports is
     commit;
   exception
     when others then
-      null; -- TODO siva
+      vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_physical_risk_position',
+                                                           'M2M-013',
+                                                           'Code:' ||
+                                                           sqlcode ||
+                                                           ' Message:' ||
+                                                           sqlerrm,
+                                                           null,
+                                                           pc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);
   end;
   procedure sp_update_strategy_attributes(pc_corporate_id varchar2,
                                           pd_trade_date   date,
@@ -9486,3 +9528,4 @@ insert into temp_tpr
   end;
 end; 
 /
+
