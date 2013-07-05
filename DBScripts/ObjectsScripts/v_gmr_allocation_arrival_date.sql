@@ -11,6 +11,7 @@ select gpad.pfd_id,
    and gpah.internal_gmr_ref_no = agmr.internal_gmr_ref_no
    and gpah.is_active = 'Y'
    and gpad.is_active = 'Y'
+   and agmr.is_deleted='N'
    and gpad.allocated_qty <> 0
    and agmr.gmr_latest_action_action_id in
        ('landingDetail', 'warehouseReceipt')
