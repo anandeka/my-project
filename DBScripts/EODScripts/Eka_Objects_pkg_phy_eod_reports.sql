@@ -9289,11 +9289,10 @@ select pc_corporate_id,
      and poch.is_active = 'Y'
      and pocd.is_active = 'Y'
      and pofh.is_active = 'Y'
-     and pfd.is_active = 'Y'
+     --and pfd.is_active = 'Y' Commented this as MBV condition is same
      and pcm.process_id = pc_process_id
      and pcdi.process_id = pc_process_id
      and pfd.hedge_correction_date <= pd_trade_date
-     and nvl(pfd.is_cancel, 'N') = 'N'
      and v_pcdi.pcdi_id = pcdi.pcdi_id
      and v_pcdi.element_id = poch.element_id
      and pcm.is_pass_through ='N'
@@ -9351,11 +9350,10 @@ select pc_corporate_id,
      and poch.is_active = 'Y'
      and pocd.is_active = 'Y'
      and pofh.is_active = 'Y'
-     and pfd.is_active = 'Y'
+     -- and pfd.is_active = 'Y' Commented this as MBV condition is same
      and pcm.process_id = pc_process_id
      and pcdi.process_id = pc_process_id
      and pfd.hedge_correction_date <= pd_trade_date
-     and nvl(pfd.is_cancel, 'N') = 'N'
      and v_pcdi.pcdi_id = pcdi.pcdi_id
      and v_pcdi.element_id is null
    group by pcm.internal_contract_ref_no,
@@ -9366,7 +9364,7 @@ select pc_corporate_id,
             pcdi.pcdi_id;                             
 commit;            
             
- insert into tcs2_temp_cs_priced
+ /*insert into tcs2_temp_cs_priced
   (corporate_id,
    internal_contract_ref_no,
    element_id,
@@ -9413,7 +9411,7 @@ commit;
             pcm.contract_type,
             pcdi.delivery_item_no,
             pcdi.pcdi_id,
-            aml.underlying_product_id;
+            aml.underlying_product_id;*/
 commit;
   gvn_log_counter := gvn_log_counter + 1;
 sp_eodeom_process_log(pc_corporate_id,
@@ -9421,7 +9419,7 @@ sp_eodeom_process_log(pc_corporate_id,
                           pc_process_id,
                           gvn_log_counter,
                           'Main Table tcs2_temp_cs_priced over 2');              
- insert into tcs2_temp_cs_priced
+ /*insert into tcs2_temp_cs_priced
   (corporate_id,
    internal_contract_ref_no,
    element_id,
@@ -9461,7 +9459,7 @@ sp_eodeom_process_log(pc_corporate_id,
    group by pcm.internal_contract_ref_no,
             pcm.contract_type,
             pcdi.delivery_item_no,
-            pcdi.pcdi_id;
+            pcdi.pcdi_id;*/
 commit;
  gvn_log_counter := gvn_log_counter + 1;
 sp_eodeom_process_log(pc_corporate_id,
@@ -9749,7 +9747,7 @@ sp_eodeom_process_log(pc_corporate_id,
       and axs.process = 'EOM'
       and fmpfh.fmpfh_id = fmpfd.fmpfh_id
       and fmpfd.fmpfd_id = fmpfam.fmpfd_id
-      and fmpfd.is_active = 'Y'
+     -- and fmpfd.is_active = 'Y' Commented this as MBV condition is same
       and fmpfam.is_active = 'Y'
       and fmpfam.internal_action_ref_no = axs_fm.internal_action_ref_no
       and axs_fm.process = 'EOM'
