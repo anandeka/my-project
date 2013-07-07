@@ -1,4 +1,4 @@
-Patch No*          		:  EKA_METALS_PATCH_1677
+Patch No *          		:  EKA_METALS_PATCH_1677
 
 Project / Product* 		:  METALS
 ==================================================================
@@ -36,3 +36,22 @@ Schema type (Transaction / EOD)* : EOD
 ==================================================================
 
 
+Revision: 133731
+Author: janna
+Date: 7:37:53 AM, Sunday, July 07, 2013
+Message:
+MBV Without PF Number
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/151_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_mbv_report.sql
+
+
+Revision: 133732
+Author: janna
+Date: 7:48:19 AM, Sunday, July 07, 2013
+Message:
+81376, 81485, 81486 
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AllocationReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PriceFixationReport.rpt
