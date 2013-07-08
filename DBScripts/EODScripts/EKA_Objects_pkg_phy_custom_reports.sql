@@ -9092,7 +9092,8 @@ insert into temp_tpr
              dpd.quantity_unit_id,
              dpd.clearer_comm_cur_id,
              dpd.clearer_comm_amt,
-             dpd.qty_sign      
+             dpd.qty_sign,
+             tdc.process      
         from dpd_derivative_pnl_daily dpd,
              tdc_trade_date_closure   tdc,
              pdm_productmaster        pdm,
@@ -9206,7 +9207,8 @@ insert into temp_tpr
              null quantity_unit_id,
              null clearer_comm_cur_id,
              null clearer_comm_amt,
-             null qty_sign 
+             null qty_sign,
+             tdc.process
       
         from cpd_currency_pnl_daily        cpd,
              tdc_trade_date_closure        tdc,
@@ -9412,7 +9414,8 @@ insert into temp_tpr
          trade_cur_to_base_exch_rate,
          trade_cur_to_base_bank_fx_rate,
          clearer_cur_to_base_bk_fx_rate,
-         trade_clearer_comm_amt)
+         trade_clearer_comm_amt,
+         process)
       values
         (cur_unrealized_rows.process_id,
          cur_unrealized_rows.corporate_id,
@@ -9498,7 +9501,8 @@ insert into temp_tpr
          cur_unrealized_rows.trade_cur_to_base_exch_rate,
          vn_trade_to_base_bank_fxrate,
          vn_clearer_to_base_bank_fxrate,
-         cur_unrealized_rows.clearer_comm_amt);
+         cur_unrealized_rows.clearer_comm_amt,
+         cur_unrealized_rows.process);
     end loop;
     commit;
     -- update previous unrealized pnl base cur with Bank FX rate
@@ -9528,4 +9532,3 @@ insert into temp_tpr
   end;
 end; 
 /
-
