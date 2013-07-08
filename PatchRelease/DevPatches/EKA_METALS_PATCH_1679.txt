@@ -1,0 +1,46 @@
+Patch No *          		:  EKA_METALS_PATCH_1679
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Ravi Kumar N
+ 
+Created on*        		:  08-Jul-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  78773
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  O/P Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 133877
+Author: b.ravikumar
+Date: 7:04:13 PM, Monday, July 08, 2013
+Message:
+Bug 78773 - Issue in service invoice ouput document
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_619.sql
+
+
+
