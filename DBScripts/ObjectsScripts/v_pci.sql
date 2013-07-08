@@ -329,7 +329,7 @@ AS
       AND pcm.trader_id = aku.user_id
       AND aku.gabid = gab.gabid
       AND pci.is_active = 'Y'
-      AND pcm.contract_status = 'In Position'
+      AND pcm.contract_status in ('In Position','Closed')
       AND (pci.is_called_off = 'Y' OR pcdi.is_phy_optionality_present = 'N')
       AND pcm.internal_contract_ref_no = pcmte.int_contract_ref_no(+);
 
