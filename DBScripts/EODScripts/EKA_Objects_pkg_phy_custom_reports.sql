@@ -6164,7 +6164,9 @@ create or replace package body pkg_phy_custom_reports is
     for cur_cont_price in (select cipd.pcdi_id,
                                   cipd.contract_price di_item_price,
                                   ppu_pum.product_price_unit_id di_item_price_unit_id,
-                                  ppu_pum.price_unit_name di_item_price_unit
+                                  ppu_pum.price_unit_name di_item_price_unit,
+                                  cipd.price_unit_cur_id,
+                                  cipd.price_unit_cur_code
                              from cipd_contract_item_price_daily cipd,
                                   v_ppu_pum                      ppu_pum
                             where cipd.price_unit_id =
@@ -6174,12 +6176,16 @@ create or replace package body pkg_phy_custom_reports is
                             group by cipd.pcdi_id,
                                      cipd.contract_price,
                                      ppu_pum.product_price_unit_id,
-                                     ppu_pum.price_unit_name)
+                                     ppu_pum.price_unit_name,
+                                     cipd.price_unit_cur_id,
+                                     cipd.price_unit_cur_code)
     loop
       update prp_physical_risk_position prp
          set prp.di_price         = cur_cont_price.di_item_price,
              prp.di_price_unit_id = cur_cont_price.di_item_price_unit_id,
-             prp.di_price_unit    = cur_cont_price.di_item_price_unit
+             prp.di_price_unit    = cur_cont_price.di_item_price_unit,
+             prp.total_amount_cur_id=cur_cont_price.price_unit_cur_id,
+             prp.total_amount_cur_code=cur_cont_price.price_unit_cur_code
        where cur_cont_price.pcdi_id = prp.pcdi_id
          and prp.process_id = pc_process_id
          and prp.corporate_id = pc_corporate_id
@@ -6197,7 +6203,9 @@ create or replace package body pkg_phy_custom_reports is
                                        sum(t.price * qty) / sum(qty)
                                        end) weight_avg_price,
                                         t.price_unit_id di_item_price_unit_id,
-                                        t.price_unit_name di_item_price_unit
+                                        t.price_unit_name di_item_price_unit,
+                                        t.price_unit_cur_id,
+                                        t.price_unit_cur_code
                                    from (select pcdi.pcdi_id,
                                                 (case when  sum(pofh.qty_to_be_fixed)=0 then 0
                                                 else
@@ -6207,7 +6215,9 @@ create or replace package body pkg_phy_custom_reports is
                                                 end) price,
                                                 sum(pofh.qty_to_be_fixed) qty,
                                                 gpd.price_unit_id,
-                                                pum.price_unit_name
+                                                pum.price_unit_name,
+                                                gpd.price_unit_cur_id,
+                                                gpd.price_unit_cur_code
                                            from pcdi_pc_delivery_item          pcdi,
                                                 poch_price_opt_call_off_header poch,
                                                 pocd_price_option_calloff_dtls pocd,
@@ -6244,14 +6254,18 @@ create or replace package body pkg_phy_custom_reports is
                                                 pum.product_price_unit_id
                                           group by pcdi.pcdi_id,
                                                    gpd.price_unit_id,
-                                                   pum.price_unit_name
+                                                   pum.price_unit_name,
+                                                   gpd.price_unit_cur_id,
+                                                   gpd.price_unit_cur_code
                                          union all
                                          select pcdi.pcdi_id,
                                                 cipd.contract_price price,
                                                 (diqs.total_qty -
                                                 diqs.final_invoiced_qty) qty,
                                                 cipd.price_unit_id,
-                                                pum.price_unit_name
+                                                pum.price_unit_name,
+                                                cipd.price_unit_cur_id,
+                                                cipd.price_unit_cur_code
                                          
                                            from pcdi_pc_delivery_item          pcdi,
                                                 diqs_delivery_item_qty_status  diqs,
@@ -6274,16 +6288,22 @@ create or replace package body pkg_phy_custom_reports is
                                                    diqs.final_invoiced_qty),
                                                    cipd.contract_price,
                                                    cipd.price_unit_id,
-                                                   pum.price_unit_name) t
+                                                   pum.price_unit_name,
+                                                   cipd.price_unit_cur_id,
+                                                   cipd.price_unit_cur_code) t
                                   group by t.pcdi_id,
                                            t.price_unit_id,
-                                           t.price_unit_name)
+                                           t.price_unit_name,
+                                           t.price_unit_cur_id,
+                                           t.price_unit_cur_code)
     
     loop
       update prp_physical_risk_position prp
          set prp.di_price         = cur_cont_price_event.weight_avg_price,
              prp.di_price_unit_id = cur_cont_price_event.di_item_price_unit_id,
-             prp.di_price_unit    = cur_cont_price_event.di_item_price_unit
+             prp.di_price_unit    = cur_cont_price_event.di_item_price_unit,
+             prp.total_amount_cur_id=cur_cont_price_event.price_unit_cur_id,
+             prp.total_amount_cur_code=cur_cont_price_event.price_unit_cur_code
        where cur_cont_price_event.pcdi_id = prp.pcdi_id
          and prp.process_id = pc_process_id
          and prp.corporate_id = pc_corporate_id
