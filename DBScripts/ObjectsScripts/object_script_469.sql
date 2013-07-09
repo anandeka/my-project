@@ -1,0 +1,1 @@
+alter table COS_CONTRACT_OUTPUT_SUMMARY drop constraint CHK_COS_STATUS;
