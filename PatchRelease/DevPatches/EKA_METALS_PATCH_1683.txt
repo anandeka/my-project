@@ -1,0 +1,52 @@
+Patch No *          		:  EKA_METALS_PATCH_1683
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar Reddy B
+ 
+Created on*        		:  09-Jul-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  81512
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physical
+
+Sub-Module  			 :  listings
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 133966
+Author: rajeshwar.reddy
+Date: 12:41:12, 09 July 2013
+Message:
+Bug fix:81512
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_620.sql
+
+
+
+
+
+
+
+
+
