@@ -34,6 +34,21 @@ Dependent patches:		 :  N/A
 ====================================================================================================================================
 Schema type (Transaction / EOD)* : Transaction
 ====================================================================================================================================
+Revision: 133980
+Author: sriveenam
+Date: Tuesday, July 09, 2013 2:37:10 PM
+Message:
+bug fix 81570
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_469.sql
+
+Revision: 133957
+Author: sriveenam
+Date: Tuesday, July 09, 2013 12:06:38 PM
+Message:
+bug fix 81570
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATECONTRACTOUTPUTDOC.sql
 
 Revision: 133973
 Author: rajuga
@@ -43,4 +58,3 @@ Bug 81570
 ----
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ContractPreview.rpt
 
-====================================================================================================================================
