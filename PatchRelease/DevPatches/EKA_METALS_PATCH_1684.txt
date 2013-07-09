@@ -1,0 +1,46 @@
+Patch No *          		:  EKA_METALS_PATCH_1684
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  09-Jul-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  81570
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Output Document
+
+Sub-Module  			 :  Output Document
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+====================================================================================================================================
+
+Revision: 133973
+Author: rajuga
+Date: 1:11:42 PM, Tuesday, July 09, 2013
+Message:
+Bug 81570
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ContractPreview.rpt
+
+====================================================================================================================================
