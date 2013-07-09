@@ -46,7 +46,7 @@ IS
    amendmentreason            VARCHAR2 (4000);
    cancellationdate           VARCHAR2 (50);
    cancellationreason         VARCHAR2 (4000);
-
+   contractstatus             VARCHAR2 (20);
 
    CURSOR cr_delivery
    IS
@@ -70,13 +70,14 @@ BEGIN
                ak.corporate_id, pcm.purchase_sales, phd.companyname, pcm.cp_id,
                pcm.product_group_type, pcm.partnership_type, pcm.is_tolling_contract,
                pcm.is_commercial_fee_applied,
-               TO_CHAR (pcm.cancellation_date, 'dd-Mon-YYYY'), pcm.reason_to_cancel
+               TO_CHAR (pcm.cancellation_date, 'dd-Mon-YYYY'), pcm.reason_to_cancel,
+               pcm.contract_status
           INTO issuedate, contractrefno,
                cpcontractrefno, corporatename,
                corporateid, contracttype, counterparty, cpid,
                product_group_type, executiontype, istollingcontract,
                iscommercialfeeapplied,
-               cancellationdate, cancellationreason
+               cancellationdate, cancellationreason,contractstatus
           FROM pcm_physical_contract_main pcm,
                ak_corporate ak,
                phd_profileheaderdetails phd
@@ -121,7 +122,7 @@ BEGIN
                )
         VALUES (docid, 'ORIGINAL', NULL, NULL,
                 p_docrefno, 1, issuedate, 'N',
-                'Active', NULL, NULL, NULL, NULL,
+                contractstatus, NULL, NULL, NULL, NULL,
                 NULL, cancellationdate, NULL, NULL,
                 p_contractno, contractrefno, contracttype,
                 corporateid, NULL, NULL,
