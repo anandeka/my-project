@@ -4510,19 +4510,22 @@ begin
            dpd.trade_date,
            (case
              when dpd.trade_type = 'Buy' then
-              dpd.total_quantity * ucm.multiplication_factor *
+              dpd.total_quantity * ucm_price.multiplication_factor *
               dpd.trade_price * dpd.trade_cur_to_base_exch_rate
              else
-              (-1) * dpd.total_quantity * ucm.multiplication_factor *
+              (-1) * dpd.total_quantity * ucm_price.multiplication_factor *
               dpd.trade_price * dpd.trade_cur_to_base_exch_rate
            end) trade_value_in_base,
            dpd.base_cur_id,
            dpd.base_cur_code
       from dpd_derivative_pnl_daily   dpd,
-           ucm_unit_conversion_master ucm
+           ucm_unit_conversion_master ucm,
+           ucm_unit_conversion_master ucm_price
      where dpd.pnl_type = 'New Trade'
        and ucm.from_qty_unit_id = dpd.trade_price_weight_unit_id
        and ucm.to_qty_unit_id = dpd.base_qty_unit_id
+       and ucm_price.from_qty_unit_id = dpd.trade_price_weight_unit_id
+       and ucm_price.to_qty_unit_id = dpd.quantity_unit_id
        and dpd.process_id = pc_process_id;
   commit;
   --- 
