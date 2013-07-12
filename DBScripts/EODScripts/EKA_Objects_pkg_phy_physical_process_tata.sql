@@ -3713,7 +3713,11 @@ commit;
     delete from isr1_isr_inventory where process_id = pc_process_id;
     delete from isr2_isr_invoice where process_id = pc_process_id;
     delete from pcs_purchase_contract_status
-     where process_id = pc_process_id;
+    where process_id = pc_process_id;
+	delete from css_contract_status_summary
+    where process_id = pc_process_id;
+    delete from csfm_cont_status_free_metal
+    where process_id = pc_process_id;
     commit;
     delete from fcr_feed_consumption_report
      where process_id = pc_process_id;

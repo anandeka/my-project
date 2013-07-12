@@ -3910,6 +3910,8 @@ create or replace package body pkg_phy_physical_process is
      where process_id = pc_process_id;
     delete from css_contract_status_summary
      where process_id = pc_process_id;
+    delete from csfm_cont_status_free_metal
+     where process_id = pc_process_id;
     delete from pfrhe_pfrh_extension where process_id = pc_process_id;
     delete from fxar_fx_allocation_report where process_id = pc_process_id;
     commit;

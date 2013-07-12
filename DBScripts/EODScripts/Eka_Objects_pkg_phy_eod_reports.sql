@@ -9289,7 +9289,7 @@ select pc_corporate_id,
      and poch.is_active = 'Y'
      and pocd.is_active = 'Y'
      and pofh.is_active = 'Y'
-     --and pfd.is_active = 'Y' Commented this as MBV condition is same
+     and pfd.is_active = 'Y' 
      and pcm.process_id = pc_process_id
      and pcdi.process_id = pc_process_id
      and pfd.hedge_correction_date <= pd_trade_date
@@ -9310,7 +9310,77 @@ sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_process_id,
                           gvn_log_counter,
-                          'Main Table tcs2_temp_cs_priced over 1');  
+                          'Main Table tcs2_temp_cs_priced over 1'); 
+--
+-- Janna : 10 Jul 2013: Added For Cancelled Records to Match MBV Report
+-- Cancelled records having price and opposite pair are only considered
+--
+                       
+insert into tcs2_temp_cs_priced
+  (corporate_id,
+   internal_contract_ref_no,
+   element_id,
+   priced_qty,
+   instrument_id,
+   contract_type,
+   delivery_item_no,
+   pcdi_id,
+   underlying_product_id)
+--All contracts of Price type <> Fixed, except. internal Tolling contracts, Excluding Base Metal
+select pc_corporate_id,
+         pcm.internal_contract_ref_no,
+         poch.element_id,
+         sum(pfd.qty_fixed) priced_qty,
+         v_pcdi.instrument_id,
+         pcm.contract_type,
+         pcdi.delivery_item_no,
+         pcdi.pcdi_id,
+         aml.underlying_product_id
+    from pcm_physical_contract_main     pcm,
+         pcdi_pc_delivery_item          pcdi,
+         poch_price_opt_call_off_header poch,
+         pocd_price_option_calloff_dtls pocd,
+         pofh_price_opt_fixation_header pofh,
+         pfd_price_fixation_details     pfd,
+         v_pcdi_exchange_detail         v_pcdi,
+         aml_attribute_master_list      aml
+   where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+     and pocd.price_type <> 'Fixed'
+     and pcdi.pcdi_id = poch.pcdi_id
+     and poch.poch_id = pocd.poch_id
+     and pocd.pocd_id = pofh.pocd_id
+     and pofh.pofh_id = pfd.pofh_id
+     and pcm.is_active = 'Y'
+     and pcdi.is_active = 'Y'
+     and poch.is_active = 'Y'
+     and pocd.is_active = 'Y'
+     and pofh.is_active = 'Y'
+     and pfd.is_active = 'N' 
+     and pfd.cancel_action_ref_no is not null
+     and nvl(pfd.user_price,0) <> 0
+     and pcm.process_id = pc_process_id
+     and pcdi.process_id = pc_process_id
+     and pfd.hedge_correction_date <= pd_trade_date
+     and v_pcdi.pcdi_id = pcdi.pcdi_id
+     and v_pcdi.element_id = poch.element_id
+     and pcm.is_pass_through ='N'
+     and aml.attribute_id = poch.element_id
+   group by pcm.internal_contract_ref_no,
+            poch.element_id,
+            v_pcdi.instrument_id,
+            pcm.contract_type,
+            pcdi.delivery_item_no,
+            pcdi.pcdi_id,
+            aml.underlying_product_id;                           
+
+commit;
+ gvn_log_counter := gvn_log_counter + 1;
+sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          gvn_log_counter,
+                          'Main Table tcs2_temp_cs_priced over 1.1'); 
+                          
                           
 insert into tcs2_temp_cs_priced
   (corporate_id,
@@ -9350,7 +9420,7 @@ select pc_corporate_id,
      and poch.is_active = 'Y'
      and pocd.is_active = 'Y'
      and pofh.is_active = 'Y'
-     -- and pfd.is_active = 'Y' Commented this as MBV condition is same
+     and pfd.is_active = 'Y'
      and pcm.process_id = pc_process_id
      and pcdi.process_id = pc_process_id
      and pfd.hedge_correction_date <= pd_trade_date
@@ -9362,7 +9432,64 @@ select pc_corporate_id,
             pcm.contract_type,
             pcdi.delivery_item_no,
             pcdi.pcdi_id;                             
-commit;            
+commit;    
+--
+-- Janna : 10 Jul 2013: Added For Cancelled Records to Match MBV Report
+-- Cancelled records having price and opposite pair are only considered
+--
+insert into tcs2_temp_cs_priced
+  (corporate_id,
+   internal_contract_ref_no,
+   element_id,
+   priced_qty,
+   instrument_id,
+   contract_type,
+   delivery_item_no,
+   pcdi_id,
+   underlying_product_id)
+--Base Metal
+select pc_corporate_id,
+         pcm.internal_contract_ref_no,
+         poch.element_id,
+         sum(pfd.qty_fixed) priced_qty,
+         v_pcdi.instrument_id,
+         pcm.contract_type,
+         pcdi.delivery_item_no,
+         pcdi.pcdi_id,
+         null 
+    from pcm_physical_contract_main     pcm,
+         pcdi_pc_delivery_item          pcdi,
+         poch_price_opt_call_off_header poch,
+         pocd_price_option_calloff_dtls pocd,
+         pofh_price_opt_fixation_header pofh,
+         pfd_price_fixation_details     pfd,
+         v_pcdi_exchange_detail         v_pcdi
+   where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+     and pocd.price_type <> 'Fixed'
+     and pcdi.pcdi_id = poch.pcdi_id
+     and poch.poch_id = pocd.poch_id
+     and pocd.pocd_id = pofh.pocd_id
+     and pofh.pofh_id = pfd.pofh_id
+     and pcm.is_active = 'Y'
+     and pcdi.is_active = 'Y'
+     and poch.is_active = 'Y'
+     and pocd.is_active = 'Y'
+     and pofh.is_active = 'Y'
+     and pfd.is_active = 'N'
+     and pfd.cancel_action_ref_no is not null
+     and nvl(pfd.user_price,0) <> 0
+     and pcm.process_id = pc_process_id
+     and pcdi.process_id = pc_process_id
+     and pfd.hedge_correction_date <= pd_trade_date
+     and v_pcdi.pcdi_id = pcdi.pcdi_id
+     and v_pcdi.element_id is null
+   group by pcm.internal_contract_ref_no,
+            poch.element_id,
+            v_pcdi.instrument_id,
+            pcm.contract_type,
+            pcdi.delivery_item_no,
+            pcdi.pcdi_id;
+            commit;        
             
  /*insert into tcs2_temp_cs_priced
   (corporate_id,
@@ -9747,7 +9874,6 @@ sp_eodeom_process_log(pc_corporate_id,
       and axs.process = 'EOM'
       and fmpfh.fmpfh_id = fmpfd.fmpfh_id
       and fmpfd.fmpfd_id = fmpfam.fmpfd_id
-     -- and fmpfd.is_active = 'Y' Commented this as MBV condition is same
       and fmpfam.is_active = 'Y'
       and fmpfam.internal_action_ref_no = axs_fm.internal_action_ref_no
       and axs_fm.process = 'EOM'
@@ -9786,79 +9912,127 @@ insert into css_contract_status_summary
    unpriced_delivered_qty,
    unpriced_undelivered_qty,
    qty_unit_id,
-   qty_unit) with contract_status_summary as
-  (select 
-          pcs.corporate_id,
-          pcs.corporate_name,
-          pcs.process_id,
-          pcs.eod_trade_date,
-          case when pcs.contract_type='BASEMETAL' then pcs.product_id else pcs.underlying_product_id end product_id,
-          case when pcs.contract_type='BASEMETAL' then pcs.product_name else pcs.element_desc end product_name,
-          pcs.contract_type,
-          sum(decode(pcs.purchase_sales,
-                     'P',
-                     pkg_general.f_get_converted_quantity(pcs.product_id,
-                                                          pcs.payable_qty_unit_id,
-                                                          pdm.base_quantity_unit,
-                                                          pcs.priced_arrived_qty),
-                     0)) priced_arrived_qty,
-          sum(decode(pcs.purchase_sales,
-                     'P',
-                     pkg_general.f_get_converted_quantity(pcs.product_id,
-                                                          pcs.payable_qty_unit_id,
-                                                          pdm.base_quantity_unit,
-                                                          pcs.priced_not_arrived_qty),
-                     0)) priced_unarrived_qty,
-          sum(decode(pcs.purchase_sales,
-                     'P',
-                     pkg_general.f_get_converted_quantity(pcs.product_id,
-                                                          pcs.payable_qty_unit_id,
-                                                          pdm.base_quantity_unit,
-                                                          pcs.unpriced_arrived_qty),
-                     0)) unpriced_arrived_qty,
-          sum(decode(pcs.purchase_sales,
-                     'P',
-                     pkg_general.f_get_converted_quantity(pcs.product_id,
-                                                          pcs.payable_qty_unit_id,
-                                                          pdm.base_quantity_unit,
-                                                          pcs.unpriced_not_arrived_qty),
-                     0)) unpriced_unarrived_qty,
-          sum(decode(pcs.purchase_sales,
-                     'S',
-                     pkg_general.f_get_converted_quantity(pcs.product_id,
-                                                          pcs.payable_qty_unit_id,
-                                                          pdm.base_quantity_unit,
-                                                          pcs.priced_arrived_qty),
-                     0)) priced_delivered_qty,
-          sum(decode(pcs.purchase_sales,
-                     'S',
-                     pkg_general.f_get_converted_quantity(pcs.product_id,
-                                                          pcs.payable_qty_unit_id,
-                                                          pdm.base_quantity_unit,
-                                                          pcs.priced_not_arrived_qty),
-                     0)) priced_undelivered_qty,
-          sum(decode(pcs.purchase_sales,
-                     'S',
-                     pkg_general.f_get_converted_quantity(pcs.product_id,
-                                                          pcs.payable_qty_unit_id,
-                                                          pdm.base_quantity_unit,
-                                                          pcs.unpriced_arrived_qty),
-                     0)) unpriced_delivered_qty,
-          sum(decode(pcs.purchase_sales,
-                     'S',
-                     pkg_general.f_get_converted_quantity(pcs.product_id,
-                                                          pcs.payable_qty_unit_id,
-                                                          pdm.base_quantity_unit,
-                                                          pcs.unpriced_not_arrived_qty),
-                     0)) unpriced_undelivered_qty,
-          pdm.base_quantity_unit qty_unit_id,
-          qum.qty_unit
-     from pcs_purchase_contract_status pcs,
-          pdm_productmaster            pdm,
-          qum_quantity_unit_master     qum
-    where pcs.process_id = pc_process_id
-      and case when pcs.contract_type='BASEMETAL' then pcs.product_id else pcs.underlying_product_id end  = pdm.product_id
-      and pdm.base_quantity_unit = qum.qty_unit_id
+   qty_unit) with contract_status_summary as(
+SELECT pcs.corporate_id, pcs.corporate_name, pcs.process_id,
+       pcs.eod_trade_date,
+       CASE
+          WHEN pcs.contract_type = 'BASEMETAL'
+             THEN pcs.product_id
+          ELSE pcs.underlying_product_id
+       END product_id,
+       CASE
+          WHEN pcs.contract_type = 'BASEMETAL'
+             THEN pcs.product_name
+          ELSE pcs.element_desc
+       END product_name,
+       pcs.contract_type,
+       SUM
+          (DECODE
+              (pcs.purchase_sales,
+               'P', pkg_general.f_get_converted_quantity
+                                                     (pcs.product_id,
+                                                      pcs.payable_qty_unit_id,
+                                                      pdm.base_quantity_unit,
+                                                      pcs.priced_arrived_qty
+                                                     ),
+               0
+              )
+          ) priced_arrived_qty,
+       SUM
+          (DECODE
+              (pcs.purchase_sales,
+               'P', pkg_general.f_get_converted_quantity
+                                                   (pcs.product_id,
+                                                    pcs.payable_qty_unit_id,
+                                                    pdm.base_quantity_unit,
+                                                    pcs.priced_not_arrived_qty
+                                                   ),
+               0
+              )
+          ) priced_unarrived_qty,
+       SUM
+          (DECODE
+              (pcs.purchase_sales,
+               'P', pkg_general.f_get_converted_quantity
+                                                     (pcs.product_id,
+                                                      pcs.payable_qty_unit_id,
+                                                      pdm.base_quantity_unit,
+                                                      pcs.unpriced_arrived_qty
+                                                     ),
+               0
+              )
+          ) unpriced_arrived_qty,
+       SUM
+          (DECODE
+              (pcs.purchase_sales,
+               'P', pkg_general.f_get_converted_quantity
+                                                 (pcs.product_id,
+                                                  pcs.payable_qty_unit_id,
+                                                  pdm.base_quantity_unit,
+                                                  pcs.unpriced_not_arrived_qty
+                                                 ),
+               0
+              )
+          ) unpriced_unarrived_qty,
+       SUM
+          (DECODE
+              (pcs.purchase_sales,
+               'S', pkg_general.f_get_converted_quantity
+                                                     (pcs.product_id,
+                                                      pcs.payable_qty_unit_id,
+                                                      pdm.base_quantity_unit,
+                                                      pcs.priced_arrived_qty
+                                                     ),
+               0
+              )
+          ) priced_delivered_qty,
+       SUM
+          (DECODE
+              (pcs.purchase_sales,
+               'S', pkg_general.f_get_converted_quantity
+                                                   (pcs.product_id,
+                                                    pcs.payable_qty_unit_id,
+                                                    pdm.base_quantity_unit,
+                                                    pcs.priced_not_arrived_qty
+                                                   ),
+               0
+              )
+          ) priced_undelivered_qty,
+       SUM
+          (DECODE
+              (pcs.purchase_sales,
+               'S', pkg_general.f_get_converted_quantity
+                                                     (pcs.product_id,
+                                                      pcs.payable_qty_unit_id,
+                                                      pdm.base_quantity_unit,
+                                                      pcs.unpriced_arrived_qty
+                                                     ),
+               0
+              )
+          ) unpriced_delivered_qty,
+       SUM
+          (DECODE
+              (pcs.purchase_sales,
+               'S', pkg_general.f_get_converted_quantity
+                                                 (pcs.product_id,
+                                                  pcs.payable_qty_unit_id,
+                                                  pdm.base_quantity_unit,
+                                                  pcs.unpriced_not_arrived_qty
+                                                 ),
+               0
+              )
+          ) unpriced_undelivered_qty,
+       pdm.base_quantity_unit qty_unit_id, qum.qty_unit
+  FROM pcs_purchase_contract_status pcs,
+       pdm_productmaster pdm,
+       qum_quantity_unit_master qum
+ WHERE pcs.process_id = pc_process_id
+   AND CASE
+          WHEN pcs.contract_type = 'BASEMETAL'
+             THEN pcs.product_id
+          ELSE pcs.underlying_product_id
+       END = pdm.product_id
+   AND pdm.base_quantity_unit = qum.qty_unit_id
     group by pcs.corporate_id,
              pcs.corporate_name,
              pcs.process_id,
@@ -9871,47 +10045,45 @@ insert into css_contract_status_summary
              pcs.purchase_sales,
              pcs.underlying_product_id,
              pcs.element_desc
-             
    union all
-   select csfm.corporate_id,
-          csfm.corporate_name,
-          csfm.process_id,
-          csfm.eod_trade_date,
-          pdm.product_id,
-          pdm.product_desc,
-          'BASEMETAL' contract_type,
-          sum(pkg_general.f_get_converted_quantity(pdm.product_id,
+SELECT   csfm.corporate_id, csfm.corporate_name, csfm.process_id,
+         csfm.eod_trade_date, pdm.product_id, pdm.product_desc,
+         'BASEMETAL' contract_type,
+         SUM
+            (pkg_general.f_get_converted_quantity (pdm.product_id,
                                                    csfm.payable_qty_unit_id,
                                                    pdm.base_quantity_unit,
-                                                   csfm.priced_qty)) priced_arrived_qty,
-          0 priced_unarrived_qty,
-          sum(pkg_general.f_get_converted_quantity(pdm.product_id,
+                                                   csfm.priced_qty
+                                                  )
+            ) priced_arrived_qty,
+         0 priced_unarrived_qty,
+         SUM
+            (pkg_general.f_get_converted_quantity (pdm.product_id,
                                                    csfm.payable_qty_unit_id,
                                                    pdm.base_quantity_unit,
-                                                   csfm.unpriced_qty)) unpriced_arrived_qty,
-          0 unpriced_unarrived_qty,
-          0 priced_delivered_qty,
-          0 priced_undelivered_qty,
-          0 unpriced_delivered_qty,
-          0 unpriced_undelivered_qty,
-          pdm.base_quantity_unit qty_unit_id,
-          qum.qty_unit
-     from csfm_cont_status_free_metal csfm,
-          aml_attribute_master_list   aml,
-          pdm_productmaster           pdm,
-          qum_quantity_unit_master    qum
-    where csfm.process_id = pc_process_id
-      and csfm.element_id = aml.attribute_id
-      and aml.underlying_product_id = pdm.product_id
-      and pdm.base_quantity_unit = qum.qty_unit_id
-    group by csfm.corporate_id,
-             csfm.corporate_name,
-             csfm.process_id,
-             csfm.eod_trade_date,
-             pdm.product_id,
-             pdm.product_desc,
-             pdm.base_quantity_unit,
-             qum.qty_unit)
+                                                   csfm.unpriced_qty
+                                                  )
+            ) unpriced_arrived_qty,
+         0 unpriced_unarrived_qty, 0 priced_delivered_qty,
+         0 priced_undelivered_qty, 0 unpriced_delivered_qty,
+         0 unpriced_undelivered_qty, pdm.base_quantity_unit qty_unit_id,
+         qum.qty_unit
+    FROM csfm_cont_status_free_metal csfm,
+         aml_attribute_master_list aml,
+         pdm_productmaster pdm,
+         qum_quantity_unit_master qum
+   WHERE csfm.process_id = pc_process_id
+     AND csfm.element_id = aml.attribute_id
+     AND aml.underlying_product_id = pdm.product_id
+     AND pdm.base_quantity_unit = qum.qty_unit_id
+GROUP BY csfm.corporate_id,
+         csfm.corporate_name,
+         csfm.process_id,
+         csfm.eod_trade_date,
+         pdm.product_id,
+         pdm.product_desc,
+         pdm.base_quantity_unit,
+         qum.qty_unit)
   select 
          css.process_id,
          css.eod_trade_date,

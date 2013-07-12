@@ -4003,6 +4003,8 @@ commit;
      where process_id = pc_process_id;
 	delete from css_contract_status_summary
      where process_id = pc_process_id;
+    delete from csfm_cont_status_free_metal
+     where process_id = pc_process_id;
 	 delete from pfrhe_pfrh_extension 
 	 where process_id = pc_process_id;
 	 delete iids_iid_summary where process_id = pc_process_id;
