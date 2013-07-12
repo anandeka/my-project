@@ -55,5 +55,3 @@ Message:
 Summary Price Unit was shown as USD/Troz for Gold/Silver instead of USD/Kg corrected
 ----
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PriceFixationReport.rpt
-
-
