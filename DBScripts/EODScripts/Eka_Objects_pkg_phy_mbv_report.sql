@@ -1029,7 +1029,7 @@ insert into pfrd_price_fix_report_detail
          ppu.weight price_unit_weight,
          ppu.price_unit_name,
          1 fx_price_to_base_cur,
-         fmed.provisional_price * ucm_price.multiplication_factor price_in_base_cur,
+         fmpfd.user_price * ucm_price.multiplication_factor price_in_base_cur,
          0 consumed_qty,
          fmpfd.user_price * nvl(fmpfd.qty_fixed, 0) *
          ucm_price.multiplication_factor * ucm.multiplication_factor /
@@ -3315,6 +3315,7 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
        and mvp.price_unit_id = ppu_pum.product_price_unit_id
        and pfrh.process_id = pc_process_id
        and pfrh.product_id = aml.underlying_product_id
+       and tip.corporate_id = pc_corporate_id
     union all -- base metal contracts
     select pcm.internal_contract_ref_no,
            pcdi.pcdi_id,
@@ -3417,7 +3418,8 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
        and pum.cur_id = cm.cur_id
        and mvp.price_unit_id = ppu_pum.product_price_unit_id
        and pfrh.process_id = pc_process_id
-       and pfrh.product_id = pcpd.product_id;
+       and pfrh.product_id = pcpd.product_id
+       and tip.corporate_id = pc_corporate_id;
   vn_val_price_in_base_cur number(25, 5);
   vn_med_price_in_base_cur number(25, 5);
   --month end price main currency details
@@ -4594,7 +4596,7 @@ begin
            0 sales_qty,
            fmed.qty_unit_id,
            qum.qty_unit,
-           fmed.provisional_price price,
+           fmpfd.user_price price,
            fmed.price_unit_id,
            cm.cur_id,
            cm.cur_code,
@@ -4604,9 +4606,9 @@ begin
            ppu.price_unit_name,
            null prompt_month_year,
            1 fx_rate_price_to_base,
-           fmed.provisional_price price_in_base_ccy,
+           fmpfd.user_price price_in_base_ccy,
            axs.eff_date price_fixed_date,
-           fmpfd.user_price * fmpfd.qty_fixed * ucm.multiplication_factor amount,
+           fmpfd.user_price * fmpfd.qty_fixed * ucm.multiplication_factor * ucm_price.multiplication_factor  amount,
            akc.base_cur_id,
            akc.base_currency_name,
            null as pcdi_id,
