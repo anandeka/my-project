@@ -1,4 +1,3 @@
-
 delete from RFC_REPORT_FILTER_CONFIG rfc where RFC.REPORT_ID=210;
 delete from RPC_RF_PARAMETER_CONFIG rpc where rpc.REPORT_ID=210;
 commit;
