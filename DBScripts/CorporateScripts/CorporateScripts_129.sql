@@ -1,6 +1,16 @@
+--trades card report filter
 delete from RFC_REPORT_FILTER_CONFIG rfc where RFC.REPORT_ID=210;
 delete from RPC_RF_PARAMETER_CONFIG rpc where rpc.REPORT_ID=210;
 commit;
+
+set define off;    
+update AMC_APP_MENU_CONFIGURATION amc set amc.link_called = '/EkaReport/CommonFilter.do?method=populateFilter&docType=ONLINE&ReportID=210&ReportName=LMETraderCard.rpt&ExportFormat=HTML'
+where amc.menu_id = 'RPT-D412';
+update rml_report_master_list rml set rml.report_display_name ='LME Traders Card',
+       rml.report_file_name = 'LMETraderCard.rpt' where rml.report_id = '210';
+update REF_REPORTEXPORTFORMAT ref1 set ref1.REPORT_FILE_NAME = 'LMETraderCard.rpt' where ref1.report_id = '210';
+delete from rpc_rf_parameter_config rpc where rpc.report_id = '210';
+delete from rfc_report_filter_config rfc where rfc.report_id = '210';       
 
 declare
 begin
@@ -14,7 +24,7 @@ Insert into RFC_REPORT_FILTER_CONFIG
     LABEL, FIELD_ID, COLSPAN, IS_MANDATORY)
  Values
    (cc.corporate_id, '210', 'RFC210CDC01', 1, 1, 
-    'As Of Date', 'GFF021', 1, 'Y');
+    'EOD Date', 'GFF021', 1, 'Y');
 Insert into RFC_REPORT_FILTER_CONFIG
    (CORPORATE_ID, REPORT_ID, LABEL_ID, LABEL_COLUMN_NUMBER, LABEL_ROW_NUMBER, 
     LABEL, FIELD_ID, COLSPAN, IS_MANDATORY)
@@ -25,144 +35,8 @@ Insert into RFC_REPORT_FILTER_CONFIG
    (CORPORATE_ID, REPORT_ID, LABEL_ID, LABEL_COLUMN_NUMBER, LABEL_ROW_NUMBER, 
     LABEL, FIELD_ID, COLSPAN, IS_MANDATORY)
  Values
-   (cc.corporate_id, '210', 'RFC210CDC04', 1, 4, 
-    'Business Line', 'GFF1011', 1, NULL);
-Insert into RFC_REPORT_FILTER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, LABEL_COLUMN_NUMBER, LABEL_ROW_NUMBER, 
-    LABEL, FIELD_ID, COLSPAN, IS_MANDATORY)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC05', 1, 5, 
-    'Metal', 'GFF1011', 1, 'N');
-Insert into RFC_REPORT_FILTER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, LABEL_COLUMN_NUMBER, LABEL_ROW_NUMBER, 
-    LABEL, FIELD_ID, COLSPAN, IS_MANDATORY)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC06', 1, 6, 
-    'Instrument Type', 'GFF1011', 1, 'N');
-Insert into RFC_REPORT_FILTER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, LABEL_COLUMN_NUMBER, LABEL_ROW_NUMBER, 
-    LABEL, FIELD_ID, COLSPAN, IS_MANDATORY)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC07', 1, 7, 
-    'Market Place', 'GFF1011', 1, 'N');
- ------------------------------------------------------------------------------------
-
- Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC02', 'RFP1053', 'Yes');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC04', 'RFP1045', 'mdmBusinessLine');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC04', 'RFP1046', 'BusinessLine');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC04', 'RFP1047', 'No');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC04', 'RFP1048', 'Filter');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC04', 'RFP1049', 'reportForm');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC04', 'RFP1050', '1');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC04', 'RFP1051', 'multiple');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC04', 'RFP1053', 'Yes');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC05', 'RFP1045', 'allProducts');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC05', 'RFP1046', 'Product');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC05', 'RFP1047', 'No');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC05', 'RFP1048', 'Filter');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC05', 'RFP1049', 'reportForm');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC05', 'RFP1050', '1');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC06', 'RFP1046', 'InstrumentType');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC06', 'RFP1047', 'No');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC06', 'RFP1045', 'setupInstrumentType');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC06', 'RFP1048', 'Filter');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC06', 'RFP1049', 'reportForm');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC06', 'RFP1050', '1');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC06', 'RFP1051', 'multiple');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC06', 'RFP1053', 'Yes');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC07', 'RFP1045', 'exchangelist');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC07', 'RFP1046', 'Exchange');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC07', 'RFP1047', 'No');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC07', 'RFP1048', 'Filter');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC07', 'RFP1049', 'reportForm');
-Insert into RPC_RF_PARAMETER_CONFIG
-   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
- Values
-   (cc.corporate_id, '210', 'RFC210CDC07', 'RFP1050', '1');
+   (cc.corporate_id, '210', 'RFC210CDC03', 1, 3, 
+    'Future Contract', 'GFF1001', 1, 'Y');
 Insert into RPC_RF_PARAMETER_CONFIG
    (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
  Values
@@ -178,7 +52,7 @@ Insert into RPC_RF_PARAMETER_CONFIG
 Insert into RPC_RF_PARAMETER_CONFIG
    (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
  Values
-   (cc.corporate_id, '210', 'RFC210CDC02', 'RFP1046', 'ProfitCenter');
+   (cc.corporate_id, '210', 'RFC210CDC02', 'RFP1046', 'Book');
 Insert into RPC_RF_PARAMETER_CONFIG
    (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
  Values
@@ -198,8 +72,36 @@ Insert into RPC_RF_PARAMETER_CONFIG
 Insert into RPC_RF_PARAMETER_CONFIG
    (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
  Values
-   (cc.corporate_id, '210', 'RFC210CDC02', 'RFP1051', 'multiple');
-COMMIT;  
+   (cc.corporate_id, '210', 'RFC210CDC02', 'RFP1051', 'multiple');    
+Insert into RPC_RF_PARAMETER_CONFIG
+   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
+ Values
+   (cc.corporate_id, '210', 'RFC210CDC03', 'RFP1001', 'setupUnderlyingInstrument');
+Insert into RPC_RF_PARAMETER_CONFIG
+   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
+ Values
+   (cc.corporate_id, '210', 'RFC210CDC03', 'RFP1002', 'FutureContract');
+Insert into RPC_RF_PARAMETER_CONFIG
+   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
+ Values
+   (cc.corporate_id, '210', 'RFC210CDC03', 'RFP1003', 'No');
+Insert into RPC_RF_PARAMETER_CONFIG
+   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
+ Values
+   (cc.corporate_id, '210', 'RFC210CDC03', 'RFP1004', 'Filter');
+Insert into RPC_RF_PARAMETER_CONFIG
+   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
+ Values
+   (cc.corporate_id, '210', 'RFC210CDC03', 'RFP1005', 'reportForm');
+Insert into RPC_RF_PARAMETER_CONFIG
+   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
+ Values
+   (cc.corporate_id, '210', 'RFC210CDC03', 'RFP1006', '1');
+Insert into RPC_RF_PARAMETER_CONFIG
+   (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
+ Values
+   (cc.corporate_id, '210', 'RFC210CDC03', 'RFP1007', 'multiple');
+COMMIT;   
  end loop;
 commit;
 end;
