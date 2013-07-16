@@ -7687,7 +7687,9 @@ create or replace package body pkg_phy_custom_reports is
          and nvl(pcm.contract_status, 'NA') <> 'Cancelled'
          and pcdi.item_price_type<>'Fixed'
          and pcm.corporate_id = pc_corporate_id
-         and round(nvl(diqs.price_fixed_qty, 0), 4) >= diqs.total_qty -----added that only fully priced contract should come 05-Sep-2012
+         and round(nvl(diqs.price_fixed_qty, 0), 4) <> 0-- diqs.total_qty -----added that only fully priced contract should come 05-Sep-2012
+         -- above changes modified, as per the request from manish once price fixed qty has to be consider, it's not necessory full qty has to be fixed
+         -- changes done as on 16-jul-2013, bug id:80551
          and pcm.is_active = 'Y'
          and pcdi.shipment_date is not null
          and pcdi.shipment_date >= pd_trade_date
@@ -7824,7 +7826,7 @@ create or replace package body pkg_phy_custom_reports is
                     1
                    else
                     -1
-                 end) * ucm.multiplication_factor * cipq.payable_qty) qty,
+                 end) * ucm.multiplication_factor * round(pofh.priced_qty, 4)) qty,
              qum_base.qty_unit_id,
              qum_base.qty_unit,
              null strategy_id,
@@ -7860,7 +7862,9 @@ create or replace package body pkg_phy_custom_reports is
          and ucm.to_qty_unit_id = pdm.base_quantity_unit
          and pofh.pcdi_id = pcdi.pcdi_id
          and pofh.process_id = pcdi.process_id
-         and round(pofh.qty_to_be_fixed, 4) = round(pofh.priced_qty, 4) -----added that only fully priced contract should come 05-Sep-2012
+       --  and round(pofh.qty_to_be_fixed, 4) = round(pofh.priced_qty, 4) -----added that only fully priced contract should come 05-Sep-2012
+       -- above check removed for the bug id:80551
+         and round(pofh.priced_qty, 4) <> 0
          and pcm.contract_type = 'CONCENTRATES'
          and pcm.corporate_id = pc_corporate_id
          and cipq.qty_type = 'Payable'
