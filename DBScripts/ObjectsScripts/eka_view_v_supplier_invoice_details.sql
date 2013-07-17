@@ -93,6 +93,7 @@ select tt.supplier_invoive_no,
                    and iid.internal_invoice_ref_no =
                        iepd.internal_invoice_ref_no(+)
                    and gmr.internal_gmr_ref_no = invoice.internal_gmr_ref_no
+                   and invoice.internal_invoice_ref_no  = iss.internal_invoice_ref_no  --added for Bug 82094 
                    and iid.invoice_currency_id = cm.cur_id
                    and pcm.cp_id = phd.profileid
                    and gmr.corporate_id=akc.corporate_id) test,
@@ -119,4 +120,4 @@ select tt.supplier_invoive_no,
                   test.supplier_gmr_ref_no,
                   test.supplier_internal_gmr_ref_no,
                   iss.total_other_charge_amount,
-                  iss.gmr_cnt) tt
+                  iss.gmr_cnt) tt ;
