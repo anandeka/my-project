@@ -1082,7 +1082,7 @@ insert into pfrd_price_fix_report_detail
      and ppu.cur_id = cm.cur_id
      and ppu.weight_unit_id = qum_ppu.qty_unit_id
      and qum_pdm.qty_unit_id = pdm.base_quantity_unit
-     and axs.eff_date >= vd_prev_eom_date
+     and axs.eff_date > vd_prev_eom_date
      and axs.eff_date < = pd_trade_date
      and axs.process = 'EOM'
      and ucm_price.from_qty_unit_id = pdm.base_quantity_unit
@@ -1258,9 +1258,31 @@ insert into pfrh_price_fix_report_header
             ppu_base.price_unit_name,
             ppu_base.price_unit_id;
         commit;
+        --
+        -- Update Priced and Arrived Qty and Priced and Delivered Qty
+        -- 
+    for cur_pcs in (
+    select sum(nvl(css.priced_arrived_qty,0)) priced_arrived_qty,
+           sum(nvl(css.priced_delivered_qty,0)) priced_delivered_qty,
+           css.product_id
+      from css_contract_status_summary css
+     where css.process_id = pc_process_id
+     group by css.product_id)
+        loop
+          update pfrh_price_fix_report_header pfrh
+             set pfrh.priced_arrived_qty   = cur_pcs.priced_arrived_qty,
+                 pfrh.priced_delivered_qty = cur_pcs.priced_delivered_qty,
+                 pfrh.realized_qty         = least(cur_pcs.priced_arrived_qty, cur_pcs.priced_delivered_qty)
+           where pfrh.process_id = pc_process_id
+             and pfrh.product_id = cur_pcs.product_id;
+        end loop;
+        commit;
+        
+        
+        
  vc_error_msg := 'Update Previous Month Realized Qty';
         --
-        -- Update Previous Month Realized Qty, Price Fixation Qty OB for Purchase and Sales
+        -- Update Previous Month Realized Qty
         --
         for cur_pfhr_prev_real_qty in ( 
             select pfrh_prev.product_id,
@@ -1269,24 +1291,49 @@ insert into pfrh_price_fix_report_header
                                pfrh_prev.realized_qty
                               else
                                0
-                            end) realized_qty_prev_month,
-                        sum(pfrh_prev.price_fix_qty_purchase_new) -
-                        sum(pfrh_prev.realized_qty) price_fix_qty_purchase_ob,
-                        sum(pfrh_prev.price_fix_qty_sales_new) -
-                        sum(pfrh_prev.realized_qty) price_fix_qty_sales_ob
+                            end) realized_qty_prev_month
                    from pfrh_price_fix_report_header pfrh_prev
                   where pfrh_prev.eod_trade_date <= vd_prev_eom_date
                   and pfrh_prev.corporate_id = pc_corporate_id
                   group by pfrh_prev.product_id)
         loop
           update pfrh_price_fix_report_header pfrh
-             set pfrh.realized_qty_prev_month = cur_pfhr_prev_real_qty.realized_qty_prev_month,
-             pfrh.price_fix_qty_purchase_ob = cur_pfhr_prev_real_qty.price_fix_qty_purchase_ob,
+             set pfrh.realized_qty_prev_month = cur_pfhr_prev_real_qty.realized_qty_prev_month
+           where pfrh.process_id = pc_process_id
+             and pfrh.product_id = cur_pfhr_prev_real_qty.product_id;
+        end loop;
+        commit;   
+  --
+        -- Update Price Fixation Qty OB for Purchase and Sales
+        --
+              
+for cur_pfhr_prev_real_qty in ( 
+            select pfrh_prev.product_id,
+                        sum(pfrh_prev.price_fix_qty_purchase_new) -
+                        sum(pfrh_prev.realized_qty_current_month) price_fix_qty_purchase_ob,
+                        sum(pfrh_prev.price_fix_qty_sales_new) -
+                        sum(pfrh_prev.realized_qty_current_month) price_fix_qty_sales_ob
+                   from pfrh_price_fix_report_header pfrh_prev
+                  where pfrh_prev.eod_trade_date <= vd_prev_eom_date
+                  and pfrh_prev.corporate_id = pc_corporate_id
+                  group by pfrh_prev.product_id)
+        loop
+          update pfrh_price_fix_report_header pfrh
+             set pfrh.price_fix_qty_purchase_ob = cur_pfhr_prev_real_qty.price_fix_qty_purchase_ob,
              pfrh.price_fix_qty_sales_ob = cur_pfhr_prev_real_qty.price_fix_qty_sales_ob
            where pfrh.process_id = pc_process_id
              and pfrh.product_id = cur_pfhr_prev_real_qty.product_id;
         end loop;
-        commit;       
+                    
+ --
+        -- Update Realized Qty Current Month = (Realized Qty - Realized Qty Last EOM)
+        --
+        update pfrh_price_fix_report_header pfrh
+           set pfrh.realized_qty_current_month = pfrh.realized_qty -
+                                                 pfrh.realized_qty_prev_month
+         where pfrh.process_id = pc_process_id;
+         commit;
+                 
  vc_error_msg := 'Open Purchase And Sales Price Fixation Qty';             
         --
         -- PFRH Aggregated available data from PFRD
@@ -1465,34 +1512,9 @@ insert into pfrhe_pfrh_extension
    where pfrh.process_id = pc_process_id;
         
         vc_error_msg := 'Update Priced and Arrived Qty and Priced and Delivered Qty';     
-        --
-        -- Update Priced and Arrived Qty and Priced and Delivered Qty
-        -- 
-    for cur_pcs in (
-    select sum(nvl(css.priced_arrived_qty,0)) priced_arrived_qty,
-           sum(nvl(css.priced_delivered_qty,0)) priced_delivered_qty,
-           css.product_id
-      from css_contract_status_summary css
-     where css.process_id = pc_process_id
-     group by css.product_id)
-        loop
-          update pfrh_price_fix_report_header pfrh
-             set pfrh.priced_arrived_qty   = cur_pcs.priced_arrived_qty,
-                 pfrh.priced_delivered_qty = cur_pcs.priced_delivered_qty,
-                 pfrh.realized_qty         = least(cur_pcs.priced_arrived_qty, cur_pcs.priced_delivered_qty)
-           where pfrh.process_id = pc_process_id
-             and pfrh.product_id = cur_pcs.product_id;
-        end loop;
-        commit;
+     
         
-        --
-        -- Update Realized Qty Current Month = (Realized Qty - Realized Qty Last EOM)
-        --
-        update pfrh_price_fix_report_header pfrh
-           set pfrh.realized_qty_current_month = pfrh.realized_qty -
-                                                 pfrh.realized_qty_prev_month
-         where pfrh.process_id = pc_process_id;
-         commit;
+       
         --
         -- List of Consumed Fixations for Realization
         --
@@ -1927,7 +1949,7 @@ commit;
         and dpd.instrument_id = tip.instrument_id
         and dpd.corporate_id = tip.corporate_id
         and tip.price_unit_id = pum.price_unit_id
-        and dpd.instrument_type in ('Future', 'Forwards')
+        and dpd.instrument_type in ('Future')
         and dpd.pnl_type = 'Unrealized'
         and tip.corporate_id = pc_corporate_id;
    vn_mep_value_in_base_cur    number(25, 5);
@@ -2416,7 +2438,7 @@ begin
                          dpd.derivative_prodct_id
                     from dpd_derivative_pnl_daily dpd
                    where dpd.process_id = pc_process_id
-                     and dpd.instrument_type in ('Future', 'Forwards')
+                     and dpd.instrument_type in ('Future')
                    group by dpd.instrument_id,
                             dpd.derivative_prodct_id)
   loop
@@ -4645,7 +4667,7 @@ begin
        and aml.underlying_product_id = pdm.product_id
        and fmpfam.internal_action_ref_no = axs.internal_action_ref_no
        and axs.corporate_id = pc_corporate_id
-       and axs.eff_date >= vd_prev_eom_date
+       and axs.eff_date > vd_prev_eom_date
        and axs.eff_date <= pd_trade_date
        and fmpfd.price_unit_id = ppu.product_price_unit_id
        and ppu.cur_id = cm.cur_id

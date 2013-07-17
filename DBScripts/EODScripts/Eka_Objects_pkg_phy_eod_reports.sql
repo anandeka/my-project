@@ -8962,8 +8962,8 @@ end;
                      pcm.contract_status,
                      pcpd.product_id,
                      pcpd.product_name,
-                     sum(dipq.total_qty) open_qty, --According to FS, it should be sum of open and executed quantity
-                     dipq.item_qty_unit_id qty_unit_id,
+                     sum(diqs.total_qty - nvl(diqs.fulfilled_qty,0)) open_qty, --Open Qty should be reduced by Fulfilled Qty for Base Metals
+                     diqs.item_qty_unit_id qty_unit_id,
                      qum.qty_unit,
                      pcm.invoice_currency_id invoice_cur_id,
                      pcm.invoice_cur_code invoice_cur_code,
@@ -8974,22 +8974,22 @@ end;
                      v_pcdi.instrument_id,
                      null
                 from pcm_physical_contract_main     pcm,
-                     diqs_delivery_item_qty_status dipq,
+                     diqs_delivery_item_qty_status diqs,
                      pcpd_pc_product_definition     pcpd,
                      pcdi_pc_delivery_item          pcdi,
                      ak_corporate                   akc,
                      qum_quantity_unit_master       qum,
                      v_pcdi_exchange_detail v_pcdi
                where pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-                 and dipq.pcdi_id = pcdi.pcdi_id   
+                 and diqs.pcdi_id = pcdi.pcdi_id   
                  and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
                  and pcm.contract_type = 'BASEMETAL'
                  and pcpd.input_output = 'Input'
                  and pcm.contract_status = 'In Position'
                  and pcm.corporate_id = akc.corporate_id
-                 and qum.qty_unit_id = dipq.item_qty_unit_id
-                 and dipq.process_id = pc_process_id    
-                 and dipq.is_active = 'Y' 
+                 and qum.qty_unit_id = diqs.item_qty_unit_id
+                 and diqs.process_id = pc_process_id    
+                 and diqs.is_active = 'Y' 
                  and pcpd.process_id = pc_process_id
                  and pcdi.process_id = pc_process_id
                  and pcm.process_id = pc_process_id
@@ -9007,7 +9007,7 @@ end;
                         pcm.contract_status,
                         pcpd.product_id,
                         pcpd.product_name,
-                        dipq.item_qty_unit_id,
+                        diqs.item_qty_unit_id,
                         qum.qty_unit,
                         pcm.invoice_currency_id,
                         pcm.invoice_cur_code,
@@ -9055,7 +9055,8 @@ select pc_corporate_id,
      and spq.internal_gmr_ref_no = grd.internal_gmr_ref_no
      and spq.internal_grd_ref_no = grd.internal_grd_ref_no
      and spq.is_stock_split = 'N'
-     and gmr.landed_qty > 0
+     and (gmr.landed_qty > 0 or (gmr.is_pass_through = 'N'
+     and gmr.gmr_latest_action_action_id = 'MARK_FOR_TOLLING')) -- To include PCT External 
      and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
      and pcdi.pcdi_id = grd.pcdi_id
      and pcdi.process_id = pc_process_id
@@ -9642,35 +9643,35 @@ sp_eodeom_process_log(pc_corporate_id,
              main_table.qty_unit,
              (case
                when nvl(stock_table.landed_qty, 0) <
-                    nvl(pfc_data.priced_qty, 0) then
+                    sum(nvl(pfc_data.priced_qty, 0)) then
                 nvl(stock_table.landed_qty, 0)
                else
-                nvl(pfc_data.priced_qty, 0)
+                sum(nvl(pfc_data.priced_qty, 0))
              end) priced_arrived_qty,
              
-             nvl(pfc_data.priced_qty, 0) -
+             sum(nvl(pfc_data.priced_qty, 0)) -
              (case
                 when nvl(stock_table.landed_qty, 0) <
-                     nvl(pfc_data.priced_qty, 0) then
+                     sum(nvl(pfc_data.priced_qty, 0)) then
                  nvl(stock_table.landed_qty, 0)
                 else
-                 nvl(pfc_data.priced_qty, 0)
+                 sum(nvl(pfc_data.priced_qty, 0))
               end) price_not_arrived_qty,
              nvl(stock_table.landed_qty, 0) -
              (case
                 when nvl(stock_table.landed_qty, 0) <
-                     nvl(pfc_data.priced_qty, 0) then
+                     sum(nvl(pfc_data.priced_qty, 0)) then
                  nvl(stock_table.landed_qty, 0)
                 else
-                 nvl(pfc_data.priced_qty, 0)
+                 sum(nvl(pfc_data.priced_qty, 0))
               end) unpriced_arrived_qty,
              (main_table.open_qty - nvl(stock_table.landed_qty, 0)) -
-             (nvl(pfc_data.priced_qty, 0) - (case
+             (sum(nvl(pfc_data.priced_qty, 0)) - (case
                when nvl(stock_table.landed_qty, 0) <
-                    nvl(pfc_data.priced_qty, 0) then
+                    sum(nvl(pfc_data.priced_qty, 0)) then
                 nvl(stock_table.landed_qty, 0)
                else
-                nvl(pfc_data.priced_qty, 0)
+                sum(nvl(pfc_data.priced_qty, 0))
              end)) unpriced_not_arrived_qty,
              main_table.purchase_sales,
              main_table.attribute_desc,
@@ -9693,7 +9694,33 @@ sp_eodeom_process_log(pc_corporate_id,
         and main_table.corporate_id = pc_corporate_id
         and main_table.pcdi_id=pfc_data.pcdi_id(+)
         and main_table.pcdi_id=stock_table.pcdi_id(+)
-        and main_table.element_id is not null;
+        and main_table.element_id is not null
+        group by main_table.corporate_id,
+             main_table.corporate_name,
+             pc_process_id,
+             pd_trade_date,
+             main_table.contract_ref_no,
+             main_table.product_id,
+             main_table.product_desc,
+             main_table.cp_id,
+             main_table.cp_name,
+             main_table.contract_status,
+             main_table.invoice_cur_id,
+             main_table.invoice_cur_code,
+             main_table.element_id,
+             main_table.attribute_name,
+             main_table.open_qty,
+             main_table.qty_unit_id,
+             main_table.qty_unit,
+             nvl(stock_table.landed_qty, 0),
+             main_table.open_qty,
+             main_table.purchase_sales,
+             main_table.attribute_desc,
+             main_table.instrument_id,
+             main_table.contract_type,
+             main_table.delivery_item_no,
+             main_table.pcdi_id,
+             main_table.underlying_product_id;
     commit;
     
     insert into pcs_purchase_contract_status
@@ -9744,35 +9771,35 @@ sp_eodeom_process_log(pc_corporate_id,
              main_table.qty_unit,
              (case
                when nvl(stock_table.landed_qty, 0) <
-                    nvl(pfc_data.priced_qty, 0) then
+                    sum(nvl(pfc_data.priced_qty, 0)) then
                 nvl(stock_table.landed_qty, 0)
                else
-                nvl(pfc_data.priced_qty, 0)
+                sum(nvl(pfc_data.priced_qty, 0))
              end) priced_arrived_qty,
              
-             nvl(pfc_data.priced_qty, 0) -
+             sum(nvl(pfc_data.priced_qty, 0)) -
              (case
                 when nvl(stock_table.landed_qty, 0) <
-                     nvl(pfc_data.priced_qty, 0) then
+                     sum(nvl(pfc_data.priced_qty, 0)) then
                  nvl(stock_table.landed_qty, 0)
                 else
-                 nvl(pfc_data.priced_qty, 0)
+                 sum(nvl(pfc_data.priced_qty, 0))
               end) price_not_arrived_qty,
              nvl(stock_table.landed_qty, 0) -
              (case
                 when nvl(stock_table.landed_qty, 0) <
-                     nvl(pfc_data.priced_qty, 0) then
+                     sum(nvl(pfc_data.priced_qty, 0)) then
                  nvl(stock_table.landed_qty, 0)
                 else
-                 nvl(pfc_data.priced_qty, 0)
+                 sum(nvl(pfc_data.priced_qty, 0))
               end) unpriced_arrived_qty,
              (main_table.open_qty - nvl(stock_table.landed_qty, 0)) -
-             (nvl(pfc_data.priced_qty, 0) - (case
+             (sum(nvl(pfc_data.priced_qty, 0)) - (case
                when nvl(stock_table.landed_qty, 0) <
-                    nvl(pfc_data.priced_qty, 0) then
+                    sum(nvl(pfc_data.priced_qty, 0)) then
                 nvl(stock_table.landed_qty, 0)
                else
-                nvl(pfc_data.priced_qty, 0)
+                sum(nvl(pfc_data.priced_qty, 0))
              end)) unpriced_not_arrived_qty,
              main_table.purchase_sales,
              main_table.attribute_desc,
@@ -9787,15 +9814,39 @@ sp_eodeom_process_log(pc_corporate_id,
        where main_table.internal_contract_ref_no =
              stock_table.internal_contract_ref_no(+)
          and main_table.corporate_id = stock_table.corporate_id(+)
---         and main_table.element_id = stock_table.element_id(+)
          and main_table.internal_contract_ref_no =
              pfc_data.internal_contract_ref_no(+)
---         and main_table.element_id = pfc_data.element_id(+)
          and main_table.corporate_id = pfc_data.corporate_id(+)
         and main_table.corporate_id = pc_corporate_id
         and main_table.pcdi_id=pfc_data.pcdi_id(+)
         and main_table.pcdi_id=stock_table.pcdi_id(+)
-        and main_table.element_id is null;
+        and main_table.element_id is null
+        group by main_table.corporate_id,
+             main_table.corporate_name,
+             pc_process_id,
+             pd_trade_date,
+             main_table.contract_ref_no,
+             main_table.product_id,
+             main_table.product_desc,
+             main_table.cp_id,
+             main_table.cp_name,
+             main_table.contract_status,
+             main_table.invoice_cur_id,
+             main_table.invoice_cur_code,
+             main_table.element_id,
+             main_table.attribute_name,
+             main_table.open_qty,
+             main_table.qty_unit_id,
+             main_table.qty_unit,
+             nvl(stock_table.landed_qty, 0),
+             main_table.open_qty,
+             main_table.purchase_sales,
+             main_table.attribute_desc,
+             main_table.instrument_id,
+             main_table.contract_type,
+             main_table.delivery_item_no,
+             main_table.pcdi_id,
+             main_table.underlying_product_id;
     commit;
      gvn_log_counter := gvn_log_counter + 1;
 sp_eodeom_process_log(pc_corporate_id,
