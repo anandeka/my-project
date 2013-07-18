@@ -5232,7 +5232,7 @@ begin
            ak_corporate_user              akcu,
            gab_globaladdressbook          gab,
            pcpd_pc_product_definition     pcpd,
-           pym_payment_terms_master       pym,
+          -- pym_payment_terms_master       pym,
            cpc_corporate_profit_center    cpc,
            pdm_productmaster              pdm,
            cm_currency_master             cm_base,
