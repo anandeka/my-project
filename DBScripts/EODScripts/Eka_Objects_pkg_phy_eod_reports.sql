@@ -8907,7 +8907,7 @@ end;
                  and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
                  and pcm.contract_type = 'CONCENTRATES'
                  and pcpd.input_output = 'Input'
-                 and pcm.contract_status = 'In Position'
+                 and pcm.contract_status <> 'Cancelled'
                  and pcm.corporate_id = akc.corporate_id
 --                 and pcm.internal_contract_ref_no = pcmte.int_contract_ref_no
 --                 and pcmte.tolling_service_type = 'S'
@@ -8985,7 +8985,7 @@ end;
                  and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
                  and pcm.contract_type = 'BASEMETAL'
                  and pcpd.input_output = 'Input'
-                 and pcm.contract_status = 'In Position'
+                 and pcm.contract_status <> 'Cancelled'
                  and pcm.corporate_id = akc.corporate_id
                  and qum.qty_unit_id = diqs.item_qty_unit_id
                  and diqs.process_id = pc_process_id    
@@ -9897,17 +9897,20 @@ sp_eodeom_process_log(pc_corporate_id,
           fmuh.smelter_id,
           phd.companyname
      from fmuh_free_metal_utility_header fmuh,
-          fmed_free_metal_elemt_details  fmed,
-          fmpfh_price_fixation_header    fmpfh,
-          ak_corporate                   akc,
-          qum_quantity_unit_master       qum,
-          phd_profileheaderdetails       phd,
-          aml_attribute_master_list      aml,
-          pdm_productmaster              pdm,
-          axs_action_summary             axs,
-          fmpfd_price_fixation_details   fmpfd,
-          fmpfam_price_action_mapping    fmpfam,
-          axs_action_summary             axs_fm
+          fmed_free_metal_elemt_details fmed,
+          fmpfh_price_fixation_header fmpfh,
+          ak_corporate akc,
+          qum_quantity_unit_master qum,
+          phd_profileheaderdetails phd,
+          aml_attribute_master_list aml,
+          pdm_productmaster pdm,
+          axs_action_summary axs,
+          fmpfd_price_fixation_details fmpfd,
+          fmpfam_price_action_mapping fmpfam,
+          (select axs_in.internal_action_ref_no,
+                  axs_in.eff_date
+             from axs_action_summary axs_in
+            where axs_in.process = 'EOM') axs_fm
     where fmuh.fmuh_id = fmed.fmuh_id
       and fmed.fmed_id = fmpfh.fmed_id
       and fmed.element_id = fmpfh.element_id
@@ -9923,11 +9926,10 @@ sp_eodeom_process_log(pc_corporate_id,
       and axs.corporate_id = pc_corporate_id
       and axs.eff_date <= pd_trade_date
       and axs.process = 'EOM'
-      and fmpfh.fmpfh_id = fmpfd.fmpfh_id
-      and fmpfd.fmpfd_id = fmpfam.fmpfd_id
-      and fmpfam.is_active = 'Y'
-      and fmpfam.internal_action_ref_no = axs_fm.internal_action_ref_no
-      and axs_fm.process = 'EOM'
+      and fmpfh.fmpfh_id = fmpfd.fmpfh_id(+)
+      and fmpfd.fmpfd_id = fmpfam.fmpfd_id(+)
+      and fmpfam.is_active(+) = 'Y'
+      and fmpfam.internal_action_ref_no = axs_fm.internal_action_ref_no(+)
     group by fmuh.corporate_id,
              akc.corporate_name,
              fmuh.utility_ref_no,

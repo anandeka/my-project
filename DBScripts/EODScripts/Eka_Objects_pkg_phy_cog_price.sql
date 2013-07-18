@@ -108,7 +108,7 @@ create or replace package body pkg_phy_cog_price is
        where pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
          and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
          and pcm.corporate_id = akc.corporate_id
-         and pcm.contract_status = 'In Position'
+         and pcm.contract_status <> 'Cancelled'
          and pcm.contract_type = 'BASEMETAL'
          and pcpd.input_output = 'Input'
          and pcdi.pcdi_id = qat.pcdi_id(+)
@@ -1629,7 +1629,7 @@ create or replace package body pkg_phy_cog_price is
          and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
          and nvl(dipq.qty_type, 'Payable') = 'Payable'
          and pcm.corporate_id = akc.corporate_id
-         and pcm.contract_status = 'In Position'
+         and pcm.contract_status <> 'Cancelled'
          and pcm.contract_type = 'CONCENTRATES'
          and pcpd.input_output = 'Input'
          and dipq.element_id = aml.attribute_id

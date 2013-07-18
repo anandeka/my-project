@@ -1277,10 +1277,7 @@ insert into pfrh_price_fix_report_header
              and pfrh.product_id = cur_pcs.product_id;
         end loop;
         commit;
-        
-        
-        
- vc_error_msg := 'Update Previous Month Realized Qty';
+        vc_error_msg := 'Update Previous Month Realized Qty';
         --
         -- Update Previous Month Realized Qty
         --
@@ -2636,8 +2633,7 @@ begin
   -- Physical Ref Price Diff
   --
   for cur_phy_ref_price_diff in (select mbvp.product_id,
-                                        nvl(sum(mbvp.referential_price_in_base_cur *
-                                                mbvp.qty),
+                                        nvl(sum(mbvp.referential_value_in_base_cur),
                                             0) phy_ref_price_diff_value
                                    from mbv_phy_postion_diff_report mbvp
                                   where mbvp.process_id = pc_process_id
@@ -2872,7 +2868,7 @@ procedure sp_calc_di_valuation_price(pc_corporate_id varchar2,
            v_ppu_pum                      ppu
      where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
        and pcm.process_id = pc_process_id
-       and pcm.contract_status = 'In Position'
+       and pcm.contract_status <> 'Cancelled'
        and pcdi.pcdi_id = poch.pcdi_id
        and pcdi.is_active = 'Y'
        and poch.poch_id = pocd.poch_id
@@ -2952,7 +2948,7 @@ procedure sp_calc_di_valuation_price(pc_corporate_id varchar2,
            v_ppu_pum                      ppu
      where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
        and pcm.process_id = pc_process_id
-       and pcm.contract_status = 'In Position'
+       and pcm.contract_status <> 'Cancelled'
        and pcdi.is_active = 'Y'
        and pcdi.process_id = pc_process_id
        and pci.pcdi_id = pcdi.pcdi_id
@@ -3285,7 +3281,10 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
            pfrh.wap_price_cur_code wap_price_cur_code,
            pfrh.wap_price_weight_unit_id wap_price_weight_unit_id,
            pfrh.wap_price_weight_unit wap_price_weight_unit,
-           pfrh.wap_price_weight wap_price_weight
+           pfrh.wap_price_weight wap_price_weight,
+           pdm.base_quantity_unit product_base_qty_unit_id,
+           qum_pdm.qty_unit product_base_qty_unit,
+           ucm.multiplication_factor product_base_qty_factor
       from pcm_physical_contract_main pcm,
            pcdi_pc_delivery_item pcdi,
            ak_corporate akc,
@@ -3308,7 +3307,9 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
            pum_price_unit_master pum,
            qum_quantity_unit_master qum,
            cm_currency_master cm,
-           v_ppu_pum ppu_pum
+           v_ppu_pum ppu_pum,
+           qum_quantity_unit_master qum_pdm,
+           ucm_unit_conversion_master ucm
      where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
        and pcm.process_id = pc_process_id
        and pcdi.process_id = pc_process_id
@@ -3338,6 +3339,9 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
        and pfrh.process_id = pc_process_id
        and pfrh.product_id = aml.underlying_product_id
        and tip.corporate_id = pc_corporate_id
+       and pdm.base_quantity_unit = qum_pdm.qty_unit_id
+       and ucm.from_qty_unit_id = pcs.payable_qty_unit_id
+       and ucm.to_qty_unit_id = pdm.base_quantity_unit
     union all -- base metal contracts
     select pcm.internal_contract_ref_no,
            pcdi.pcdi_id,
@@ -3397,7 +3401,10 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
            pfrh.wap_price_cur_code wap_price_cur_code,
            pfrh.wap_price_weight_unit_id wap_price_weight_unit_id,
            pfrh.wap_price_weight_unit wap_price_weight_unit,
-           pfrh.wap_price_weight wap_price_weight
+           pfrh.wap_price_weight wap_price_weight,
+           pdm.base_quantity_unit product_base_qty_unit_id,
+           qum_pdm.qty_unit product_base_qty_unit,
+           ucm.multiplication_factor product_base_qty_factor
       from pcm_physical_contract_main pcm,
            pcdi_pc_delivery_item pcdi,
            ak_corporate akc,
@@ -3419,7 +3426,9 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
            pum_price_unit_master pum,
            qum_quantity_unit_master qum,
            cm_currency_master cm,
-           v_ppu_pum ppu_pum
+           v_ppu_pum ppu_pum,
+           qum_quantity_unit_master qum_pdm,
+           ucm_unit_conversion_master ucm
      where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
        and pcm.process_id = pc_process_id
        and pcdi.process_id = pc_process_id
@@ -3441,7 +3450,10 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
        and mvp.price_unit_id = ppu_pum.product_price_unit_id
        and pfrh.process_id = pc_process_id
        and pfrh.product_id = pcpd.product_id
-       and tip.corporate_id = pc_corporate_id;
+       and tip.corporate_id = pc_corporate_id
+       and pdm.base_quantity_unit = qum_pdm.qty_unit_id
+       and ucm.from_qty_unit_id = pcs.payable_qty_unit_id
+       and ucm.to_qty_unit_id = pdm.base_quantity_unit;
   vn_val_price_in_base_cur number(25, 5);
   vn_med_price_in_base_cur number(25, 5);
   --month end price main currency details
@@ -3714,7 +3726,10 @@ begin
        mep_main_cur_code,
        base_cur_id,
        base_cur_code,
-       unrealized_pnl_in_base_cur)
+       unrealized_pnl_in_base_cur,
+       product_base_qty_factor,
+       product_base_qty_unit_id,
+       product_base_qty_unit)
     values
       (pc_process_id,
        pd_trade_date,
@@ -3782,7 +3797,10 @@ begin
        vc_mep_main_cur_code,
        cur_diff_rows.base_cur_id,
        cur_diff_rows.base_currency_name,
-       vn_unreal_pnl_in_base_ccy);
+       vn_unreal_pnl_in_base_ccy,
+       cur_diff_rows.product_base_qty_factor,
+       cur_diff_rows.product_base_qty_unit_id,
+       cur_diff_rows.product_base_qty_unit);
   end loop;
   commit;
 exception

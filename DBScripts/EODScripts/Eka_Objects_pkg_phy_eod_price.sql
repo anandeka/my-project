@@ -110,7 +110,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
          and pcpq.pcpd_id = pcpd.pcpd_id
          and pci.pcpq_id = pcpq.pcpq_id
          and pcm.corporate_id = akc.corporate_id
-         and pcm.contract_status = 'In Position'
+         and pcm.contract_status <> 'Cancelled'
          and pcm.contract_type = 'BASEMETAL'
          and pcpd.input_output = 'Input'
          and pci.internal_contract_item_ref_no =
@@ -175,7 +175,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
              pcbpd.price_unit_id,
              pcbpd.tonnage_basis,
              pcbpd.fx_to_base,
-              case
+             case
                when pcbph.is_balance_pricing = 'Y' then
                 100
                else
@@ -4084,7 +4084,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
     end loop;
     commit;
   exception
-   when others then
+    when others then
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                            'procedure pkg_phy_eod_price.sp_calc_conc_gmr_price',
@@ -4218,7 +4218,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
          and nvl(pcpch.payable_type, 'Payable') = 'Payable'
          and pci.pcpq_id = pcpq.pcpq_id
          and pcm.corporate_id = akc.corporate_id
-         and pcm.contract_status = 'In Position'
+         and pcm.contract_status <> 'Cancelled'
          and pcm.contract_type = 'CONCENTRATES'
          and pcpd.input_output = 'Input'
             --and pcpd.product_id = qat.conc_product_id
@@ -4249,8 +4249,8 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
          and pcdi.pcdi_id = dipq.pcdi_id
          and ceqs.element_id = dipq.element_id
          and dipq.process_id = pc_process_id
-         and ceqs.payable_qty>0;
-        -- and nvl(dipq.payable_qty, 0) > 0;
+         and ceqs.payable_qty > 0;
+    -- and nvl(dipq.payable_qty, 0) > 0;
   
     cursor cur_called_off(pc_pcdi_id varchar2, pc_element_id varchar2) is
       select poch.poch_id,
@@ -4298,7 +4298,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                 100
                else
                 pcbpd.qty_to_be_priced
-             end qty_to_be_priced,          
+             end qty_to_be_priced,
              pcbph.price_description
         from pci_physical_contract_item pci,
              pcipf_pci_pricing_formula  pcipf,
@@ -6170,7 +6170,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
     end loop;
     commit;
   exception
- when others then
+    when others then
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                            'procedure pkg_phy_eod_price.sp_calc_contract_conc_price',
@@ -6188,5 +6188,5 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
       sp_insert_error_log(vobj_error_log);
       commit;
   end;
-end; 
+end;
 /
