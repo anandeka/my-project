@@ -1,0 +1,61 @@
+Patch No *          		:  EKA_METALS_PATCH_1698
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  18-Jul-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  75787
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+
+
+Revision: 135634
+Author: suresh.gottipati
+Date: 4:24:24 PM, Thursday, July 18, 2013
+Message:
+BUg Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_mbv_report.sql
+
+
+Revision: 135633
+Author: suresh.gottipati
+Date: 4:23:18 PM, Thursday, July 18, 2013
+Message:
+BUg Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/FXAllocationReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/FXAllocationReport_Excel.rpt
+
+
+
+
+
+
