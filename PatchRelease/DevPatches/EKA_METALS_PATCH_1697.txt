@@ -1,0 +1,67 @@
+Patch No *          		:  EKA_METALS_PATCH_1697
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  18-Jul-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  77815 82163 82211 82214 82231
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+
+Revision: 135557
+Author: janna
+Date: 8:18:10 AM, Thursday, July 18, 2013
+Message:
+82211 Free Metal ( if it is unpriced ) is not shown in Contract Status Report
+82214 Physical Position Report should show the quantity based on Product Base unit
+82231 Contract closure is not handled on report side  
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/154_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_cog_price.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_price.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_mbv_report.sql
+
+Revision: 135558
+Author: janna
+Date: 8:18:58 AM, Thursday, July 18, 2013
+Message:
+82214 Physical Position Report should show the quantity based on Product Base uni
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PhysicalPositionReport.rpt
+
+Revision: 135297
+Author: janna
+Date: 12:38:25 PM, Wednesday, July 17, 2013
+Message:
+82163 and 77815 - Will release patch with next main branch release
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyArrivalReport.rpt
+
