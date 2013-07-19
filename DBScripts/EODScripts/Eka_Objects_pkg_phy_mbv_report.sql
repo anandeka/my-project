@@ -2800,7 +2800,7 @@ begin
                        where md.process_id = pc_process_id)
   loop
     update mbv_metal_balance_valuation mbv
-       set mbv.metal_debt_qty = cur_md_debt.debt_qty
+       set mbv.metal_debt_qty = -1 * cur_md_debt.debt_qty
      where mbv.process_id = pc_process_id
        and mbv.product_id = cur_md_debt.product_id;
   end loop;
