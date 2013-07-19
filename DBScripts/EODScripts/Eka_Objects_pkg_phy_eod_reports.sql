@@ -18373,6 +18373,7 @@ insert into arg_arrival_report_gmr
 
   for cur_oc in (
   select iocd.internal_gmr_ref_no,
+         iocd.invoiced_qty_to_gmr_wet_ratio,
        nvl(sum(case
              when iocd.is_container_freight_charge = 'N' then
               iocd.charge_rate
@@ -18387,12 +18388,17 @@ insert into arg_arrival_report_gmr
            end),0) freight_container_charge_rate
   from iocd_ioc_details iocd
  where iocd.process_id = pc_process_id
- group by iocd.internal_gmr_ref_no)
+ group by iocd.internal_gmr_ref_no,iocd.invoiced_qty_to_gmr_wet_ratio)
   loop
     update aro_ar_original aro
-       set aro.other_charges_amt = round((cur_oc.other_charges_rate * aro.grd_wet_qty  ), aro.pay_cur_decimal),
-           aro.freight_container_charge_amt = round((cur_oc.freight_container_charge_rate *  aro.grd_wet_qty),
-                                         aro.pay_cur_decimal)                         
+       set aro.other_charges_amt            = round((cur_oc.other_charges_rate *
+                                                    aro.grd_wet_qty *
+                                                    cur_oc.invoiced_qty_to_gmr_wet_ratio),
+                                                    aro.pay_cur_decimal),
+           aro.freight_container_charge_amt = round((cur_oc.freight_container_charge_rate *
+                                                    aro.grd_wet_qty *
+                                                    cur_oc.invoiced_qty_to_gmr_wet_ratio),
+                                                    aro.pay_cur_decimal)
      where aro.process_id = pc_process_id
        and aro.internal_gmr_ref_no = cur_oc.internal_gmr_ref_no;
   end loop;
@@ -20467,6 +20473,7 @@ sp_eodeom_process_log(pc_corporate_id,
 
   for cur_oc in (
   select iocd.internal_gmr_ref_no,
+         iocd.invoiced_qty_to_gmr_wet_ratio,
        nvl(sum(case
              when iocd.is_container_freight_charge = 'N' then
               iocd.charge_rate
@@ -20477,11 +20484,12 @@ sp_eodeom_process_log(pc_corporate_id,
   from iocd_ioc_details iocd
  where iocd.process_id = pc_process_id
  group by iocd.internal_gmr_ref_no,
-          iocd.invoiced_qty_unit_id)
+          iocd.invoiced_qty_unit_id,iocd.invoiced_qty_to_gmr_wet_ratio)
   loop 
+  
    update fco_feed_consumption_original fco
        set ( fco.other_charges_amt,fco.freight_container_charge_amt) =
-       ( select round((cur_oc.other_charge_rate *  fco.grd_wet_qty * ucm.multiplication_factor),fco.pay_cur_decimal),
+       ( select round((cur_oc.other_charge_rate *  fco.grd_wet_qty * ucm.multiplication_factor * cur_oc.invoiced_qty_to_gmr_wet_ratio),fco.pay_cur_decimal),
                 0 
            from ucm_unit_conversion_master ucm
            where ucm.from_qty_unit_id = fco.conc_base_qty_unit_id -- MFT GMR Qty Unit
@@ -23324,6 +23332,7 @@ update cbt_cb_temp ct
   --
   for cur_oc in (
   select iocd.internal_gmr_ref_no,
+         iocd.invoiced_qty_to_gmr_wet_ratio,
        nvl(sum(case
              when iocd.is_container_freight_charge = 'N' then
               iocd.charge_rate
@@ -23338,12 +23347,11 @@ update cbt_cb_temp ct
            end),0) freight_container_charge_rate
   from iocd_ioc_details iocd
  where iocd.process_id = pc_process_id
- group by iocd.internal_gmr_ref_no)loop
-  
+ group by iocd.internal_gmr_ref_no,iocd.invoiced_qty_to_gmr_wet_ratio)loop
     update cbr_closing_balance_report cbr
-       set cbr.other_charges_amt = round((cur_oc.other_charges_rate * cbr.grd_wet_qty ),
+       set cbr.other_charges_amt = round((cur_oc.other_charges_rate * cbr.grd_wet_qty * cur_oc.invoiced_qty_to_gmr_wet_ratio),
                                          cbr.pay_cur_decimal),
-           cbr.Freight_Container_Charge_Amt = round((cur_oc.freight_container_charge_rate * cbr.grd_wet_qty ),
+           cbr.Freight_Container_Charge_Amt = round((cur_oc.freight_container_charge_rate * cbr.grd_wet_qty * cur_oc.invoiced_qty_to_gmr_wet_ratio ),
                                          cbr.pay_cur_decimal)
      where cbr.process_id = pc_process_id
        and cbr.parent_internal_gmr_ref_no = cur_oc.internal_gmr_ref_no;
@@ -25655,7 +25663,8 @@ insert into iids_iid_summary
    total_invoiced_qty,
    invoiced_qty_unit_id,
    invoice_cur_id,
-   contract_type)
+   contract_type,
+   invoiced_qty_to_gmr_wet_ratio)
   select gmr.process_id,
          iid.internal_invoice_ref_no,
          iid.internal_gmr_ref_no,
@@ -25663,7 +25672,8 @@ insert into iids_iid_summary
          iss.invoiced_qty total_invoiced_qty,
          iid.invoiced_qty_unit_id,
          gmr.invoice_cur_id,
-         gmr.gmr_type
+         gmr.gmr_type,
+         sum(iid.invoiced_qty)/ gmr.wet_qty
     from iid_invoicable_item_details iid,
          process_gmr                  gmr,
          is_invoice_summary          iss
@@ -25681,8 +25691,15 @@ insert into iids_iid_summary
             iid.invoiced_qty_unit_id,
             iss.invoiced_qty,
             gmr.invoice_cur_id,
-            gmr.gmr_type;
+            gmr.gmr_type,
+            gmr.wet_qty;
 commit;
+--
+  -- INVOICED_QTY_TO_GMR_WET_RATIO column explanation
+  -- If Assay changed and qty is different from Invoiced Qty, we need the ratio
+ -- GMR was 500 with 500 other charges, when assay change to 600, still we need to say other charge as 500
+ -- Ratio from GMR Invoice Qty to GMR Total Wet Qty(=GRD Wet Qty For All Active Stocks)
+ --
 insert into iocd_ioc_details
   (process_id,
    internal_invoice_ref_no,
@@ -25698,7 +25715,8 @@ insert into iocd_ioc_details
    is_freight_charge,
    charge_rate,
    invoice_cur_id,
-   contract_type)
+   contract_type,
+   invoiced_qty_to_gmr_wet_ratio)
   select iids.process_id,
          iids.internal_invoice_ref_no,
          iids.internal_gmr_ref_no,
@@ -25729,7 +25747,8 @@ insert into iocd_ioc_details
          end as is_freight_charge,
          ioc.amount_in_inv_cur / iids.total_invoiced_qty charge_rate,
          iids.invoice_cur_id,
-         iids.contract_type
+         iids.contract_type,
+         iids.invoiced_qty_to_gmr_wet_ratio
     from iids_iid_summary          iids,
          ioc_invoice_other_charge  ioc,
          scm_service_charge_master scm
