@@ -1,0 +1,66 @@
+Patch No *          		:  EKA_METALS_PATCH_1699
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Janna
+ 
+Created on*        		:  20-Jul-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  82379 82282
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+
+Revision: 136018
+Author: janna
+Date: 10:00:12 PM, Friday, July 19, 2013
+Message:
+82282. In arrival,Feed and closing balance report if qty is changed during W&S then charges are showing wrong in these reports, Added column for factor
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/155_DDL_EODDB_ALTER_SCRIPT.sql
+
+Revision: 135984
+Author: janna
+Date: 8:11:05 PM, Friday, July 19, 2013
+Message:
+82379
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_mbv_report.sql
+
+
+Revision: 135834
+Author: janna
+Date: 11:26:30 AM, Friday, July 19, 2013
+Message:
+82282. In arrival,Feed and closing balance report if qty is changed during W&S then charges are showing wrong in these reports 
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
+
+
+
