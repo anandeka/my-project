@@ -62,7 +62,16 @@ Bug Fixes
 Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/LMETraderCard.rpt
 
 
+---Data correction for Tata and boliden
 
 
+Revision: 136411
+Author: sivachalabathi.s
+Date: 8:11:36 PM, Tuesday, July 23, 2013
+Message:
+
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_51_boliden.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_52_tata.sql
 
 
