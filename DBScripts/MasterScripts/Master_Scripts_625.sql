@@ -1,0 +1,8 @@
+update  RFC_REPORT_FILTER_CONFIG rfc set rfc.LABEL='As Of Date' where RFC.REPORT_ID=210 and  rfc.LABEL_ID='RFC210CDC01';
+Insert into REF_REPORTEXPORTFORMAT
+   (REPORT_ID, EXPORT_FORMAT, REPORT_FILE_NAME)
+ Values
+   ('210', 'EXCEL', 'LMETraderCard.rpt');
+COMMIT;
+
+COMMIT;
