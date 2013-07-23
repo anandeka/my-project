@@ -1,0 +1,68 @@
+Patch No *          		:  EKA_METALS_PATCH_1700
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  23-Jul-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  82094,80509
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  APP
+
+Sub-Module  			 :  APP
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 136319
+Author: suresh.gottipati
+Date: 4:18:41 PM, Tuesday, July 23, 2013
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/TRG_INSERT_POFHD.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_v_smelter_invoice_details.sql
+
+Revision: 136320
+Author: suresh.gottipati
+Date: 4:19:34 PM, Tuesday, July 23, 2013
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_625.sql
+
+
+Revision: 136321
+Author: suresh.gottipati
+Date: 4:20:04 PM, Tuesday, July 23, 2013
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/LMETraderCard.rpt
+
+
+
+
+
+
