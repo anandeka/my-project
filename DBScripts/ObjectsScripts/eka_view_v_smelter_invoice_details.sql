@@ -104,7 +104,7 @@ select test.supp_internal_gmr_ref_no,
            and iid.invoice_currency_id = cm.cur_id
            and pcm.cp_id = phd.profileid
            and gmr.corporate_id = akc.corporate_id
-           and grd.supp_internal_gmr_ref_no=invoice_supp.internal_gmr_ref_no) test
+           and grd.internal_gmr_ref_no=invoice_supp.internal_gmr_ref_no) test--added  for Bug 82094
  group by test.smelter_invoive_no,
           test.smelter_invoice_date,
           test.smelter,
