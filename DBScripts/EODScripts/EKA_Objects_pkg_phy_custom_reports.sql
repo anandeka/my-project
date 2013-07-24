@@ -6016,7 +6016,7 @@ create or replace package body pkg_phy_custom_reports is
                              and pcm.contract_status = 'In Position'
                              and pcdi.pcdi_id = poch.pcdi_id
                                 --  and pocd.price_type <> 'Fixed'
-                             and diqs.total_qty - diqs.final_invoiced_qty > 0
+                             and (diqs.total_qty - diqs.final_invoiced_qty-diqs.fulfilled_qty) > 0
                              and poch.is_active = 'Y'
                              and poch.poch_id = pocd.poch_id
                              and pocd.is_active = 'Y'
@@ -6248,8 +6248,6 @@ create or replace package body pkg_phy_custom_reports is
                                             and diqs.process_id =
                                                 pc_process_id
                                             and diqs.is_active = 'Y'
-                                            and nvl(gmr.is_final_invoiced,
-                                                    'N') = 'N'
                                             and gpd.price_unit_id =
                                                 pum.product_price_unit_id
                                           group by pcdi.pcdi_id,
@@ -6354,7 +6352,6 @@ create or replace package body pkg_phy_custom_reports is
                                      gmr.internal_gmr_ref_no
                                  and tmpc.internal_grd_ref_no =
                                      grd.internal_grd_ref_no
-                                 and nvl(gmr.is_final_invoiced, 'N') = 'N'
                                  and tmpc.section_name <> 'OPEN'
                                  and pcdi.pcdi_id = grd.pcdi_id
                                  and pcdi.process_id = pc_process_id
@@ -6555,7 +6552,6 @@ create or replace package body pkg_phy_custom_reports is
                                            and diqs.process_id =
                                                pc_process_id
                                            and diqs.is_active = 'Y'
-                                           and nvl(gmr.is_final_invoiced, 'N') = 'N'
                                            and gpd.price_unit_id =
                                                pum.product_price_unit_id
                                          group by pcdi.pcdi_id,
@@ -6664,7 +6660,6 @@ create or replace package body pkg_phy_custom_reports is
                                           gmr.internal_gmr_ref_no
                                       and tmpc.internal_grd_ref_no =
                                           grd.internal_grd_ref_no
-                                      and nvl(gmr.is_final_invoiced, 'N') = 'N'
                                       and tmpc.section_name <> 'OPEN'
                                       and pcdi.pcdi_id = grd.pcdi_id
                                       and pcdi.process_id = pc_process_id
