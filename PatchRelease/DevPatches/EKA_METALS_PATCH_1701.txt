@@ -1,0 +1,47 @@
+Patch No *          		:  EKA_METALS_PATCH_1701
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  G.A.Raju
+ 
+Created on*        		:  24-Jul-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  81570
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Output Doc
+
+Sub-Module  			 :  Output Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+====================================================================================================================================
+Schema type (Transaction / EOD)* : Transaction
+====================================================================================================================================
+
+Revision: 136478
+Author: rajuga
+Date: 11:33:25 AM, Wednesday, July 24, 2013
+Message:
+Bug 81570
+(Now, All Contract Statuses will be considered, in case of Cancelled status, cancel water mark symbol will be shown)
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ContractPreview.rpt
+
+====================================================================================================================================
