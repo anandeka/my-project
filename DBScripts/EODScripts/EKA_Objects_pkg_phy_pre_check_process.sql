@@ -2545,7 +2545,9 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
        product_type,
        is_tolling_contract,
        is_tolling_extn,
-       payment_due_date)
+       payment_due_date,
+       m2m_treatment_charge,
+       m2m_refining_charge)
       (select pcm.corporate_id corporate_id,
               mv_qat.conc_product_id conc_product_id,
               mv_qat.conc_quality_id conc_quality_id,
@@ -2582,7 +2584,9 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
               'CONCENTRATES',
               pcm.is_tolling_contract,
               pcm.is_tolling_extn,
-              pcdi.payment_due_date
+              pcdi.payment_due_date,
+              0,
+              0
          from pcm_physical_contract_main     pcm,
               pci_physical_contract_item     pci,
               pcpq_pc_product_quality        pcpq,
@@ -2669,7 +2673,9 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
        internal_m2m_id,
        is_tolling_contract,
        is_tolling_extn,
-       payment_due_date)
+       payment_due_date,
+       m2m_treatment_charge,
+       m2m_refining_charge)
       select m2m.corporate_id,
              m2m.product_group_type,
              m2m.product_id conc_product_id,
@@ -2704,7 +2710,9 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              null internal_m2m_id,
              m2m.is_tolling_contract,
              m2m.is_tolling_extn,
-             payment_due_date
+             payment_due_date,
+             0,
+             0
         from (select temp.corporate_id,
                      temp.product_group_type,
                      mv_qat.product_id element_product_id,
@@ -3924,9 +3932,70 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                  pd_trade_date,
                  'Precheck M2M',
                  gvc_process || ' Before Commit @' || systimestamp);
+   ---Added Suresh
+   delete from temp_pci_treatment_elemnts temp
+    where temp.corporate_id = pc_corporate_id;
+   insert into temp_pci_treatment_elemnts
+     (corporate_id, internal_contract_item_ref_no, element_id)
+     select pc_corporate_id,
+            pci.internal_contract_item_ref_no,
+            ted.element_id
+       from pci_physical_contract_item    pci,
+            pcdi_pc_delivery_item         pcdi,
+            dith_di_treatment_header      dith,
+            ted_treatment_element_details ted,
+            pcth_pc_treatment_header      pcth
+      where pci.pcdi_id = pcdi.pcdi_id
+        and pcdi.pcdi_id = dith.pcdi_id
+        and dith.pcth_id = pcth.pcth_id
+        and pcth.pcth_id = ted.pcth_id
+        and pci.dbd_id = pc_dbd_id
+        and pcdi.dbd_id = pc_dbd_id
+        and dith.dbd_id = pc_dbd_id
+        and ted.dbd_id = pc_dbd_id
+        and pcth.dbd_id = pc_dbd_id
+        and pcth.is_active = 'Y'
+        and pcdi.is_active = 'Y'
+        and pci.is_active = 'Y'
+        and ted.is_active = 'Y'
+        and dith.is_active = 'Y'
+      group by pci.internal_contract_item_ref_no,
+               ted.element_id;
+      commit;
   
+    delete from temp_pci_refine_elemnts temp
+     where temp.corporate_id = pc_corporate_id;
+   insert into temp_pci_refine_elemnts
+     (corporate_id, internal_contract_item_ref_no, element_id)
+     select pc_corporate_id,
+            pci.internal_contract_item_ref_no,
+            red.element_id
+       from pci_physical_contract_item   pci,
+            pcdi_pc_delivery_item        pcdi,
+            dirh_di_refining_header      dirh,
+            red_refining_element_details red,
+            pcrh_pc_refining_header      pcrh
+      where pci.pcdi_id = pcdi.pcdi_id
+        and pcdi.pcdi_id = dirh.pcdi_id
+        and dirh.pcrh_id = pcrh.pcrh_id
+        and pcrh.pcrh_id = red.pcrh_id
+        and pci.dbd_id = pc_dbd_id
+        and pcdi.dbd_id = pc_dbd_id
+        and dirh.dbd_id = pc_dbd_id
+        and red.dbd_id = pc_dbd_id
+        and pcrh.dbd_id = pc_dbd_id
+        and pcrh.is_active = 'Y'
+        and pcdi.is_active = 'Y'
+        and pci.is_active = 'Y'
+        and red.is_active = 'Y'
+        and dirh.is_active = 'Y'
+      group by pci.internal_contract_item_ref_no,
+               red.element_id;
+      commit;
+
     ---***For loop for calling the sp_calc_m2m_tc_pc_rc_charge
     --which will do the precheck for the tc,rc and pc
+    --  m2m TC chrages
     begin
       for cc_tmpc in (select tmpc.corporate_id,
                              tmpc.conc_product_id,
@@ -3950,6 +4019,10 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
                          and tmpc.corporate_id = pc_corporate_id
                          and tmpc.conc_product_id = pdm.product_id
                          and tmpc.conc_quality_id = qat.quality_id
+                         and exists(select * from temp_pci_treatment_elemnts temp
+                         where temp.corporate_id=pc_corporate_id
+                           and temp.internal_contract_item_ref_no=tmpc.internal_contract_item_ref_no
+                           and temp.element_id=tmpc.element_id)
                        group by tmpc.corporate_id,
                                 tmpc.conc_product_id,
                                 pdm.product_desc,
@@ -4018,7 +4091,49 @@ create or replace package body "PKG_PHY_PRE_CHECK_PROCESS" is
              and tmpc.payment_due_date = cc_tmpc.payment_due_date;
         
         end if;
-        --for refine charge precheck
+      end loop;
+  
+    -- m2m rc charges
+      for cc_tmpc in (select tmpc.corporate_id,
+                             tmpc.conc_product_id,
+                             pdm.product_desc conc_product_desc,
+                             tmpc.conc_quality_id,
+                             qat.quality_name conc_qat_name,
+                             tmpc.element_id,
+                             tmpc.element_name,
+                             tmpc.conc_base_price_unit_id_ppu,
+                             tmpc.shipment_month,
+                             tmpc.shipment_year,
+                             tmpc.mvp_id valuation_point_id,
+                             tmpc.valuation_point,
+                             tmpc.payment_due_date
+                        from tmpc_temp_m2m_pre_check tmpc,
+                             pdm_productmaster       pdm,
+                             qat_quality_attributes  qat
+                       where tmpc.product_type = 'CONCENTRATES'
+                         and tmpc.is_tolling_contract = 'N'
+                         and tmpc.is_tolling_extn = 'N'
+                         and tmpc.corporate_id = pc_corporate_id
+                         and tmpc.conc_product_id = pdm.product_id
+                         and tmpc.conc_quality_id = qat.quality_id
+                         and exists(select * from temp_pci_refine_elemnts temp
+                         where temp.corporate_id=pc_corporate_id
+                           and temp.internal_contract_item_ref_no=tmpc.internal_contract_item_ref_no
+                           and temp.element_id=tmpc.element_id)
+                       group by tmpc.corporate_id,
+                                tmpc.conc_product_id,
+                                pdm.product_desc,
+                                tmpc.conc_quality_id,
+                                tmpc.conc_base_price_unit_id_ppu,
+                                tmpc.element_id,
+                                tmpc.valuation_point,
+                                tmpc.mvp_id,
+                                qat.quality_name,
+                                tmpc.element_name,
+                                tmpc.shipment_month,
+                                tmpc.shipment_year,
+                                tmpc.payment_due_date)
+      loop
         pkg_phy_pre_check_process.sp_m2m_tc_pc_rc_charge(cc_tmpc.corporate_id,
                                                          pd_trade_date,
                                                          cc_tmpc.conc_product_id,
