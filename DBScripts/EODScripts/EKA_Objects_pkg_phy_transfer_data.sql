@@ -1,4 +1,4 @@
-create or replace package "PKG_PHY_TRANSFER_DATA" is
+create or replace package pkg_phy_transfer_data is
 
   -- Author  : SURESHGOTTIPATI
   -- Created : 5/2/2011 3:09:18 PM
@@ -44,7 +44,7 @@ create or replace package "PKG_PHY_TRANSFER_DATA" is
 
 end pkg_phy_transfer_data;
 /
-create or replace package body "PKG_PHY_TRANSFER_DATA" is
+create or replace package body pkg_phy_transfer_data is
 
   procedure sp_phy_transfer_data(pc_corporate_id       in varchar2,
                                  pt_previous_pull_date timestamp,
@@ -1873,6 +1873,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
        is_called_off,
        expected_qp_start_date,
        expected_qp_end_date,
+       item_status,
        dbd_id)
       select ul.pciul_id,
              ul.internal_action_ref_no,
@@ -1903,6 +1904,7 @@ create or replace package body "PKG_PHY_TRANSFER_DATA" is
              ul.is_called_off,
              ul.expected_qp_start_date,
              ul.expected_qp_end_date,
+             ul.item_status,
              pc_dbd_id
         from pciul_phy_contract_item_ul@eka_appdb ul,
              eod_eom_axsdata@eka_appdb            axs

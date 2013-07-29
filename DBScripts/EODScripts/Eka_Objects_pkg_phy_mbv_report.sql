@@ -40,7 +40,7 @@ create or replace package pkg_phy_mbv_report is
                                     pd_trade_date   date,
                                     pc_process      varchar2,
                                     pc_process_id   varchar2);
-end;
+end; 
 /
 create or replace package body pkg_phy_mbv_report is
 procedure sp_run_mbv_report(pc_corporate_id varchar2,
@@ -66,12 +66,12 @@ begin
                         vn_logno,
                         'End of ' || vc_error_msg);
 
-  vc_error_msg := 'sp_calc_di_valuation_price';
+ /* vc_error_msg := 'sp_calc_di_valuation_price';
   sp_calc_di_valuation_price(pc_corporate_id,
                              pd_trade_date,
                              pc_process,
                              pc_process_id,
-                             pc_user_id);
+                             pc_user_id);*/
   vn_logno := vn_logno + 1;
   sp_eodeom_process_log(pc_corporate_id,
                         pd_trade_date,
@@ -1083,7 +1083,7 @@ insert into pfrd_price_fix_report_detail
      and ppu.weight_unit_id = qum_ppu.qty_unit_id
      and qum_pdm.qty_unit_id = pdm.base_quantity_unit
      and axs.eff_date > vd_prev_eom_date
-     and axs.eff_date < = pd_trade_date
+     and axs.eff_date <= pd_trade_date
      and axs.process = 'EOM'
      and ucm_price.from_qty_unit_id = pdm.base_quantity_unit
      and ucm_price.to_qty_unit_id = ppu.weight_unit_id
@@ -1092,62 +1092,6 @@ insert into pfrd_price_fix_report_detail
      and ppu_base.cur_id = akc.base_cur_id
      and ppu_base.weight_unit_id = pdm.base_quantity_unit;
    commit;
-   
-   --
-   -- If the Price Is Missing Throw the Error
-   --
-   
-   insert into eel_eod_eom_exception_log
-     (corporate_id,
-      submodule_name,
-      exception_code,
-      data_missing_for,
-      trade_ref_no,
-      process,
-      process_run_date,
-      process_run_by,
-      dr_id,
-      trade_date)
-     select pfrd.corporate_id,
-            'pkg_phy_mbv_report.sp_calc_pf_data',
-            'PHY-105',
-            'Contract Delivery No: ' || pfrd.contract_ref_no_del_item_no || ' PF Ref No: ' || pfrd.pf_ref_no,
-            null,
-            pc_process,
-            sysdate,
-            pc_user_id,
-            null,
-            pd_trade_date
-       from pfrd_price_fix_report_detail pfrd
-      where pfrd.process_id = pc_process_id
-        and pfrd.is_free_metal = 'N'
-        and nvl(pfrd.price,0) =0;
-    commit;
-insert into eel_eod_eom_exception_log
-  (corporate_id,
-   submodule_name,
-   exception_code,
-   data_missing_for,
-   trade_ref_no,
-   process,
-   process_run_date,
-   process_run_by,
-   dr_id,
-   trade_date)
-  select pfrd.corporate_id,
-         'pkg_phy_mbv_report.sp_calc_pf_data',
-         'PHY-105',
-         'Free Metal PF Ref No: ' || pfrd.pf_ref_no,
-         null,
-         pc_process,
-         sysdate,
-         pc_user_id,
-         null,
-         pd_trade_date
-    from pfrd_price_fix_report_detail pfrd
-   where pfrd.process_id = pc_process_id
-     and pfrd.is_free_metal = 'Y'
-     and nvl(pfrd.price,0) = 0;
    --
    -- FX Rate from Payable to Base, Price in Base and Fixation Value
    --
@@ -2433,8 +2377,11 @@ begin
                              0) der_realized_qty,
                          dpd.instrument_id,
                          dpd.derivative_prodct_id
-                    from dpd_derivative_pnl_daily dpd
-                   where dpd.process_id = pc_process_id
+                    from dpd_derivative_pnl_daily dpd,
+                         tdc_trade_date_closure tdc
+                   where dpd.process_id = tdc.process_id
+                   and tdc.corporate_id = pc_corporate_id
+                   and tdc.process ='EOM'
                      and dpd.instrument_type in ('Future')
                    group by dpd.instrument_id,
                             dpd.derivative_prodct_id)
@@ -2448,7 +2395,6 @@ begin
        and mbv.instrument_id = cur_der.instrument_id;
   end loop;
   commit;
-
   vc_error_msg := 'Data from Contract Status Report';
   --
   -- Data from Contract Status Report for section Qty Recon Report And 
@@ -3063,18 +3009,18 @@ begin
           vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
                                                                'procedure sp_calc_DI_Valuation_price',
                                                                'PHY-002',
-                                                               'DR_ID missing for ' ||
+                                                               'Price missing for ' ||
                                                                cur_mar_price_rows.instrument_name ||
                                                                ',Price Source:' ||
                                                                cur_mar_price_rows.price_source_name ||
-                                                               ' Contract Ref No: ' ||
-                                                               cur_mar_price_rows.contract_ref_no ||
+                                                             --  ' Contract Ref No: ' ||
+                                                           --    cur_mar_price_rows.contract_ref_no ||
                                                                ',Price Unit:' ||
                                                                cur_mar_price_rows.price_unit_name || ',' ||
                                                                cur_mar_price_rows.available_price_name ||
                                                                ' Price,Prompt Date:' ||
                                                                vd_3rd_wed_of_qp,
-                                                               '',
+                                                               cur_mar_price_rows.contract_ref_no,
                                                                pc_process,
                                                                pc_user_id,
                                                                sysdate,
@@ -3121,8 +3067,8 @@ begin
                                                              cur_mar_price_rows.instrument_name ||
                                                              ',Price Source:' ||
                                                              cur_mar_price_rows.price_source_name || --
-                                                             ' Contract Ref No: ' ||
-                                                             cur_mar_price_rows.contract_ref_no ||
+                                                         --    ' Contract Ref No: ' ||
+                                                           --  cur_mar_price_rows.contract_ref_no ||
                                                              ',Price Unit:' ||
                                                              cur_mar_price_rows.price_unit_name || ',' ||
                                                              cur_mar_price_rows.available_price_name ||
@@ -3132,7 +3078,7 @@ begin
                                                              ' Trade Date :' ||
                                                              to_char(vd_valid_quote_date,
                                                                      'dd-Mon-yyyy'),
-                                                             '',
+                                                             cur_mar_price_rows.contract_ref_no,
                                                              pc_process,
                                                              pc_user_id,
                                                              sysdate,
@@ -6504,5 +6450,5 @@ exception
     sp_insert_error_log(vobj_error_log);
 end;
 
-end; 
+end pkg_phy_mbv_report; 
 /

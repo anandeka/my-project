@@ -5015,7 +5015,8 @@ insert into pa_temp
        trade_type,
        warehouse_profile_id,
        warehouse_name)
-select grd.internal_gmr_ref_no,
+select /*+ ordered */
+       grd.internal_gmr_ref_no,
        grd.internal_grd_ref_no,
        gmr.internal_contract_ref_no,
        gmr.gmr_ref_no,
@@ -5095,7 +5096,8 @@ select grd.internal_gmr_ref_no,
        trade_type,
        warehouse_profile_id,
        warehouse_name)
-   select dgrd.internal_gmr_ref_no,
+   select  /*+ ordered */
+       dgrd.internal_gmr_ref_no,
        dgrd.internal_dgrd_ref_no,
        gmr.internal_contract_ref_no,
        gmr.gmr_ref_no,
@@ -15035,156 +15037,9 @@ begin
                         pc_process_id,
                         vn_log_counter,
                         'insert CET Over');
-  insert into ped_penalty_element_details
-    (process_id,
-     internal_gmr_ref_no,
-     internal_grd_ref_no,
-     element_id,
-     element_name,
-     weg_avg_pricing_assay_id,
-     assay_qty,
-     assay_qty_unit_id,
-     grd_wet_qty,
-     grd_dry_qty,
-     grd_qty_unit_id,
-     parent_stock_ref_no)
-    select pc_process_id,
-           gmr.internal_gmr_ref_no,
-           grd.internal_grd_ref_no,
-           pqca.element_id,
-           aml.attribute_name,
-           grd.weg_avg_pricing_assay_id,
-           (case
-             when rm.ratio_name = '%' then
-              (pqca.typical * (case
-             when pqca.is_deductible = 'Y' then
-              grd.qty
-             else
-              grd.qty * (asm.dry_wet_qty_ratio / 100)
-           end)) / 100 else(grd.qty * (asm.dry_wet_qty_ratio / 100) * ucm.multiplication_factor * pqca.typical) end) assay_qty,
-           (case
-             when rm.ratio_name = '%' then
-              grd.qty_unit_id
-             else
-              rm.qty_unit_id_numerator
-           end) assay_qty_unit_id,
-           grd.qty,
-           grd.qty * asm.dry_wet_qty_ratio / 100 dry_qty,
-           grd.qty_unit_id as grd_qty_unit_id,
-           ash.internal_grd_ref_no
-  from process_gmr                 gmr,
-       process_grd                 grd,
-       ash_assay_header            ash,
-       asm_assay_sublot_mapping    asm,
-       pqca_pq_chemical_attributes pqca,
-       rm_ratio_master             rm,
-       ucm_unit_conversion_master  ucm,
-       aml_attribute_master_list   aml
- where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-   and grd.weg_avg_pricing_assay_id = ash.ash_id
-   and ash.ash_id = asm.ash_id
-   and asm.asm_id = pqca.asm_id
-   and pqca.unit_of_measure = rm.ratio_id
-   and pqca.element_id = aml.attribute_id
-   and grd.qty_unit_id = ucm.from_qty_unit_id
-   and ucm.to_qty_unit_id =
-       (case when rm.ratio_name = '%' then ash.net_weight_unit else
-        rm.qty_unit_id_denominator end)
-   and ash.assay_type in ('Weighted Avg Pricing Assay', 'Shipment Assay')
-   and grd.status = 'Active'
-   and gmr.is_deleted = 'N'
-   and gmr.is_internal_movement = 'N'
-   and pqca.is_elem_for_pricing = 'N'
-   and gmr.process_id = pc_process_id
-   and grd.process_id = pc_process_id
-   and gmr.corporate_id = pc_corporate_id
-   and grd.corporate_id = pc_corporate_id;
+  
   commit;
-  vn_log_counter := vn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        vn_log_counter,
-                        'insert PED over Purchase');
- 
-
- insert into ped_penalty_element_details
-    (process_id,
-     internal_gmr_ref_no,
-     internal_grd_ref_no,
-     element_id,
-     element_name,
-     weg_avg_pricing_assay_id,
-     assay_qty,
-     assay_qty_unit_id,
-     grd_wet_qty,
-     grd_dry_qty,
-     grd_qty_unit_id,
-     parent_stock_ref_no)
-    select pc_process_id,
-           gmr.internal_gmr_ref_no,
-           dgrd.internal_dgrd_ref_no,
-           pqca.element_id,
-           aml.attribute_name,
-           dgrd.weg_avg_pricing_assay_id,
-           (case
-             when rm.ratio_name = '%' then
-              (pqca.typical * (case
-             when pqca.is_deductible = 'Y' then
-              dgrd.net_weight
-             else
-              dgrd.net_weight * (asm.dry_wet_qty_ratio / 100)
-           end)) / 100 else(dgrd.net_weight * (asm.dry_wet_qty_ratio / 100) * ucm.multiplication_factor * pqca.typical) end) assay_qty,
-           (case
-             when rm.ratio_name = '%' then
-              dgrd.net_weight_unit_id
-             else
-              rm.qty_unit_id_numerator
-           end) assay_qty_unit_id,
-           dgrd.net_weight,
-           dgrd.net_weight * asm.dry_wet_qty_ratio / 100 dry_qty,
-           dgrd.net_weight_unit_id as grd_qty_unit_id,
-           ash.internal_grd_ref_no
-      from process_gmr   gmr,
-           dgrd_delivered_grd     dgrd,
-        --   pcpd_pc_product_definition  pcpd,
-           ash_assay_header            ash,
-           asm_assay_sublot_mapping    asm,
-           pqca_pq_chemical_attributes pqca,
-           rm_ratio_master             rm,
-           ucm_unit_conversion_master  ucm,
-           aml_attribute_master_list   aml
-     where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
-       and dgrd.status = 'Active'
-       and gmr.process_id = pc_process_id
-       and dgrd.process_id = pc_process_id
-       and gmr.is_deleted = 'N'
-   --    and gmr.internal_contract_ref_no = pcpd.internal_contract_ref_no
-   --    and pcpd.input_output = 'Input'
-   --    and pcpd.process_id = pc_process_id
-    --   and pcpd.is_active = 'Y'
-       and dgrd.weg_avg_pricing_assay_id = ash.ash_id
-       and ash.ash_id = asm.ash_id
-       and asm.asm_id = pqca.asm_id
-       and pqca.is_elem_for_pricing = 'N'
-       and pqca.unit_of_measure = rm.ratio_id
-       and rm.is_active = 'Y'
-       and pqca.element_id = aml.attribute_id
-       and ucm.from_qty_unit_id = dgrd.net_weight_unit_id
-       and ucm.to_qty_unit_id =
-           (case when rm.ratio_name = '%' then ash.net_weight_unit else
-            rm.qty_unit_id_denominator end)
-       and ash.assay_type in
-           ('Weighted Avg Pricing Assay', 'Shipment Assay');
-  commit;
-  vn_log_counter := vn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        vn_log_counter,
-                        'insert PED over Sales');                       
                         
-  sp_gather_stats('ped_penalty_element_details');
   insert into gpq_gmr_payable_qty
     (process_id, internal_gmr_ref_no, element_id, payable_qty, qty_unit_id)
     select pc_process_id,
@@ -16824,11 +16679,17 @@ delete from tgi_temp_gmr_invoice t
               iss.invoice_type_name,
               iss.invoice_issue_date;
   commit;
-  
+  gvn_log_counter := gvn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'Insert tgi_temp_gmr_invoice BM GMR Over');
   --
   -- Invoice Amount For Concentrate GMR
   --
- insert into tgi_temp_gmr_invoice
+
+insert into tgi_temp_gmr_invoice
    (corporate_id,
     process_id,
     internal_gmr_ref_no,
@@ -16838,7 +16699,8 @@ delete from tgi_temp_gmr_invoice t
     invoice_type,
     invoice_issue_date,
     invoice_ref_no)
-   select gmr.corporate_id,
+   select /*+ ordered */
+          gmr.corporate_id,
           gmr.process_id,
           gmr.internal_gmr_ref_no,
           gmr.latest_internal_invoice_ref_no,
@@ -16868,9 +16730,7 @@ delete from tgi_temp_gmr_invoice t
              gmr.invoice_cur_id,
              is1.invoice_type_name,
              is1.invoice_issue_date,
-             is1.invoice_ref_no;
-commit;
-
+             is1.invoice_ref_no;                        
 -- added suresh
 insert into tgi_temp_gmr_invoice
    (corporate_id,
@@ -17524,7 +17384,7 @@ insert into art_arrival_report_temp
          null underlying_product_name,
          null base_quantity_unit_id,
          null base_quantity_unit,
-         ped.assay_qty assay_content,
+         0,--ped.assay_qty assay_content,
          ped.assay_qty_unit_id assay_qty_unit_id,
          qum_ped.qty_unit assay_qty_unit,
          0 payable_qty,
@@ -17544,7 +17404,7 @@ insert into art_arrival_report_temp
          art1.wet_qty,
          'Arrival' arrival_or_delivery
     from art1_arrival_report_temp1 art1,
-         ped_penalty_element_details ped,
+         gepc_gmr_element_pc_charges ped,
          aml_attribute_master_list   aml,
          qum_quantity_unit_master    qum_ped
    where ped.process_id = pc_process_id
@@ -17751,7 +17611,7 @@ insert into art_arrival_report_temp
          null underlying_product_name,
          null base_quantity_unit_id,
          null base_quantity_unit,
-         ped.assay_qty assay_content,
+         0,--ped.assay_qty assay_content,
          ped.assay_qty_unit_id assay_qty_unit_id,
          qum_ped.qty_unit assay_qty_unit,
          0 payable_qty,
@@ -17772,7 +17632,7 @@ insert into art_arrival_report_temp
          'Delivery' arrival_or_delivery
     from process_gmr   gmr,
          dgrd_delivered_grd     dgrd,
-         ped_penalty_element_details ped,
+         gepc_gmr_element_pc_charges ped,
          aml_attribute_master_list   aml,
          qum_quantity_unit_master    qum_ped
    where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
@@ -19943,7 +19803,7 @@ sp_eodeom_process_log(pc_corporate_id,
            fct1.pay_cur_id,
            fct1.pay_cur_code,
            'Penalty' qty_type,
-           ped.parent_stock_ref_no,
+           null, --ped.parent_stock_ref_no,-- check
            'Penalty' section_name,
            fct1.grd_base_qty_conv_factor,
            fct1.pcdi_id,
@@ -19952,7 +19812,7 @@ sp_eodeom_process_log(pc_corporate_id,
            fct1.feeding_point_name,
            fct1.grd_to_gmr_qty_factor
       from fct1_fc_temp1 fct1,
-           ped_penalty_element_details ped
+           gepc_gmr_element_pc_charges ped
      where fct1.internal_gmr_ref_no = ped.internal_gmr_ref_no
        and fct1.internal_grd_ref_no = ped.internal_grd_ref_no
        and ped.process_id = pc_process_id
@@ -24827,19 +24687,27 @@ begin
                     grd.qty_unit_id grd_qty_unit_id,
                     grd.qty grd_wet_qty,
                     grd.dry_qty grd_dry_qty,
-                    nvl(gmr.invoice_cur_decimals,2) pay_cur_decimals
+                    nvl(gmr.invoice_cur_decimals,2) pay_cur_decimals,
+                    (case
+                    when rm.ratio_name = '%' then
+                    grd.qty_unit_id
+                    else
+                    rm.qty_unit_id_numerator
+                    end) assay_qty_unit_id
                from process_gmr   gmr,
                     process_grd     grd,
                     ash_assay_header            ash,
                     asm_assay_sublot_mapping    asm,
                     pqca_pq_chemical_attributes pqca,
                     aml_attribute_master_list   aml,
-                    pci_physical_contract_item  pci
+                    pci_physical_contract_item  pci,
+                    rm_ratio_master             rm
               where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
                 and ash.ash_id = asm.ash_id
                 and asm.asm_id = pqca.asm_id
                 and aml.attribute_id = pqca.element_id
                 and nvl(pqca.is_elem_for_pricing, 'N') = 'N'
+                and pqca.unit_of_measure = rm.ratio_id
                 and gmr.dbd_id = pc_dbd_id
                 and grd.dbd_id = pc_dbd_id
                 and pci.dbd_id = pc_dbd_id
@@ -24881,20 +24749,28 @@ begin
                     dgrd.net_weight_unit_id,
                     dgrd.net_weight grd_wet_qty,
                     dgrd.dry_qty grd_dry_qty,
-                    nvl(gmr.invoice_cur_decimals,2) pay_cur_decimals
+                    nvl(gmr.invoice_cur_decimals,2) pay_cur_decimals,
+                    (case
+                    when rm.ratio_name = '%' then
+                    dgrd.net_weight_unit_id
+                    else
+                    rm.qty_unit_id_numerator
+                    end) assay_qty_unit_id
                from process_gmr   gmr,
                     dgrd_delivered_grd          dgrd,                  
                     ash_assay_header            ash,
                     asm_assay_sublot_mapping    asm,
                     pqca_pq_chemical_attributes pqca,
                     aml_attribute_master_list   aml,
-                    pci_physical_contract_item  pci
+                    pci_physical_contract_item  pci,
+                    rm_ratio_master             rm
               where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
                 and dgrd.weg_avg_pricing_assay_id = ash.ash_id
                 and ash.ash_id = asm.ash_id
                 and asm.asm_id = pqca.asm_id
                 and aml.attribute_id = pqca.element_id
                 and nvl(pqca.is_elem_for_pricing, 'N') = 'N'
+                and pqca.unit_of_measure = rm.ratio_id
                 and gmr.dbd_id = pc_dbd_id
                 and dgrd.dbd_id = pc_dbd_id
                 and pci.dbd_id = pc_dbd_id
@@ -25124,7 +25000,8 @@ begin
        grd_wet_qty,
        grd_dry_qty,
        grd_qty_unit_id,
-       pay_cur_decimals)
+       pay_cur_decimals,
+       assay_qty_unit_id)
     values
       (pc_process_id,
        cc.internal_gmr_ref_no,
@@ -25140,7 +25017,8 @@ begin
        cc.grd_wet_qty,
        cc.grd_dry_qty,
        cc.grd_qty_unit_id,
-       cc.pay_cur_decimals);
+       cc.pay_cur_decimals,
+       cc.Assay_Qty_Unit_Id);
     if vn_commit_count >= 500 then
       vn_commit_count := 0;
       commit;
@@ -25772,5 +25650,5 @@ exception
                                                          pd_trade_date);
     sp_insert_error_log(vobj_error_log);
 end;                                                      
-end; 
+end pkg_phy_eod_reports; 
 /

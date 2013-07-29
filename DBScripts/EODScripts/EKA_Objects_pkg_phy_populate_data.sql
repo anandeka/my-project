@@ -218,7 +218,7 @@ create or replace package pkg_phy_populate_data is
 
 end pkg_phy_populate_data;
 /
-create or replace package body PKG_PHY_POPULATE_DATA is
+create or replace package body pkg_phy_populate_data is
 
  procedure sp_phy_populate_table_data
  /*******************************************************************************************************************************************
@@ -5720,6 +5720,7 @@ commit;
        is_called_off,
        expected_qp_start_date,
        expected_qp_end_date,
+       item_status,
        dbd_id,
        process_id)
       select decode(internal_contract_item_ref_no,
@@ -5790,6 +5791,10 @@ commit;
                     'Empty_String',
                     null,
                     expected_qp_end_date),
+             decode(item_status,
+                    'Empty_String',
+                    null,
+                    item_status),
              gvc_dbd_id,
              pkg_phy_populate_data.gvc_process_id
         from (select pciul.internal_contract_item_ref_no,
@@ -5944,6 +5949,12 @@ commit;
                                    pciul.expected_qp_end_date
                                 end),
                             24) expected_qp_end_date,
+                     substr(max(case
+                                  when pciul.item_status is not null then
+                                   to_char(axs.created_date, 'yyyymmddhh24missff9') ||
+                                   pciul.item_status
+                                end),
+                            24) item_status,
                      gvc_dbd_id
                 from pciul_phy_contract_item_ul pciul,
                      axs_action_summary         axs,
@@ -9147,6 +9158,7 @@ commit;
          and grdul.process = gvc_process
        group by grdul.internal_grd_ref_no;
        commit;
+
    gvn_log_counter := gvn_log_counter + 1;
   /* sp_precheck_process_log(pc_corporate_id,
                            pd_trade_date,
@@ -14508,13 +14520,13 @@ sp_gather_stats('process_gmr');
                          
 Update process_gmr gmr
 set gmr.gmr_arrival_status = (case
-                     when (gmr.wns_status = 'Completed' and
+                     when (decode(gmr.is_final_weight,'Y','Completed', gmr.wns_status) = 'Completed' and
                           gmr.assay_final_status = 'Assay Finalized') then
                       'Assay Finalized'
-                     when (gmr.wns_status = 'Completed' and
+                     when (decode(gmr.is_final_weight,'Y','Completed', gmr.wns_status) = 'Completed' and
                           gmr.assay_final_status = 'Partial Assay Finalized') then
                       'Partial Assay Finalized'
-                     when (gmr.wns_status = 'Completed' and
+                     when (decode(gmr.is_final_weight,'Y','Completed', gmr.wns_status) = 'Completed' and
                           nvl(gmr.assay_final_status,'Not Assay Finalized') = 'Not Assay Finalized') then
                       'Weight Finalized'
                      when (gmr.wns_status = 'Partial') then
@@ -16008,223 +16020,291 @@ sp_precheck_process_log(pc_corporate_id,
                           gvn_log_counter,
                           'Delete from ced over');
 commit;
-insert into ced_contract_exchange_detail
-  (corporate_id,
-   internal_contract_item_ref_no,
-   pcdi_id,
-   element_id,
-   instrument_id,
-   instrument_name,
-   derivative_def_id,
-   derivative_def_name,
-   exchange_id,
-   exchange_name)
-  select pc_corporate_id,
-         tt.internal_contract_item_ref_no,
-         tt.pcdi_id,
-         tt.element_id,
-         tt.instrument_id,
-         dim.instrument_name,
-         pdd.derivative_def_id,
-         pdd.derivative_def_name,
-         emt.exchange_id,
-         emt.exchange_name
-    from (select pci.internal_contract_item_ref_no,
-                 poch.element_id,
-                 ppfd.instrument_id,
-                 pci.pcdi_id
-            from pci_physical_contract_item     pci,
-                 pcdi_pc_delivery_item          pcdi,
-                 poch_price_opt_call_off_header poch,
-                 pocd_price_option_calloff_dtls pocd,
-                 pcbpd_pc_base_price_detail     pcbpd,
-                 ppfh_phy_price_formula_header  ppfh,
-                 ppfd_phy_price_formula_details ppfd,
-                 pcm_physical_contract_main     pcm
-           where pci.pcdi_id = pcdi.pcdi_id
-             and pcdi.pcdi_id = poch.pcdi_id
-             and poch.poch_id = pocd.poch_id
-             and pocd.pcbpd_id = pcbpd.pcbpd_id
-             and pcbpd.pcbpd_id = ppfh.pcbpd_id
-             and ppfh.ppfh_id = ppfd.ppfh_id
-             and pcdi.internal_contract_ref_no =
-                 pcm.internal_contract_ref_no
-             and pci.dbd_id = pcdi.dbd_id
-             and pcdi.dbd_id = pcbpd.dbd_id
-             and pcbpd.dbd_id = ppfh.dbd_id
-             and ppfh.dbd_id = ppfd.dbd_id
-             and ppfd.dbd_id = pcm.dbd_id
-             and pcm.dbd_id = pc_dbd_id
-             and pcm.is_active = 'Y'
-             and pci.is_active = 'Y'
-             and pcdi.is_active = 'Y'
-             and poch.is_active = 'Y'
-             and pocd.is_active = 'Y'
-             and pcbpd.is_active = 'Y'
-             and ppfh.is_active = 'Y'
-             and ppfd.is_active = 'Y'
-             and pcm.product_group_type = 'BASEMETAL'
-             and pcdi.price_option_call_off_status in
-                 ('Called Off', 'Not Applicable')
-           group by pci.internal_contract_item_ref_no,
-                    ppfd.instrument_id,
-                    poch.element_id,
-                    pci.pcdi_id
-          union all
-          select pci.internal_contract_item_ref_no,
-                 pcbpd.element_id,
-                 ppfd.instrument_id,
-                 pci.pcdi_id
-            from pci_physical_contract_item     pci,
-                 pcdi_pc_delivery_item          pcdi,
-                 pcipf_pci_pricing_formula      pcipf,
-                 pcbph_pc_base_price_header     pcbph,
-                 pcbpd_pc_base_price_detail     pcbpd,
-                 ppfh_phy_price_formula_header  ppfh,
-                 ppfd_phy_price_formula_details ppfd,
-                 pcm_physical_contract_main     pcm
-           where pci.internal_contract_item_ref_no =
-                 pcipf.internal_contract_item_ref_no
-             and pcipf.pcbph_id = pcbph.pcbph_id
-             and pcbph.pcbph_id = pcbpd.pcbph_id
-             and pcbpd.pcbpd_id = ppfh.pcbpd_id
-             and ppfh.ppfh_id = ppfd.ppfh_id
-             and pci.pcdi_id = pcdi.pcdi_id
-             and pcdi.internal_contract_ref_no =
-                 pcm.internal_contract_ref_no
-             and pci.dbd_id = pcdi.dbd_id
-             and pcdi.dbd_id = pcipf.dbd_id
-             and pcipf.dbd_id = pcbph.dbd_id
-             and pcbph.dbd_id = ppfh.dbd_id
-             and ppfh.dbd_id = ppfd.dbd_id
-             and ppfd.dbd_id = pcm.dbd_id
-             and pcbpd.dbd_id = pcm.dbd_id
-             and pcm.dbd_id = pc_dbd_id
-             and pcdi.is_active = 'Y'
-             and pcm.product_group_type = 'BASEMETAL'
-             and pcdi.price_option_call_off_status = 'Not Called Off'
-             and pci.is_active = 'Y'
-             and pcipf.is_active = 'Y'
-             and pcbph.is_active = 'Y'
-             and pcbpd.is_active = 'Y'
-             and ppfh.is_active = 'Y'
-             and ppfd.is_active = 'Y'
-           group by pci.internal_contract_item_ref_no,
-                    ppfd.instrument_id,
-                    pcbpd.element_id,
-                    pci.pcdi_id
-          union all
-          select pci.internal_contract_item_ref_no,
-                 pcbpd.element_id,
-                 ppfd.instrument_id,
-                 pci.pcdi_id
-            from pci_physical_contract_item     pci,
-                 pcdi_pc_delivery_item          pcdi,
-                 poch_price_opt_call_off_header poch,
-                 pocd_price_option_calloff_dtls pocd,
-                 pcbpd_pc_base_price_detail     pcbpd,
-                 ppfh_phy_price_formula_header  ppfh,
-                 ppfd_phy_price_formula_details ppfd,
-                 dipq_delivery_item_payable_qty dipq,
-                 pcm_physical_contract_main     pcm
-           where pci.pcdi_id = pcdi.pcdi_id
-             and pcdi.pcdi_id = poch.pcdi_id
-             and poch.poch_id = pocd.poch_id
-             and pocd.pcbpd_id = pcbpd.pcbpd_id
-             and pcbpd.pcbpd_id = ppfh.pcbpd_id
-             and ppfh.ppfh_id = ppfd.ppfh_id
-             and pcdi.pcdi_id = dipq.pcdi_id
-             and pcdi.internal_contract_ref_no =
-                 pcm.internal_contract_ref_no
-             and pci.dbd_id = pc_dbd_id
-             and pcdi.dbd_id = pc_dbd_id
-             and pcbpd.dbd_id = pc_dbd_id
-             and ppfh.dbd_id = pc_dbd_id
-             and ppfd.dbd_id = pc_dbd_id
-             and dipq.dbd_id = pc_dbd_id
-             and pcbpd.dbd_id = pc_dbd_id
-             and pcm.dbd_id = pc_dbd_id
-             and dipq.element_id = pcbpd.element_id
-             and pcdi.is_active = 'Y'
-             and dipq.price_option_call_off_status in
-                 ('Called Off', 'Not Applicable')
-             and pcm.product_group_type = 'CONCENTRATES'
-             and pcm.is_active = 'Y'
-             and dipq.is_active = 'Y'
-             and pci.is_active = 'Y'
-             and pcbpd.is_active = 'Y'
-             and poch.is_active = 'Y'
-             and pocd.is_active = 'Y'
-             and ppfh.is_active = 'Y'
-             and ppfd.is_active = 'Y'
-           group by pci.internal_contract_item_ref_no,
-                    ppfd.instrument_id,
-                    pcbpd.element_id,
-                    pci.pcdi_id
-          union all
-          select pci.internal_contract_item_ref_no,
-                 pcbpd.element_id,
-                 ppfd.instrument_id,
-                 pci.pcdi_id
-            from pci_physical_contract_item     pci,
-                 pcdi_pc_delivery_item          pcdi,
-                 pcipf_pci_pricing_formula      pcipf,
-                 pcbph_pc_base_price_header     pcbph,
-                 pcbpd_pc_base_price_detail     pcbpd,
-                 ppfh_phy_price_formula_header  ppfh,
-                 ppfd_phy_price_formula_details ppfd,
-                 dipq_delivery_item_payable_qty dipq,
-                 pcm_physical_contract_main     pcm
-           where pci.internal_contract_item_ref_no =
-                 pcipf.internal_contract_item_ref_no
-             and pcipf.pcbph_id = pcbph.pcbph_id
-             and pcbph.pcbph_id = pcbpd.pcbph_id
-             and pcbpd.pcbpd_id = ppfh.pcbpd_id
-             and ppfh.ppfh_id = ppfd.ppfh_id
-             and pci.pcdi_id = pcdi.pcdi_id
-             and pcdi.pcdi_id = dipq.pcdi_id
-             and pcdi.internal_contract_ref_no =
-                 pcm.internal_contract_ref_no
-             and pci.dbd_id = pc_dbd_id
-             and pcdi.dbd_id = pc_dbd_id
-             and pcipf.dbd_id = pc_dbd_id
-             and pcbph.dbd_id = pc_dbd_id
-             and ppfh.dbd_id = pc_dbd_id
-             and ppfd.dbd_id = pc_dbd_id
-             and dipq.dbd_id = pc_dbd_id
-             and pcm.dbd_id = pc_dbd_id
-             and dipq.element_id = pcbpd.element_id
-             and pcdi.is_active = 'Y'
-             and dipq.price_option_call_off_status = 'Not Called Off'
-             and pcm.product_group_type = 'CONCENTRATES'
-             and pcm.is_active = 'Y'
-             and dipq.is_active = 'Y'
-             and pci.is_active = 'Y'
-             and pcipf.is_active = 'Y'
-             and pcbph.is_active = 'Y'
-             and pcbpd.is_active = 'Y'
-             and ppfh.is_active = 'Y'
-             and ppfd.is_active = 'Y'
-           group by pci.internal_contract_item_ref_no,
-                    ppfd.instrument_id,
-                    pcbpd.element_id,
-                    pci.pcdi_id) tt,
-         dim_der_instrument_master dim,
-         pdd_product_derivative_def pdd,
-         emt_exchangemaster emt
-   where tt.instrument_id = dim.instrument_id
-     and dim.product_derivative_id = pdd.derivative_def_id
-     and pdd.exchange_id = emt.exchange_id(+)
-   group by tt.internal_contract_item_ref_no,
-            tt.element_id,
-            tt.instrument_id,
-            dim.instrument_name,
-            pdd.derivative_def_id,
-            pdd.derivative_def_name,
-            emt.exchange_id,
-            emt.exchange_name,
-            tt.pcdi_id;
-    commit;
+  delete from cec_contract_exchange_child
+   where corporate_id = pc_corporate_id;
+  commit;
+  sp_write_log(pc_corporate_id,
+               pd_trade_date,
+               'Populate cec',
+               'Delete CEC_CONTRACT_EXCHANGE_CHILD');
+  insert into cec_contract_exchange_child
+    (corporate_id,
+     internal_contract_item_ref_no,
+     element_id,
+     instrument_id,
+     pcdi_id)
+    select /*+ ordered */
+           pc_corporate_id,
+           pci.internal_contract_item_ref_no,
+           poch.element_id,
+           ppfd.instrument_id,
+           pci.pcdi_id
+      from pci_physical_contract_item     pci,
+           pcdi_pc_delivery_item          pcdi,
+           poch_price_opt_call_off_header poch,
+           pocd_price_option_calloff_dtls pocd,
+           pcbpd_pc_base_price_detail     pcbpd,
+           ppfh_phy_price_formula_header  ppfh,
+           ppfd_phy_price_formula_details ppfd,
+           pcm_physical_contract_main     pcm
+     where pci.pcdi_id = pcdi.pcdi_id
+       and pcdi.pcdi_id = poch.pcdi_id
+       and poch.poch_id = pocd.poch_id
+       and pocd.pcbpd_id = pcbpd.pcbpd_id
+       and pcbpd.pcbpd_id = ppfh.pcbpd_id
+       and ppfh.ppfh_id = ppfd.ppfh_id
+       and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+       and pci.dbd_id = pc_dbd_id
+       and pcdi.dbd_id = pc_dbd_id
+       and pcbpd.dbd_id = pc_dbd_id
+       and ppfh.dbd_id = pc_dbd_id
+       and ppfd.dbd_id = pc_dbd_id
+       and pcm.dbd_id = pc_dbd_id
+       and pcm.is_active = 'Y'
+       and pci.is_active = 'Y'
+       and pcdi.is_active = 'Y'
+       and poch.is_active = 'Y'
+       and pocd.is_active = 'Y'
+       and pcbpd.is_active = 'Y'
+       and ppfh.is_active = 'Y'
+       and ppfd.is_active = 'Y'
+       and pcm.product_group_type = 'BASEMETAL'
+       and pcdi.price_option_call_off_status in
+           ('Called Off', 'Not Applicable')
+     group by pci.internal_contract_item_ref_no,
+              ppfd.instrument_id,
+              poch.element_id,
+              pci.pcdi_id;
+  commit;
+  sp_write_log(pc_corporate_id,
+               pd_trade_date,
+               'Populate cec',
+               'BM Called Off');
+  insert into cec_contract_exchange_child
+    (corporate_id,
+     internal_contract_item_ref_no,
+     element_id,
+     instrument_id,
+     pcdi_id)
+    select /*+ ordered */
+           pc_corporate_id,
+           pci.internal_contract_item_ref_no,
+           pcbpd.element_id,
+           ppfd.instrument_id,
+           pci.pcdi_id
+      from pci_physical_contract_item     pci,
+           pcdi_pc_delivery_item          pcdi,
+           pcipf_pci_pricing_formula      pcipf,
+           pcbph_pc_base_price_header     pcbph,
+           pcbpd_pc_base_price_detail     pcbpd,
+           ppfh_phy_price_formula_header  ppfh,
+           ppfd_phy_price_formula_details ppfd,
+           pcm_physical_contract_main     pcm
+     where pci.internal_contract_item_ref_no =
+           pcipf.internal_contract_item_ref_no
+       and pcipf.pcbph_id = pcbph.pcbph_id
+       and pcbph.pcbph_id = pcbpd.pcbph_id
+       and pcbpd.pcbpd_id = ppfh.pcbpd_id
+       and ppfh.ppfh_id = ppfd.ppfh_id
+       and pci.pcdi_id = pcdi.pcdi_id
+       and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+       and pci.dbd_id = pc_dbd_id
+       and pcdi.dbd_id = pc_dbd_id
+       and pcipf.dbd_id = pc_dbd_id
+       and pcbph.dbd_id = pc_dbd_id
+       and ppfh.dbd_id = pc_dbd_id
+       and ppfd.dbd_id = pc_dbd_id
+       and pcbpd.dbd_id = pc_dbd_id
+       and pcm.dbd_id = pc_dbd_id
+       and pcdi.is_active = 'Y'
+       and pcm.product_group_type = 'BASEMETAL'
+       and pcdi.price_option_call_off_status = 'Not Called Off'
+       and pci.is_active = 'Y'
+       and pcipf.is_active = 'Y'
+       and pcbph.is_active = 'Y'
+       and pcbpd.is_active = 'Y'
+       and ppfh.is_active = 'Y'
+       and ppfd.is_active = 'Y'
+     group by pci.internal_contract_item_ref_no,
+              ppfd.instrument_id,
+              pcbpd.element_id,
+              pci.pcdi_id;
+  commit;
+  sp_write_log(pc_corporate_id,
+               pd_trade_date,
+               'Populate cec',
+               'BM Not Called Off');
+  
+  
+  insert into cec_contract_exchange_child
+    (corporate_id,
+     internal_contract_item_ref_no,
+     element_id,
+     instrument_id,
+     pcdi_id)
+    select /*+ ordered */
+     pc_corporate_id,
+     pci.internal_contract_item_ref_no,
+     pcbpd.element_id,
+     ppfd.instrument_id,
+     pci.pcdi_id
+      from pci_physical_contract_item     pci,
+           pcdi_pc_delivery_item          pcdi,
+           poch_price_opt_call_off_header poch,
+           pocd_price_option_calloff_dtls pocd,
+           pcbpd_pc_base_price_detail     pcbpd,
+           ppfh_phy_price_formula_header  ppfh,
+           ppfd_phy_price_formula_details ppfd,
+           dipq_delivery_item_payable_qty dipq,
+           pcm_physical_contract_main     pcm
+     where pci.pcdi_id = pcdi.pcdi_id
+       and pcdi.pcdi_id = poch.pcdi_id
+       and poch.poch_id = pocd.poch_id
+       and pocd.pcbpd_id = pcbpd.pcbpd_id
+       and pcbpd.pcbpd_id = ppfh.pcbpd_id
+       and ppfh.ppfh_id = ppfd.ppfh_id
+       and pcdi.pcdi_id = dipq.pcdi_id
+       and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+       and pci.dbd_id = pc_dbd_id
+       and pcdi.dbd_id = pc_dbd_id
+       and pcbpd.dbd_id = pc_dbd_id
+       and ppfh.dbd_id = pc_dbd_id
+       and ppfd.dbd_id = pc_dbd_id
+       and dipq.dbd_id = pc_dbd_id
+       and pcbpd.dbd_id = pc_dbd_id
+       and pcm.dbd_id = pc_dbd_id
+       and dipq.element_id = pcbpd.element_id
+       and pcdi.is_active = 'Y'
+       and dipq.price_option_call_off_status in
+           ('Called Off', 'Not Applicable')
+       and pcm.product_group_type = 'CONCENTRATES'
+       and pcm.is_active = 'Y'
+       and dipq.is_active = 'Y'
+       and pci.is_active = 'Y'
+       and pcbpd.is_active = 'Y'
+       and poch.is_active = 'Y'
+       and pocd.is_active = 'Y'
+       and ppfh.is_active = 'Y'
+       and ppfd.is_active = 'Y'
+     group by pci.internal_contract_item_ref_no,
+              ppfd.instrument_id,
+              pcbpd.element_id,
+              pci.pcdi_id;
+
+  commit;
+  sp_write_log(pc_corporate_id,
+               pd_trade_date,
+               'Populate cec',
+               'Concentrates Called Off');
+  
+  
+  insert into cec_contract_exchange_child
+    (corporate_id,
+     internal_contract_item_ref_no,
+     element_id,
+     instrument_id,
+     pcdi_id)
+    select /*+ ordered */
+     pc_corporate_id,
+     pci.internal_contract_item_ref_no,
+     pcbpd.element_id,
+     ppfd.instrument_id,
+     pci.pcdi_id
+      from pci_physical_contract_item     pci,
+           pcdi_pc_delivery_item          pcdi,
+           pcipf_pci_pricing_formula      pcipf,
+           pcbph_pc_base_price_header     pcbph,
+           pcbpd_pc_base_price_detail     pcbpd,
+           ppfh_phy_price_formula_header  ppfh,
+           ppfd_phy_price_formula_details ppfd,
+           dipq_delivery_item_payable_qty dipq,
+           pcm_physical_contract_main     pcm
+     where pci.internal_contract_item_ref_no =
+           pcipf.internal_contract_item_ref_no
+       and pcipf.pcbph_id = pcbph.pcbph_id
+       and pcbph.pcbph_id = pcbpd.pcbph_id
+       and pcbpd.pcbpd_id = ppfh.pcbpd_id
+       and ppfh.ppfh_id = ppfd.ppfh_id
+       and pci.pcdi_id = pcdi.pcdi_id
+       and pcdi.pcdi_id = dipq.pcdi_id
+       and pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+       and pci.dbd_id = pc_dbd_id
+       and pcdi.dbd_id = pc_dbd_id
+       and pcipf.dbd_id = pc_dbd_id
+       and pcbph.dbd_id = pc_dbd_id
+       and ppfh.dbd_id = pc_dbd_id
+       and ppfd.dbd_id = pc_dbd_id
+       and dipq.dbd_id = pc_dbd_id
+       and pcm.dbd_id = pc_dbd_id
+       and dipq.element_id = pcbpd.element_id
+       and pcdi.is_active = 'Y'
+       and dipq.price_option_call_off_status = 'Not Called Off'
+       and pcm.product_group_type = 'CONCENTRATES'
+       and pcm.is_active = 'Y'
+       and dipq.is_active = 'Y'
+       and pci.is_active = 'Y'
+       and pcipf.is_active = 'Y'
+       and pcbph.is_active = 'Y'
+       and pcbpd.is_active = 'Y'
+       and ppfh.is_active = 'Y'
+       and ppfd.is_active = 'Y'
+     group by pci.internal_contract_item_ref_no,
+              ppfd.instrument_id,
+              pcbpd.element_id,
+              pci.pcdi_id;
+  commit;
+  sp_write_log(pc_corporate_id,
+               pd_trade_date,
+               'Populate cec',
+               'Concentrates Not Called Off');
+
+  insert into ced_contract_exchange_detail
+    (corporate_id,
+     internal_contract_item_ref_no,
+     pcdi_id,
+     element_id,
+     instrument_id,
+     instrument_name,
+     derivative_def_id,
+     derivative_def_name,
+     exchange_id,
+     exchange_name)
+    select pc_corporate_id,
+           tt.internal_contract_item_ref_no,
+           tt.pcdi_id,
+           tt.element_id,
+           tt.instrument_id,
+           dim.instrument_name,
+           pdd.derivative_def_id,
+           pdd.derivative_def_name,
+           emt.exchange_id,
+           emt.exchange_name
+      from (select internal_contract_item_ref_no,
+                   element_id,
+                   instrument_id,
+                   pcdi_id
+              from cec_contract_exchange_child
+             where corporate_id = pc_corporate_id) tt,
+           dim_der_instrument_master dim,
+           pdd_product_derivative_def pdd,
+           emt_exchangemaster emt
+     where tt.instrument_id = dim.instrument_id
+       and dim.product_derivative_id = pdd.derivative_def_id
+       and pdd.exchange_id = emt.exchange_id(+)
+     group by tt.internal_contract_item_ref_no,
+              tt.element_id,
+              tt.instrument_id,
+              dim.instrument_name,
+              pdd.derivative_def_id,
+              pdd.derivative_def_name,
+              emt.exchange_id,
+              emt.exchange_name,
+              tt.pcdi_id;
+  commit;
+  sp_write_log(pc_corporate_id,
+               pd_trade_date,
+               'Populate cec',
+               'End of CED Population');
 gvn_log_counter := gvn_log_counter + 1;
 sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,

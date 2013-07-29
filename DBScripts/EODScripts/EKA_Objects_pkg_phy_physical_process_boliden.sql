@@ -3837,10 +3837,6 @@ create or replace package body pkg_phy_physical_process is
      where dbd_id = vc_dbd_id;
     delete from page_price_alloc_gmr_exchange
      where process_id = pc_process_id;
-    delete from ped_penalty_element_details
-     where process_id = pc_process_id;
-    delete from ped_penalty_element_details
-     where process_id = pc_process_id;
     delete from getc_gmr_element_tc_charges
      where process_id = pc_process_id;
     delete from gepc_gmr_element_pc_charges
@@ -3966,5 +3962,5 @@ create or replace package body pkg_phy_physical_process is
     sp_gather_stats('rgmr_realized_gmr');
   end;
 
-end;
+end pkg_phy_physical_process;
 /
