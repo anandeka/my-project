@@ -78,20 +78,17 @@ create or replace package pkg_phy_eod_reports is
   procedure sp_calc_treatment_charge(pc_corporate_id varchar2,
                                      pd_trade_date   date,
                                      pc_process_id   varchar2,
-                                     pc_process      varchar2,
-                                     pc_dbd_id       varchar2);
+                                     pc_process      varchar2);
 
   procedure sp_calc_refining_charge(pc_corporate_id varchar2,
                                     pd_trade_date   date,
                                     pc_process_id   varchar2,
-                                    pc_process      varchar2,
-                                    pc_dbd_id       varchar2);
+                                    pc_process      varchar2);
 
   procedure sp_calc_penalty_charge(pc_corporate_id varchar2,
                                    pd_trade_date   date,
                                    pc_process_id   varchar2,
-                                   pc_process      varchar2,
-                                   pc_dbd_id       varchar2);
+                                   pc_process      varchar2);
 
   procedure sp_delta_updates(pc_corporate_id varchar2,
                              pd_trade_date   date,
@@ -1674,15 +1671,12 @@ create or replace package body pkg_phy_eod_reports is
        ash_id,
        is_afloat,
        is_pledge,
-       no_of_bags,
        internal_contract_ref_no,
        is_wns_created,
        is_invoiced,
        is_apply_container_charge,
        is_apply_freight_allowance,
        latest_internal_invoice_ref_no,
-       no_of_sublots,
-       shipped_qty,
        gmr_qty_unit_id,
        grd_to_gmr_qty_factor,
        warehouse_profile_id,
@@ -1725,15 +1719,12 @@ create or replace package body pkg_phy_eod_reports is
              spq.weg_avg_pricing_assay_id,
              grd.is_afloat,
              'N', -- This is Not Pledge Section Data
-             nvl(grd.no_of_bags, 0) no_of_bags,
              gmr.internal_contract_ref_no,
              decode(gmr.wns_status, 'Completed', 'Y', 'N') is_wns_created,
              nvl(gmr.is_provisional_invoiced, 'N') is_invoiced,
              nvl(gmr.is_apply_container_charge, 'N'),
              nvl(gmr.is_apply_freight_allowance, 'N'),
              gmr.latest_internal_invoice_ref_no,
-             0,
-             nvl(gmr.shipped_qty, 0),
              gmr.qty_unit_id,
              1,
              gmr.warehouse_profile_id,
@@ -1806,15 +1797,12 @@ create or replace package body pkg_phy_eod_reports is
        ash_id,
        is_afloat,
        is_pledge,
-       no_of_bags,
        internal_contract_ref_no,
        is_wns_created,
        is_invoiced,
        is_apply_container_charge,
        is_apply_freight_allowance,
        latest_internal_invoice_ref_no,
-       no_of_sublots,
-       shipped_qty,
        gmr_qty_unit_id,
        grd_to_gmr_qty_factor,
        warehouse_profile_id,
@@ -1857,15 +1845,12 @@ create or replace package body pkg_phy_eod_reports is
              spq.weg_avg_pricing_assay_id,
              dgrd.is_afloat,
              'N', -- This is Not Pledge Section Data
-             nvl(dgrd.no_of_bags, 0) no_of_bags,
              gmr.internal_contract_ref_no,
              decode(gmr.wns_status, 'Completed', 'Y', 'N') is_wns_created,
              nvl(gmr.is_provisional_invoiced, 'N') is_invoiced,
              nvl(gmr.is_apply_container_charge, 'N'),
              nvl(gmr.is_apply_freight_allowance, 'N'),
              gmr.latest_internal_invoice_ref_no,
-             0,
-             nvl(gmr.shipped_qty, 0),
              gmr.qty_unit_id,
              1,
              gmr.warehouse_profile_id,
@@ -1972,13 +1957,12 @@ create or replace package body pkg_phy_eod_reports is
        ash_id,
        is_afloat,
        is_pledge,
-       no_of_sublots,
-       shipped_qty,
        gmr_qty_unit_id,
        grd_to_gmr_qty_factor,
        warehouse_profile_id,
        warehouse_name)
-      select gmr.internal_gmr_ref_no,
+      select /*+ ordered */
+             gmr.internal_gmr_ref_no,
              grd.internal_grd_ref_no,
              gmr.gmr_ref_no,
              grd.product_id,
@@ -2028,8 +2012,6 @@ create or replace package body pkg_phy_eod_reports is
              grd.weg_avg_pricing_assay_id,
              grd.is_afloat,
              'N', -- This is Not Pledge Section Data
-             0,
-             gmr.shipped_qty,
              gmr.qty_unit_id,
              1,
              gmr.warehouse_profile_id,
@@ -2126,8 +2108,6 @@ create or replace package body pkg_phy_eod_reports is
        ash_id,
        is_afloat,
        is_pledge,
-       no_of_sublots,
-       shipped_qty,
        gmr_qty_unit_id,
        grd_to_gmr_qty_factor,
        warehouse_profile_id,
@@ -2182,8 +2162,6 @@ create or replace package body pkg_phy_eod_reports is
              dgrd.weg_avg_pricing_assay_id,
              dgrd.is_afloat,
              'N', -- This is Not Pledge Section Data
-             0,
-             gmr.shipped_qty,
              gmr.qty_unit_id,
              1,
              gmr.warehouse_profile_id,
@@ -2464,7 +2442,7 @@ create or replace package body pkg_phy_eod_reports is
                           pd_trade_date,
                           pc_process_id,
                           vn_log_counter,
-                          'Insert patd_pa_temp_data  3 over Sales And Other Charge Calculation Start');
+                          'Insert patd_pa_temp_data 3 over Sales');
     --
     -- Call Other Charges Calcualtion
     --
@@ -4499,15 +4477,12 @@ sp_phy_purchase_accural_bm(pc_corporate_id ,
        ash_id,
        is_afloat,
        is_pledge,
-       no_of_bags,
        internal_contract_ref_no,
        is_wns_created,
        is_invoiced,
        is_apply_container_charge,
        is_apply_freight_allowance,
        latest_internal_invoice_ref_no,
-       no_of_sublots,
-       shipped_qty,
        gmr_qty_unit_id,
        grd_to_gmr_qty_factor,
        trade_type,
@@ -4551,15 +4526,12 @@ sp_phy_purchase_accural_bm(pc_corporate_id ,
              null weg_avg_pricing_assay_id,
              grd.is_afloat,
              'N', -- This is Not Pledge Section Data
-             nvl(grd.no_of_bags, 0) no_of_bags,
              gmr.internal_contract_ref_no,
              decode(gmr.wns_status, 'Completed', 'Y', 'N') is_wns_created,
              nvl(gmr.is_provisional_invoiced, 'N') is_invoiced,
              nvl(gmr.is_apply_container_charge, 'N'),
              nvl(gmr.is_apply_freight_allowance, 'N'),
              gmr.latest_internal_invoice_ref_no,
-             0,
-             nvl(gmr.shipped_qty, 0),
              gmr.qty_unit_id,
              1,
              'Base Metal',
@@ -4624,15 +4596,12 @@ sp_phy_purchase_accural_bm(pc_corporate_id ,
        ash_id,
        is_afloat,
        is_pledge,
-       no_of_bags,
        internal_contract_ref_no,
        is_wns_created,
        is_invoiced,
        is_apply_container_charge,
        is_apply_freight_allowance,
        latest_internal_invoice_ref_no,
-       no_of_sublots,
-       shipped_qty,
        gmr_qty_unit_id,
        grd_to_gmr_qty_factor,
        trade_type,
@@ -4676,15 +4645,12 @@ sp_phy_purchase_accural_bm(pc_corporate_id ,
              null weg_avg_pricing_assay_id,
              dgrd.is_afloat,
              'N', -- This is Not Pledge Section Data
-             nvl(dgrd.no_of_bags, 0) no_of_bags,
              gmr.internal_contract_ref_no,
              decode(gmr.wns_status, 'Completed', 'Y', 'N') is_wns_created,
              nvl(gmr.is_provisional_invoiced, 'N') is_invoiced,
              nvl(gmr.is_apply_container_charge, 'N'),
              nvl(gmr.is_apply_freight_allowance, 'N'),
              gmr.latest_internal_invoice_ref_no,
-             0,
-             nvl(gmr.shipped_qty, 0),
              gmr.qty_unit_id,
              1,
              'Base Metal',
@@ -7642,14 +7608,13 @@ begin
                                   group by isr1.contract_price_unit_cur_id,
                                            isr1.base_cur_id)
   loop
-  
-    select pkg_general.f_get_converted_currency_amt(pc_corporate_id,
-                                                    cur_price_to_base_rate.contract_price_unit_cur_id,
-                                                    cur_price_to_base_rate.base_cur_id,
-                                                    pd_trade_date,
-                                                    1)
+    select cet.exch_rate
       into vn_exch_rate
-      from dual;
+      from cet_corporate_exch_rate cet
+     where cet.corporate_id = pc_corporate_id
+       and cet.from_cur_id =
+           cur_price_to_base_rate.contract_price_unit_cur_id
+       and cet.to_cur_id = cur_price_to_base_rate.base_cur_id;
     update isr1_isr_inventory isr1
        set isr1.price_to_base_exch_rate = vn_exch_rate
      where isr1.contract_price_unit_cur_id =
@@ -7669,13 +7634,12 @@ begin
                                  group by isr1.loading_country_cur_id,
                                           isr1.base_cur_id)
   loop
-    select pkg_general.f_get_converted_currency_amt(pc_corporate_id,
-                                                    cur_load_to_base_rate.base_cur_id,
-                                                    cur_load_to_base_rate.loading_country_cur_id,
-                                                    pd_trade_date,
-                                                    1)
-      into vn_exch_rate
-      from dual;
+  select cet.exch_rate
+    into vn_exch_rate
+    from cet_corporate_exch_rate cet
+   where cet.corporate_id = pc_corporate_id
+     and cet.from_cur_id = cur_load_to_base_rate.base_cur_id
+     and cet.to_cur_id = cur_load_to_base_rate.loading_country_cur_id;
     update isr1_isr_inventory isr1
        set isr1.base_to_load_country_ex_rate = vn_exch_rate
      where isr1.loading_country_cur_id =
@@ -7695,13 +7659,12 @@ begin
                                 group by isr1.discharge_country_cur_id,
                                          isr1.base_cur_id)
   loop
-    select pkg_general.f_get_converted_currency_amt(pc_corporate_id,
-                                                    cur_dis_to_base_rate.base_cur_id,
-                                                    cur_dis_to_base_rate.discharge_country_cur_id,
-                                                    pd_trade_date,
-                                                    1)
-      into vn_exch_rate
-      from dual;
+  select cet.exch_rate
+    into vn_exch_rate
+    from cet_corporate_exch_rate cet
+   where cet.corporate_id = pc_corporate_id
+     and cet.from_cur_id = cur_dis_to_base_rate.base_cur_id
+     and cet.to_cur_id = cur_dis_to_base_rate.discharge_country_cur_id;
     update isr1_isr_inventory isr1
        set isr1.base_to_disc_country_ex_rate = vn_exch_rate
      where isr1.discharge_country_cur_id =
@@ -8058,7 +8021,8 @@ begin
      is_new_shipment,        
      is_new_landing,
      purchase_sales )
-    select pc_process_id process_id,
+    select /*+ ordered */
+           pc_process_id process_id,
            'Concentrates',
            gmr.corporate_id,
            spq.element_id,
@@ -8409,13 +8373,12 @@ begin
                                  group by isr2.loading_country_cur_id,
                                           isr2.base_cur_id)
   loop
-    select pkg_general.f_get_converted_currency_amt(pc_corporate_id,
-                                                    cur_load_to_base_rate.base_cur_id,
-                                                    cur_load_to_base_rate.loading_country_cur_id,
-                                                    pd_trade_date,
-                                                    1)
-      into vn_exch_rate
-      from dual;
+  select cet.exch_rate
+    into vn_exch_rate
+    from cet_corporate_exch_rate cet
+   where cet.corporate_id = pc_corporate_id
+     and cet.from_cur_id = cur_load_to_base_rate.base_cur_id
+     and cet.to_cur_id = cur_load_to_base_rate.loading_country_cur_id;
     update isr2_isr_invoice isr2
        set isr2.base_to_load_country_ex_rate = vn_exch_rate
      where isr2.loading_country_cur_id =
@@ -8435,13 +8398,12 @@ begin
                                 group by isr2.dischagre_country_cur_id,
                                          isr2.base_cur_id)
   loop
-    select pkg_general.f_get_converted_currency_amt(pc_corporate_id,
-                                                    cur_dis_to_base_rate.base_cur_id,
-                                                    cur_dis_to_base_rate.dischagre_country_cur_id,
-                                                    pd_trade_date,
-                                                    1)
-      into vn_exch_rate
-      from dual;
+  select cet.exch_rate
+    into vn_exch_rate
+    from cet_corporate_exch_rate cet
+   where cet.corporate_id = pc_corporate_id
+     and cet.from_cur_id = cur_dis_to_base_rate.base_cur_id
+     and cet.to_cur_id = cur_dis_to_base_rate.dischagre_country_cur_id;
     update isr2_isr_invoice isr2
        set isr2.base_to_disc_country_ex_rate = vn_exch_rate
      where isr2.dischagre_country_cur_id =
@@ -8460,13 +8422,12 @@ begin
                              group by isr2.invoice_cur_id,
                                       isr2.base_cur_id)
   loop
-    select pkg_general.f_get_converted_currency_amt(pc_corporate_id,
-                                                    cur_inv_exch_rate.invoice_cur_id,
-                                                    cur_inv_exch_rate.base_cur_id,
-                                                    pd_trade_date,
-                                                    1)
-      into vn_exch_rate
-      from dual;
+  select cet.exch_rate
+    into vn_exch_rate
+    from cet_corporate_exch_rate cet
+   where cet.corporate_id = pc_corporate_id
+     and cet.from_cur_id = cur_inv_exch_rate.invoice_cur_id
+     and cet.to_cur_id = cur_inv_exch_rate.base_cur_id;
     update isr2_isr_invoice isr2
        set isr2.invoice_to_base_ex_rate = vn_exch_rate
      where isr2.process_id = pc_process_id
@@ -9036,7 +8997,8 @@ insert into tcs1_temp_cs_payable
    instrument_id,
    underlying_product_id)
 --Tolling P and S and Concentrates P contracts
-select pc_corporate_id,
+select /*+ ordered */ 
+         pc_corporate_id,
          gmr.internal_contract_ref_no,
          spq.element_id,
          sum(spq.payable_qty) landed_qty,
@@ -9100,7 +9062,8 @@ insert into tcs1_temp_cs_payable
    instrument_id,
    underlying_product_id)
 --Concentrates S contracts
-select pc_corporate_id,
+select   /*+ ordered */ 
+         pc_corporate_id,
          gmr.internal_contract_ref_no,
          spq.element_id,
          sum(spq.payable_qty) landed_qty,
@@ -9163,7 +9126,7 @@ insert into tcs1_temp_cs_payable
    pcdi_id,
    instrument_id)
 --Base Metals P contracts
-select pc_corporate_id,
+select   pc_corporate_id,
          gmr.internal_contract_ref_no,
          null element_id,
          sum(grd.qty) landed_qty,
@@ -13048,7 +13011,8 @@ insert into temp_mas
    qty_unit,
    internal_gmr_ref_no,
    gmr_ref_no)
-  select pc_process_id,
+  select /*+ ordered */ 
+         pc_process_id,
          gmr.corporate_id,
          akc.corporate_name,
          'Raw Material Stock IM Existing Stock',
@@ -13162,7 +13126,7 @@ insert into temp_mas
    qty_unit,
    internal_gmr_ref_no,
    gmr_ref_no)
-  select pc_process_id,
+  select /*+ ordered */ pc_process_id,
          gmr.corporate_id,
          akc.corporate_name,
          'In Process Stock' query_section_name,
@@ -13263,7 +13227,8 @@ insert into temp_mas
    qty_unit,
    internal_gmr_ref_no,
    gmr_ref_no)
-  select pc_process_id,
+  select /*+ ordered */ 
+         pc_process_id,
          gmr.corporate_id,
          akc.corporate_name,
          'Finished Stock Conc New',
@@ -16801,7 +16766,8 @@ insert into tgi_temp_gmr_invoice
            nvl(sum(tc_amt), 0) tc_amt,
            nvl(sum(rc_amt), 0),
            nvl(sum(penalty_amt), 0)
-      from (select gmr.internal_gmr_ref_no,
+      from (select /*+ ordered */
+                   gmr.internal_gmr_ref_no,
                    intc.internal_invoice_ref_no,
                    intc.element_id,
                    sum(tcharges_amount) tc_amt,
@@ -16820,7 +16786,8 @@ insert into tgi_temp_gmr_invoice
                       intc.internal_invoice_ref_no,
                       intc.element_id
             union all
-            select gmr.internal_gmr_ref_no,
+            select /*+ ordered */
+                   gmr.internal_gmr_ref_no,
                    inrc.internal_invoice_ref_no,
                    inrc.element_id,
                    0 tc_amt,
@@ -16839,7 +16806,8 @@ insert into tgi_temp_gmr_invoice
                       inrc.element_id,
                       inrc.internal_invoice_ref_no
             union all
-            select gmr.internal_gmr_ref_no,
+            select /*+ ordered */
+                   gmr.internal_gmr_ref_no,
                    iepd.internal_invoice_ref_no,
                    iepd.element_id,
                    0 tc_amt,
@@ -16878,7 +16846,8 @@ insert into tgi_temp_gmr_invoice
            nvl(sum(tc_amt), 0) tc_amt,
            nvl(sum(rc_amt), 0),
            nvl(sum(penalty_amt), 0)
-      from (select gmr.internal_gmr_ref_no,
+      from (select /*+ ordered */
+                   gmr.internal_gmr_ref_no,
                    intc.internal_invoice_ref_no,
                    intc.element_id,
                    sum(tcharges_amount) tc_amt,
@@ -16897,7 +16866,8 @@ insert into tgi_temp_gmr_invoice
                       intc.internal_invoice_ref_no,
                       intc.element_id
             union all
-            select gmr.internal_gmr_ref_no,
+            select /*+ ordered */
+                   gmr.internal_gmr_ref_no,
                    inrc.internal_invoice_ref_no,
                    inrc.element_id,
                    0 tc_amt,
@@ -16916,7 +16886,8 @@ insert into tgi_temp_gmr_invoice
                       inrc.element_id,
                       inrc.internal_invoice_ref_no
             union all
-            select gmr.internal_gmr_ref_no,
+            select /*+ ordered */
+                   gmr.internal_gmr_ref_no,
                    iepd.internal_invoice_ref_no,
                    iepd.element_id,
                    0 tc_amt,
@@ -17541,7 +17512,7 @@ gvn_log_counter := gvn_log_counter + 1;
                         pd_trade_date,
                         pc_process_id,
                         gvn_log_counter,
-                        'Penalty For Sales Over');                    
+                        'Payable For Sales Over');                    
 --
 -- Penalty Data for Concentrate Sales
 --               
@@ -22387,7 +22358,7 @@ update cbt_cb_temp ct
                         pd_trade_date,
                         pc_process_id,
                         gvn_log_counter,
-                        'CB update CBT_CB_TEMP parent_internal_gmr_ref_no end');
+                        'CB Update CBT parent_internal_gmr_ref_no end');
 
   --
   -- all supplier stocks payable elements
@@ -23246,8 +23217,7 @@ end;
 procedure sp_calc_treatment_charge(pc_corporate_id varchar2,
                                    pd_trade_date   date,
                                    pc_process_id   varchar2,
-                                   pc_process      varchar2,
-                                   pc_dbd_id       varchar2) is
+                                   pc_process      varchar2) is
   vobj_error_log               tableofpelerrorlog := tableofpelerrorlog();
   vn_eel_error_count           number := 1;
   vn_treatment_charge          number;
@@ -23300,15 +23270,15 @@ begin
               where ash.ash_id = asm.ash_id
                 and asm.asm_id = pqca.asm_id
                 and aml.attribute_id = pqca.element_id
-                and grd.dbd_id = pc_dbd_id
-                and pci.dbd_id = pc_dbd_id
+                and grd.process_id = pc_process_id
+                and pci.process_id = pc_process_id
                 and grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                and gmr.dbd_id = pc_dbd_id
+                and gmr.process_id = pc_process_id
                 and grd.internal_contract_item_ref_no =
                     pci.internal_contract_item_ref_no
                 and spq.internal_grd_ref_no = grd.internal_grd_ref_no
                 and ash.ash_id = spq.weg_avg_pricing_assay_id
-                and spq.dbd_id = pc_dbd_id
+                and spq.process_id = pc_process_id
                 and grd.is_deleted = 'N'
                 and grd.status = 'Active'
                 and spq.is_active = 'Y'
@@ -23324,11 +23294,11 @@ begin
                         and pcth.pcth_id = pcetc.pcth_id
                         and pcth.pcth_id = tqd.pcth_id
                         and tqd.pcpq_id = pci.pcpq_id
-                        and pcth.dbd_id = pc_dbd_id
-                        and red.dbd_id = pc_dbd_id
-                        and pcetc.dbd_id = pc_dbd_id
-                        and tqd.dbd_id = pc_dbd_id
-                        and gth.dbd_id = pc_dbd_id
+                        and pcth.process_id = pc_process_id
+                        and red.process_id = pc_process_id
+                        and pcetc.process_id = pc_process_id
+                        and tqd.process_id = pc_process_id
+                        and gth.process_id = pc_process_id
                         and red.element_id = pqca.element_id
                         and gth.internal_gmr_ref_no = grd.internal_gmr_ref_no
                         and gth.pcth_id = pcth.pcth_id
@@ -23361,16 +23331,16 @@ begin
               where ash.ash_id = asm.ash_id
                 and asm.asm_id = pqca.asm_id
                 and aml.attribute_id = pqca.element_id
-                and dgrd.dbd_id = pc_dbd_id
-                and pci.dbd_id = pc_dbd_id
+                and dgrd.process_id = pc_process_id
+                and pci.process_id = pc_process_id
                 and dgrd.internal_contract_item_ref_no =
                     pci.internal_contract_item_ref_no
                 and ash.ash_id = spq.weg_avg_pricing_assay_id
-                and spq.dbd_id = pc_dbd_id
+                and spq.process_id = pc_process_id
                 and spq.element_id = aml.attribute_id
                 and dgrd.status = 'Active'
                 and dgrd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                and gmr.dbd_id = pc_dbd_id
+                and gmr.process_id = pc_process_id
                 and dgrd.internal_dgrd_ref_no = spq.internal_dgrd_ref_no
                 and dgrd.internal_gmr_ref_no = spq.internal_gmr_ref_no
                 and spq.is_active = 'Y'
@@ -23384,11 +23354,11 @@ begin
                         and pcth.pcth_id = pcetc.pcth_id
                         and pcth.pcth_id = tqd.pcth_id
                         and tqd.pcpq_id = pci.pcpq_id
-                        and pcth.dbd_id = pc_dbd_id
-                        and red.dbd_id = pc_dbd_id
-                        and pcetc.dbd_id = pc_dbd_id
-                        and tqd.dbd_id = pc_dbd_id
-                        and gth.dbd_id = pc_dbd_id
+                        and pcth.process_id = pc_process_id
+                        and red.process_id = pc_process_id
+                        and pcetc.process_id = pc_process_id
+                        and tqd.process_id = pc_process_id
+                        and gth.process_id = pc_process_id
                         and red.element_id = pqca.element_id
                         and gth.internal_gmr_ref_no =
                             dgrd.internal_gmr_ref_no
@@ -23468,11 +23438,11 @@ begin
                                  and pcth.pcth_id = pcetc.pcth_id
                                  and pcth.pcth_id = tqd.pcth_id
                                  and tqd.pcpq_id = cc.pcpq_id
-                                 and pcth.dbd_id = pc_dbd_id
-                                 and red.dbd_id = pc_dbd_id
-                                 and pcetc.dbd_id = pc_dbd_id
-                                 and tqd.dbd_id = pc_dbd_id
-                                 and gth.dbd_id = pc_dbd_id
+                                 and pcth.process_id = pc_process_id
+                                 and red.process_id = pc_process_id
+                                 and pcetc.process_id = pc_process_id
+                                 and tqd.process_id = pc_process_id
+                                 and gth.process_id = pc_process_id
                                  and red.element_id = cc.element_id
                                  and pcetc.treatment_charge_unit_id =
                                      ppu.internal_price_unit_id
@@ -23489,13 +23459,22 @@ begin
                               -- Then we have to add it,
                               -- For Price Range , Variable we are existing, let this record
                               -- come at end after assay range calcualtion is over
-                               order by pcth.range_type 
-                              
-                              )
+                               order by pcth.range_type,pcetc.position )
       loop
         vc_cur_id            := cur_tret_charge.cur_id;
         vc_price_unit_id     := cur_tret_charge.price_unit_id;
-        vc_tc_weight_unit_id := cur_tret_charge.weight_unit_id;
+        --
+        -- TC Charge Price Unit should be taken from Range Type = Base or Range Type = Null(Assay Range)
+        -- App is storing Price Unit of Price and Not Price Unit of TC Charge
+        -- Where is the correct data present?
+        -- 1)When Assay Range Use it
+        -- 2) Price Range Range, use from Base
+        -- 3) When Assay and Price Range use from Assay Range
+        -- Data sorted to mee this condition already
+        --
+        If vc_tc_weight_unit_id is null then
+           vc_tc_weight_unit_id := cur_tret_charge.weight_unit_id;
+        end if;
         vc_weight_type       := cur_tret_charge.weight_type;
         if vc_range_type is null or vc_range_type=cur_tret_charge.range_type then
         vc_range_type        := cur_tret_charge.range_type;
@@ -23563,7 +23542,7 @@ begin
                  and pcetc.is_active = 'Y'
                  and pcetc.position = 'Base'
                  and pcetc.charge_type = 'Variable'
-                 and pcetc.dbd_id = pc_dbd_id;
+                 and pcetc.process_id = pc_process_id;
             exception
               when no_data_found then
                 vn_max_range        := 0;
@@ -23599,7 +23578,7 @@ begin
                                            and nvl(pcetc.position, 'a') <>
                                                'Base'
                                            and pcetc.is_active = 'Y'
-                                           and pcetc.dbd_id = pc_dbd_id
+                                           and pcetc.process_id = pc_process_id
                                          order by pcetc.range_max_value asc nulls last)
               loop
                 -- if price is in the range take diff of price and max range
@@ -23654,7 +23633,7 @@ begin
                                             and nvl(pcetc.position, 'a') <>
                                                 'Base'
                                             and pcetc.is_active = 'Y'
-                                            and pcetc.dbd_id = pc_dbd_id
+                                            and pcetc.process_id = pc_process_id
                                           order by pcetc.range_min_value desc nulls last)
               loop
                 -- if price is in the range take diff of price and max range
@@ -23810,6 +23789,7 @@ begin
        cc.grd_dry_qty,
        cc.grd_qty_unit_id,
        cc.pay_cur_decimals);
+       vc_tc_weight_unit_id :=null;
     vn_commit_count := vn_commit_count + 1;
     if vn_commit_count >= 500 then
       vn_commit_count := 0;
@@ -23898,12 +23878,10 @@ exception
     commit;
 end;
 
-
 procedure sp_calc_refining_charge(pc_corporate_id varchar2,
                                   pd_trade_date   date,
                                   pc_process_id   varchar2,
-                                  pc_process      varchar2,
-                                  pc_dbd_id       varchar2) is
+                                  pc_process      varchar2) is
   vobj_error_log               tableofpelerrorlog := tableofpelerrorlog();
   vn_eel_error_count           number := 1;
   vn_refine_charge             number;
@@ -23928,7 +23906,7 @@ procedure sp_calc_refining_charge(pc_corporate_id varchar2,
   vn_weight_conv_factor        number;
   vc_add_now                   varchar2(1) := 'N'; -- Set to Y for Fixed when it falls in the slab range
   vn_total_refine_charge       number := 0;
-  vc_range_type                varchar2(20); 
+  vc_range_type                varchar2(20);
 begin
   --Get the Charge Details 
   for cc in (select gmr.internal_gmr_ref_no,
@@ -23943,15 +23921,15 @@ begin
                     aml.attribute_name element_name,
                     spq.payable_qty,
                     spq.qty_unit_id payable_qty_unit_id,
-                    nvl(gmr.invoice_cur_decimals,2) pay_cur_decimals
-               from process_gmr   gmr,
-                    process_grd     grd,
+                    nvl(gmr.invoice_cur_decimals, 2) pay_cur_decimals
+               from process_gmr                 gmr,
+                    process_grd                 grd,
                     ash_assay_header            ash,
                     asm_assay_sublot_mapping    asm,
                     pqca_pq_chemical_attributes pqca,
                     aml_attribute_master_list   aml,
                     pci_physical_contract_item  pci,
-                    process_spq       spq
+                    process_spq                 spq
               where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
                 and grd.internal_grd_ref_no = spq.internal_grd_ref_no
                 and grd.internal_gmr_ref_no = spq.internal_gmr_ref_no
@@ -23961,10 +23939,10 @@ begin
                 and asm.asm_id = pqca.asm_id
                 and aml.attribute_id = pqca.element_id
                 and pqca.element_id = spq.element_id
-                and gmr.dbd_id = pc_dbd_id
-                and grd.dbd_id = pc_dbd_id
-                and pci.dbd_id = pc_dbd_id
-                and spq.dbd_id = pc_dbd_id             
+                and gmr.process_id = pc_process_id
+                and grd.process_id = pc_process_id
+                and pci.process_id = pc_process_id
+                and spq.process_id = pc_process_id
                 and grd.internal_contract_item_ref_no =
                     pci.internal_contract_item_ref_no
                 and exists
@@ -23980,18 +23958,18 @@ begin
                         and grh.internal_gmr_ref_no = grd.internal_gmr_ref_no
                         and grh.pcrh_id = pcrh.pcrh_id
                         and rqd.pcpq_id = pci.pcpq_id
-                        and pcrh.dbd_id = pc_dbd_id
-                        and red.dbd_id = pc_dbd_id
-                        and pcerc.dbd_id = pc_dbd_id
-                        and rqd.dbd_id = pc_dbd_id
-                        and grh.dbd_id = pc_dbd_id
+                        and pcrh.process_id = pc_process_id
+                        and red.process_id = pc_process_id
+                        and pcerc.process_id = pc_process_id
+                        and rqd.process_id = pc_process_id
+                        and grh.process_id = pc_process_id
                         and red.element_id = pqca.element_id
                         and pcerc.is_active = 'Y'
                         and pcrh.is_active = 'Y'
                         and red.is_active = 'Y'
                         and rqd.is_active = 'Y'
                         and grh.is_active = 'Y')
-             union 
+             union
              select gmr.internal_gmr_ref_no,
                     dgrd.internal_dgrd_ref_no,
                     gmr.internal_contract_ref_no,
@@ -24004,18 +23982,18 @@ begin
                     aml.attribute_name element_name,
                     spq.payable_qty,
                     spq.qty_unit_id payable_qty_unit_id,
-                    nvl(gmr.invoice_cur_decimals,2) pay_cur_decimals
-               from process_gmr   gmr,
+                    nvl(gmr.invoice_cur_decimals, 2) pay_cur_decimals
+               from process_gmr                 gmr,
                     dgrd_delivered_grd          dgrd,
                     ash_assay_header            ash,
                     asm_assay_sublot_mapping    asm,
                     pqca_pq_chemical_attributes pqca,
                     aml_attribute_master_list   aml,
                     pci_physical_contract_item  pci,
-                    process_spq       spq
+                    process_spq                 spq
               where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
                 and ash.ash_id = asm.ash_id
-                and spq.dbd_id = pc_dbd_id
+                and spq.process_id = pc_process_id
                 and spq.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
                 and spq.internal_dgrd_ref_no = dgrd.internal_dgrd_ref_no
                 and spq.element_id = aml.attribute_id
@@ -24023,9 +24001,9 @@ begin
                 and asm.asm_id = pqca.asm_id
                 and aml.attribute_id = pqca.element_id
                 and pqca.element_id = spq.element_id
-                and gmr.dbd_id = pc_dbd_id
-                and dgrd.dbd_id = pc_dbd_id
-                and pci.dbd_id = pc_dbd_id
+                and gmr.process_id = pc_process_id
+                and dgrd.process_id = pc_process_id
+                and pci.process_id = pc_process_id
                 and dgrd.internal_contract_item_ref_no =
                     pci.internal_contract_item_ref_no
                 and exists((select *
@@ -24041,11 +24019,11 @@ begin
                                   dgrd.internal_gmr_ref_no
                               and grh.pcrh_id = pcrh.pcrh_id
                               and rqd.pcpq_id = pci.pcpq_id
-                              and pcrh.dbd_id = pc_dbd_id
-                              and red.dbd_id = pc_dbd_id
-                              and pcerc.dbd_id = pc_dbd_id
-                              and rqd.dbd_id = pc_dbd_id
-                              and grh.dbd_id = pc_dbd_id
+                              and pcrh.process_id = pc_process_id
+                              and red.process_id = pc_process_id
+                              and pcerc.process_id = pc_process_id
+                              and rqd.process_id = pc_process_id
+                              and grh.process_id = pc_process_id
                               and red.element_id = pqca.element_id
                               and pcerc.is_active = 'Y'
                               and pcrh.is_active = 'Y'
@@ -24055,8 +24033,8 @@ begin
   loop
     dbms_output.put_line(cc.internal_gmr_ref_no);
     dbms_output.put_line(cc.element_id);
-    vn_total_refine_charge:=0;
-    vc_range_type         :=null;
+    vn_total_refine_charge := 0;
+    vc_range_type          := null;
     --
     -- Get the Price For the GMR
     --
@@ -24110,8 +24088,8 @@ begin
              pqd_payable_quality_details    pqd,
              dipch_di_payablecontent_header dipch
        where pcpch.pcpch_id = pcepc.pcpch_id
-         and pcpch.dbd_id = pc_dbd_id
-         and pcepc.dbd_id = pc_dbd_id
+         and pcpch.process_id = pc_process_id
+         and pcepc.process_id = pc_process_id
          and pcpch.element_id = cc.element_id
          and pcpch.internal_contract_ref_no = cc.internal_contract_ref_no
          and (pcepc.range_min_value <= cc.typical or
@@ -24123,8 +24101,8 @@ begin
          and pqd.pcpch_id = pcpch.pcpch_id
          and pqd.pcpq_id = cc.pcpq_id
          and pqd.is_active = 'Y'
-         and pqd.dbd_id = pc_dbd_id
-         and dipch.dbd_id = pc_dbd_id
+         and pqd.process_id = pc_process_id
+         and dipch.process_id = pc_process_id
          and dipch.pcpch_id = pcpch.pcpch_id
          and dipch.pcdi_id = cc.pcdi_id
          and dipch.is_active = 'Y'
@@ -24155,7 +24133,7 @@ begin
                                       pcepc_pc_elem_payable_content  pcepc,
                                       ppu_product_price_units        ppu,
                                       pum_price_unit_master          pum,
-                                      process_gmr      gmr,
+                                      process_gmr                    gmr,
                                       grh_gmr_refining_header        grh
                                 where pcpch.internal_contract_ref_no =
                                       pcdi.internal_contract_ref_no
@@ -24172,11 +24150,11 @@ begin
                                       cc.internal_contract_ref_no
                                   and gmr.internal_gmr_ref_no =
                                       grh.internal_gmr_ref_no
-                                  and pci.dbd_id = pc_dbd_id
-                                  and pcdi.dbd_id = pc_dbd_id
-                                  and pcpch.dbd_id = pc_dbd_id
-                                  and pcepc.dbd_id = pc_dbd_id
-                                  and grh.dbd_id = pc_dbd_id
+                                  and pci.process_id = pc_process_id
+                                  and pcdi.process_id = pc_process_id
+                                  and pcpch.process_id = pc_process_id
+                                  and pcepc.process_id = pc_process_id
+                                  and grh.process_id = pc_process_id
                                   and pci.is_active = 'Y'
                                   and pcdi.is_active = 'Y'
                                   and pcpch.is_active = 'Y'
@@ -24217,7 +24195,7 @@ begin
              cur_ref_charge.range_max_op = '<=' and
              cc.typical >= cur_ref_charge.range_min_value and
              cc.typical <= cur_ref_charge.range_max_value) then
-             vn_total_refine_charge := cur_ref_charge.refining_charge_value;
+            vn_total_refine_charge := cur_ref_charge.refining_charge_value;
           end if;
         end loop;
       exception
@@ -24256,11 +24234,11 @@ begin
                                       cc.internal_gmr_ref_no
                                   and grh.pcrh_id = pcrh.pcrh_id
                                   and rqd.pcpq_id = cc.pcpq_id
-                                  and pcrh.dbd_id = pc_dbd_id
-                                  and red.dbd_id = pc_dbd_id
-                                  and pcerc.dbd_id = pc_dbd_id
-                                  and rqd.dbd_id = pc_dbd_id
-                                  and grh.dbd_id = pc_dbd_id
+                                  and pcrh.process_id = pc_process_id
+                                  and red.process_id = pc_process_id
+                                  and pcerc.process_id = pc_process_id
+                                  and rqd.process_id = pc_process_id
+                                  and grh.process_id = pc_process_id
                                   and red.element_id = cc.element_id
                                   and ppu.internal_price_unit_id =
                                       pcerc.refining_charge_unit_id
@@ -24270,17 +24248,30 @@ begin
                                   and red.is_active = 'Y'
                                   and rqd.is_active = 'Y'
                                   and grh.is_active = 'Y'
-                                order by pcrh.range_type)
+                                order by pcrh.range_type,
+                                         pcerc.position)
         loop
-          vc_rc_weight_unit_id := cur_ref_charge.weight_unit_id;
-          vc_cur_id            := cur_ref_charge.cur_id;
-          vc_price_unit_id     := cur_ref_charge.price_unit_id;
-          if vc_range_type is null or vc_range_type=cur_ref_charge.range_type then
-          vc_range_type        := cur_ref_charge.range_type;
-           else
-           vc_range_type        :='Multiple';
+          --
+          -- RC Charge Price Unit should be taken from Range Type = Base or Range Type = Null(Assay Range)
+          -- App is storing Price Unit of Price and Not Price Unit of RC Charge
+          -- Where is the correct data present?
+          -- 1)When Assay Range Use it
+          -- 2) Price Range Range, use from Base
+          -- 3) When Assay and Price Range use from Assay Range
+          -- Data sorted to mee this condition already
+          --
+          if vc_rc_weight_unit_id is null then
+            vc_rc_weight_unit_id := cur_ref_charge.weight_unit_id;
           end if;
-          vc_add_now           := 'N';
+          vc_cur_id        := cur_ref_charge.cur_id;
+          vc_price_unit_id := cur_ref_charge.price_unit_id;
+          if vc_range_type is null or
+             vc_range_type = cur_ref_charge.range_type then
+            vc_range_type := cur_ref_charge.range_type;
+          else
+            vc_range_type := 'Multiple';
+          end if;
+          vc_add_now := 'N';
           if cur_ref_charge.range_type = 'Price Range' then
             vn_gmr_rc_charges := 0;
             -- If the CHARGE_TYPE is fixed then it will
@@ -24319,8 +24310,8 @@ begin
                  cur_ref_charge.range_max_op = '<=' and
                  vn_contract_price >= cur_ref_charge.range_min_value and
                  vn_contract_price <= cur_ref_charge.range_max_value) then
-                 vn_refine_charge := cur_ref_charge.refining_charge;
-                 vc_add_now          := 'Y';
+                vn_refine_charge := cur_ref_charge.refining_charge;
+                vc_add_now       := 'Y';
               end if;
             elsif cur_ref_charge.charge_type = 'Variable' then
               vc_range_over := 'N';
@@ -24337,7 +24328,7 @@ begin
                    and pcerc.is_active = 'Y'
                    and pcerc.position = 'Base'
                    and pcerc.charge_type = 'Variable'
-                   and pcerc.dbd_id = pc_dbd_id;
+                   and pcerc.process_id = pc_process_id;
               exception
                 when no_data_found then
                   vn_min_range          := 0;
@@ -24371,7 +24362,7 @@ begin
                                              and nvl(pcerc.position, 'a') <>
                                                  'Base'
                                              and pcerc.is_active = 'Y'
-                                             and pcerc.dbd_id = pc_dbd_id
+                                             and pcerc.process_id = pc_process_id
                                            order by pcerc.range_max_value asc nulls last)
                 loop
                   -- if price is in the range take diff of price and max range
@@ -24428,7 +24419,7 @@ begin
                                               and nvl(pcerc.position, 'a') <>
                                                   'Base'
                                               and pcerc.is_active = 'Y'
-                                              and pcerc.dbd_id = pc_dbd_id
+                                              and pcerc.process_id = pc_process_id
                                             order by pcerc.range_min_value desc nulls last)
                 loop
                   -- if price is in the range take diff of price and max range 
@@ -24508,29 +24499,29 @@ begin
               vn_max_range     := cur_ref_charge.range_max_value;
               vn_min_range     := cur_ref_charge.range_min_value;
               vn_typical_val   := cc.typical;
-              vc_add_now          := 'Y';
+              vc_add_now       := 'Y';
             end if;
           end if;
           --I will exit from the loop when it is tier base ,
           --as the inner loop is done the calculation.
           if cur_ref_charge.range_type = 'Price Range' and
              cur_ref_charge.charge_type = 'Variable' then
-              vn_total_refine_charge  := vn_total_refine_charge +
-                                        vn_refine_charge;
+            vn_total_refine_charge := vn_total_refine_charge +
+                                      vn_refine_charge;
             exit;
           end if;
-          
+        
           --
-        -- Get the total only when it was in the range, skip otherwise
-        -- If it is Price range variable it adds above exits the loop
-        --
-        if (cur_ref_charge.range_type = 'Price Range' and
-           cur_ref_charge.charge_type = 'Fixed' and vc_add_now = 'Y') or
-           cur_ref_charge.range_type = 'Assay Range' and vc_add_now = 'Y' then
-          vn_total_refine_charge := vn_total_refine_charge +
-                                       vn_refine_charge;
-          vc_add_now                := 'N';
-        end if;
+          -- Get the total only when it was in the range, skip otherwise
+          -- If it is Price range variable it adds above exits the loop
+          --
+          if (cur_ref_charge.range_type = 'Price Range' and
+             cur_ref_charge.charge_type = 'Fixed' and vc_add_now = 'Y') or
+             cur_ref_charge.range_type = 'Assay Range' and vc_add_now = 'Y' then
+            vn_total_refine_charge := vn_total_refine_charge +
+                                      vn_refine_charge;
+            vc_add_now             := 'N';
+          end if;
         end loop;
       exception
         when others then
@@ -24576,14 +24567,15 @@ begin
        cc.payable_qty_unit_id,
        cc.pay_cur_decimals,
        vc_range_type);
-    vn_commit_count := vn_commit_count + 1;
+    vc_rc_weight_unit_id := null;
+    vn_commit_count      := vn_commit_count + 1;
     if vn_commit_count >= 500 then
       vn_commit_count := 0;
       commit;
     end if;
   end loop;
   commit;
- --
+  --
   -- Update Main Currency and Sub Currency Factor
   --
   for cur_scd in (select scd.sub_cur_id,
@@ -24598,10 +24590,10 @@ begin
      where gerc.process_id = pc_process_id
        and gerc.rc_cur_id = cur_scd.sub_cur_id;
   end loop;
-  commit;  
---
--- Update Payable to RC Weight Factor
---
+  commit;
+  --
+  -- Update Payable to RC Weight Factor
+  --
   for cur_wt_factor in (select gerc.payable_qty_unit_id,
                                gerc.rc_weight_unit_id
                           from gerc_gmr_element_rc_charges gerc
@@ -24628,15 +24620,16 @@ begin
        and gerc.rc_weight_unit_id = cur_wt_factor.rc_weight_unit_id;
   end loop;
   commit;
---
--- Update RC Amount
---
+  --
+  -- Update RC Amount
+  --
   update gerc_gmr_element_rc_charges gerc
-     set gerc.rc_amt = round((gerc.rc_value * gerc.payable_to_rc_weight_factor *
+     set gerc.rc_amt = round((gerc.rc_value *
+                             gerc.payable_to_rc_weight_factor *
                              gerc.payable_qty * gerc.currency_factor),
                              gerc.pay_cur_decimals)
    where gerc.process_id = pc_process_id;
-    commit;               
+  commit;
 exception
   when others then
     vobj_error_log.extend;
@@ -24654,12 +24647,10 @@ exception
     sp_insert_error_log(vobj_error_log);
     commit;
 end;
-
 procedure sp_calc_penalty_charge(pc_corporate_id varchar2,
                                  pd_trade_date   date,
                                  pc_process_id   varchar2,
-                                 pc_process      varchar2,
-                                 pc_dbd_id       varchar2) is
+                                 pc_process      varchar2) is
   vobj_error_log         tableofpelerrorlog := tableofpelerrorlog();
   vn_eel_error_count     number := 1;
   vn_penalty_charge      number;
@@ -24708,9 +24699,9 @@ begin
                 and aml.attribute_id = pqca.element_id
                 and nvl(pqca.is_elem_for_pricing, 'N') = 'N'
                 and pqca.unit_of_measure = rm.ratio_id
-                and gmr.dbd_id = pc_dbd_id
-                and grd.dbd_id = pc_dbd_id
-                and pci.dbd_id = pc_dbd_id
+                and gmr.process_id = pc_process_id
+                and grd.process_id = pc_process_id
+                and pci.process_id = pc_process_id
                 and grd.weg_avg_pricing_assay_id = ash.ash_id
                 and grd.internal_contract_item_ref_no =
                     pci.internal_contract_item_ref_no
@@ -24726,11 +24717,11 @@ begin
                         and pcaph.pcaph_id = pad.pcaph_id
                         and pcaph.pcaph_id = gph.pcaph_id
                         and pqd.pcpq_id = pci.pcpq_id
-                        and pcaph.dbd_id = pc_dbd_id
-                        and pcap.dbd_id = pc_dbd_id
-                        and pqd.dbd_id = pc_dbd_id
-                        and pad.dbd_id = pc_dbd_id
-                        and gph.dbd_id = pc_dbd_id
+                        and pcaph.process_id = pc_process_id
+                        and pcap.process_id = pc_process_id
+                        and pqd.process_id = pc_process_id
+                        and pad.process_id = pc_process_id
+                        and gph.process_id = pc_process_id
                         and pcaph.is_active = 'Y'
                         and pcap.is_active = 'Y'
                         and pqd.is_active = 'Y'
@@ -24771,9 +24762,9 @@ begin
                 and aml.attribute_id = pqca.element_id
                 and nvl(pqca.is_elem_for_pricing, 'N') = 'N'
                 and pqca.unit_of_measure = rm.ratio_id
-                and gmr.dbd_id = pc_dbd_id
-                and dgrd.dbd_id = pc_dbd_id
-                and pci.dbd_id = pc_dbd_id
+                and gmr.process_id = pc_process_id
+                and dgrd.process_id = pc_process_id
+                and pci.process_id = pc_process_id
                 and dgrd.internal_contract_item_ref_no =
                     pci.internal_contract_item_ref_no
                 and exists
@@ -24788,11 +24779,11 @@ begin
                         and pcaph.pcaph_id = pad.pcaph_id
                         and pcaph.pcaph_id = gph.pcaph_id
                         and pqd.pcpq_id = pci.pcpq_id
-                        and pcaph.dbd_id = pc_dbd_id
-                        and pcap.dbd_id = pc_dbd_id
-                        and pqd.dbd_id = pc_dbd_id
-                        and pad.dbd_id = pc_dbd_id
-                        and gph.dbd_id = pc_dbd_id
+                        and pcaph.process_id = pc_process_id
+                        and pcap.process_id = pc_process_id
+                        and pqd.process_id = pc_process_id
+                        and pad.process_id = pc_process_id
+                        and gph.process_id = pc_process_id
                         and pcaph.is_active = 'Y'
                         and pcap.is_active = 'Y'
                         and pqd.is_active = 'Y'
@@ -24833,11 +24824,11 @@ begin
                              and pcaph.pcaph_id = pad.pcaph_id
                              and pcaph.pcaph_id = gph.pcaph_id
                              and pqd.pcpq_id = cc.pcpq_id
-                             and pcaph.dbd_id = pc_dbd_id
-                             and pcap.dbd_id = pc_dbd_id
-                             and pqd.dbd_id = pc_dbd_id
-                             and pad.dbd_id = pc_dbd_id
-                             and gph.dbd_id = pc_dbd_id
+                             and pcaph.process_id = pc_process_id
+                             and pcap.process_id = pc_process_id
+                             and pqd.process_id = pc_process_id
+                             and pad.process_id = pc_process_id
+                             and gph.process_id = pc_process_id
                              and pcaph.is_active = 'Y'
                              and pcap.is_active = 'Y'
                              and pqd.is_active = 'Y'
@@ -24946,7 +24937,7 @@ begin
                                where nvl(pcap.range_min_value, 0) <=
                                      vn_typical_val
                                  and pcap.pcaph_id = cur_pc_charge.pcaph_id
-                                 and pcap.dbd_id = pc_dbd_id)
+                                 and pcap.process_id = pc_process_id)
             loop
               if vn_typical_val > 0 then
                 if cur_range.min_range <= vn_typical_val and
@@ -25101,9 +25092,7 @@ exception
                                                          pd_trade_date);
     sp_insert_error_log(vobj_error_log);
   
-end;
-
-                                        
+end;                                     
 procedure sp_delta_updates(pc_corporate_id varchar2,
                           pd_trade_date   date,
                           pc_process_id   varchar2,

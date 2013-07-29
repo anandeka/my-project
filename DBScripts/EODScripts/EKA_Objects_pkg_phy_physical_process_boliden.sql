@@ -516,8 +516,7 @@ create or replace package body pkg_phy_physical_process is
       pkg_phy_eod_reports.sp_calc_treatment_charge(pc_corporate_id,
                                                    pd_trade_date,
                                                    pc_process_id,
-                                                   pc_process,
-                                                   pc_dbd_id);
+                                                   pc_process);
       commit;
       vn_logno := vn_logno + 1;
       sp_eodeom_process_log(pc_corporate_id,
@@ -528,8 +527,7 @@ create or replace package body pkg_phy_physical_process is
       pkg_phy_eod_reports.sp_calc_refining_charge(pc_corporate_id,
                                                   pd_trade_date,
                                                   pc_process_id,
-                                                  pc_process,
-                                                  pc_dbd_id);
+                                                  pc_process);
       commit;
       vn_logno := vn_logno + 1;
       sp_eodeom_process_log(pc_corporate_id,
@@ -540,8 +538,7 @@ create or replace package body pkg_phy_physical_process is
       pkg_phy_eod_reports.sp_calc_penalty_charge(pc_corporate_id,
                                                  pd_trade_date,
                                                  pc_process_id,
-                                                 pc_process,
-                                                 pc_dbd_id);
+                                                 pc_process);
       commit;
       vn_logno := vn_logno + 1;
       sp_eodeom_process_log(pc_corporate_id,
@@ -1315,6 +1312,8 @@ create or replace package body pkg_phy_physical_process is
                and agh_prev.process_id = gvc_previous_process_id
                and agh_prev.is_deleted = 'N');
     commit;
+    sp_write_log(pc_corporate_id, pd_trade_date, 'sp_mark_process_id', '1');
+  
     --
     -- 2. AGH was present in previous eod and became inventory out in this eod
     --
@@ -1330,6 +1329,7 @@ create or replace package body pkg_phy_physical_process is
                and agh_prev.process_id = gvc_previous_process_id
                and agh_prev.is_deleted = 'N');
     commit;
+    sp_write_log(pc_corporate_id, pd_trade_date, 'sp_mark_process_id', '2');
     --
     -- For Realized PNL Change update below tables for PROCESS_ID 
     --               
@@ -1349,6 +1349,7 @@ create or replace package body pkg_phy_physical_process is
                and dbd.process = gvc_process
                and dbd.trade_date <= pd_trade_date);
     commit;
+    sp_write_log(pc_corporate_id, pd_trade_date, 'sp_mark_process_id', '3');
     update dgrdul_delivered_grd_ul dgrdul
        set dgrdul.process_id = pc_process_id
      where dgrdul.process_id is null
@@ -1366,6 +1367,8 @@ create or replace package body pkg_phy_physical_process is
                and dbd.process = gvc_process
                and dbd.trade_date <= pd_trade_date);
     commit;
+    sp_write_log(pc_corporate_id, pd_trade_date, 'sp_mark_process_id', '4');
+  
     update cdl_cost_delta_log cdl
        set cdl.process_id = pc_process_id
      where cdl.process_id is null
@@ -1382,6 +1385,8 @@ create or replace package body pkg_phy_physical_process is
                and dbd.process = gvc_process
                and dbd.trade_date <= pd_trade_date);
     commit;
+    sp_write_log(pc_corporate_id, pd_trade_date, 'sp_mark_process_id', '5');
+  
     -- Washout Tables
     update sswh_spe_settle_washout_header sswh
        set process_id = pc_process_id
@@ -1401,6 +1406,8 @@ create or replace package body pkg_phy_physical_process is
               from sswh_spe_settle_washout_header sswh
              where sswh.process_id = pc_process_id);
     commit;
+    sp_write_log(pc_corporate_id, pd_trade_date, 'sp_mark_process_id', '6');
+  
     --- added suresh   
     update pca_physical_contract_action pca
        set process_id = pc_process_id
@@ -1418,6 +1425,8 @@ create or replace package body pkg_phy_physical_process is
                and dbd.process = gvc_process
                and dbd.trade_date <= pd_trade_date);
     commit;
+    sp_write_log(pc_corporate_id, pd_trade_date, 'sp_mark_process_id', '7');
+  
     update cod_call_off_details cod
        set process_id = pc_process_id
      where process_id is null
@@ -1434,6 +1443,7 @@ create or replace package body pkg_phy_physical_process is
                and dbd.process = gvc_process
                and dbd.trade_date <= pd_trade_date);
     commit;
+    sp_write_log(pc_corporate_id, pd_trade_date, 'sp_mark_process_id', '8');
   exception
     when others then
       vobj_error_log.extend;
@@ -3734,21 +3744,30 @@ create or replace package body pkg_phy_physical_process is
     delete from pcpch_pc_payble_content_header where dbd_id = vc_dbd_id;
     delete from pqd_payable_quality_details where dbd_id = vc_dbd_id;
     delete from pcepc_pc_elem_payable_content where dbd_id = vc_dbd_id;
-    delete from pcth_pc_treatment_header where dbd_id = vc_dbd_id;
-    delete from ted_treatment_element_details where dbd_id = vc_dbd_id;
-    delete from tqd_treatment_quality_details where dbd_id = vc_dbd_id;
-    delete from pcetc_pc_elem_treatment_charge where dbd_id = vc_dbd_id;
+    delete from pcth_pc_treatment_header where process_id = pc_process_id;
+    delete from ted_treatment_element_details
+     where process_id = pc_process_id;
+    delete from tqd_treatment_quality_details
+     where process_id = pc_process_id;
+    delete from pcetc_pc_elem_treatment_charge
+     where process_id = pc_process_id;
     delete from pcar_pc_assaying_rules where dbd_id = vc_dbd_id;
     delete from pcaesl_assay_elem_split_limits where dbd_id = vc_dbd_id;
     delete from arqd_assay_quality_details where dbd_id = vc_dbd_id;
-    delete from pcaph_pc_attr_penalty_header where dbd_id = vc_dbd_id;
-    delete from pcap_pc_attribute_penalty where dbd_id = vc_dbd_id;
-    delete from pqd_penalty_quality_details where dbd_id = vc_dbd_id;
-    delete from pad_penalty_attribute_details where dbd_id = vc_dbd_id;
-    delete from pcrh_pc_refining_header where dbd_id = vc_dbd_id;
-    delete from rqd_refining_quality_details where dbd_id = vc_dbd_id;
-    delete from red_refining_element_details where dbd_id = vc_dbd_id;
-    delete from pcerc_pc_elem_refining_charge where dbd_id = vc_dbd_id;
+    delete from pcaph_pc_attr_penalty_header
+     where process_id = pc_process_id;
+    delete from pcap_pc_attribute_penalty where process_id = pc_process_id;
+    delete from pqd_penalty_quality_details
+     where process_id = pc_process_id;
+    delete from pad_penalty_attribute_details
+     where process_id = pc_process_id;
+    delete from pcrh_pc_refining_header where process_id = pc_process_id;
+    delete from rqd_refining_quality_details
+     where process_id = pc_process_id;
+    delete from red_refining_element_details
+     where process_id = pc_process_id;
+    delete from pcerc_pc_elem_refining_charge
+     where process_id = pc_process_id;
     delete from ceqs_contract_ele_qty_status where dbd_id = vc_dbd_id;
     delete from cipde_cipd_element_price where process_id = pc_process_id;
     delete from poue_phy_open_unreal_element
@@ -3885,9 +3904,9 @@ create or replace package body pkg_phy_physical_process is
      where process_id = pc_process_id;
     delete from pca_physical_contract_action where dbd_id = vc_dbd_id;
     delete from cod_call_off_details where dbd_id = vc_dbd_id;
-    delete from gth_gmr_treatment_header where dbd_id = vc_dbd_id;
-    delete from grh_gmr_refining_header where dbd_id = vc_dbd_id;
-    delete from gph_gmr_penalty_header where dbd_id = vc_dbd_id;
+    delete from gth_gmr_treatment_header where process_id = pc_process_id;
+    delete from grh_gmr_refining_header where process_id = pc_process_id;
+    delete from gph_gmr_penalty_header where process_id = pc_process_id;
     commit;
     --- added suresh for MBV Report
     delete from mbv_allocation_report where process_id = pc_process_id;

@@ -3074,7 +3074,10 @@ insert into process_gmr
                 'Empty_String',
                 null,
                 current_no_of_units),
-         decode(shipped_qty, 'Empty_String', null, shipped_qty),
+         decode(shipped_qty,
+                'Empty_String',
+                null,
+                shipped_qty),
          decode(landed_qty, 'Empty_String', null, landed_qty),
          decode(weighed_qty, 'Empty_String', null, weighed_qty),
          decode(plan_ship_qty, 'Empty_String', null, plan_ship_qty),
@@ -12804,11 +12807,9 @@ commit;
    is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
-    vn_row_cnt         number;
   begin
   delete from process_spq where corporate_id = pc_corporate_id;
   commit;
-  vn_row_cnt:=0;
 insert into process_spq
   (spq_id,
    internal_gmr_ref_no,
@@ -14050,6 +14051,7 @@ sp_precheck_process_log(pc_corporate_id,
        and spq.is_active = 'Y'
        and spq.dbd_id = pc_dbd_id
        and spq.corporate_id = pc_corporate_id
+       and spq.internal_grd_ref_no is not null
      group by spq.internal_grd_ref_no;
   commit;
    gvn_log_counter :=  gvn_log_counter + 1;
@@ -14057,7 +14059,7 @@ sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
                           gvn_log_counter,
-                          'End of insert tspq');  
+                          'End of insert tspq for grd');  
 
 update process_grd grd
    set (grd.dry_qty, grd.dry_wet_ratio, grd.assay_header_id, grd.weg_avg_pricing_assay_id) = --
@@ -14076,29 +14078,43 @@ update process_grd grd
                           pc_dbd_id,
                           gvn_log_counter,
                           'End of Update GRD Dry Qty');
-  for cur_dgrd in (select spq.internal_dgrd_ref_no,
-                                   max(spq.weg_avg_pricing_assay_id) weg_avg_pricing_assay_id,
-                                   min((nvl(asm.dry_wet_qty_ratio, 100) / 100)) dry_wet_qty_ratio
-                              from process_spq    spq,
-                                   asm_assay_sublot_mapping asm
-                             where spq.is_stock_split = 'N'
-                               and spq.weg_avg_pricing_assay_id = asm.ash_id
-                               and spq.dbd_id = pc_dbd_id
-                               and spq.is_active ='Y'
-                             group by spq.internal_dgrd_ref_no)
-    loop
-      update dgrd_delivered_grd dgrd
-         set dgrd.weg_avg_pricing_assay_id = cur_dgrd.weg_avg_pricing_assay_id,
-         dgrd.dry_qty = cur_dgrd.dry_wet_qty_ratio * dgrd.net_weight
-       where dgrd.dbd_id = gvc_dbd_id
-         and dgrd.internal_dgrd_ref_no = cur_dgrd.internal_dgrd_ref_no;
-        vn_row_cnt := vn_row_cnt + 1;
-        if vn_row_cnt >= 500 then
-          commit;
-          vn_row_cnt := 0;
-        end if;
-         
-    end loop;
+ delete tspq_temp_spq_asm where corporate_id = pc_corporate_id;
+  commit;
+  insert into tspq_temp_spq_asm
+    (corporate_id,
+     internal_grd_ref_no,
+     dry_wet_qty_ratio,
+     assay_header_id,
+     weg_avg_pricing_assay_id)
+    select pc_corporate_id,
+           spq.internal_dgrd_ref_no,
+           min((nvl(asm.dry_wet_qty_ratio, 100) / 100)) dry_wet_qty_ratio,
+           max(spq.assay_header_id) assay_header_id,
+           max(spq.weg_avg_pricing_assay_id) weg_avg_pricing_assay_id
+      from process_spq              spq,
+           asm_assay_sublot_mapping asm
+     where spq.is_stock_split = 'N'
+       and spq.weg_avg_pricing_assay_id = asm.ash_id
+       and spq.is_active = 'Y'
+       and spq.dbd_id = pc_dbd_id
+       and spq.corporate_id = pc_corporate_id
+       and spq.internal_dgrd_ref_no is not null
+     group by spq.internal_dgrd_ref_no;
+  commit;
+   gvn_log_counter :=  gvn_log_counter + 1;
+ sp_precheck_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_dbd_id,
+                          gvn_log_counter,
+                          'End of insert tspq for dgrd');  
+update dgrd_delivered_grd dgrd
+   set (dgrd.dry_qty,dgrd.weg_avg_pricing_assay_id) = --
+        (select tspq.dry_wet_qty_ratio * dgrd.net_weight,
+                tspq.weg_avg_pricing_assay_id
+           from tspq_temp_spq_asm tspq
+          where tspq.corporate_id = pc_corporate_id
+          and tspq.internal_grd_ref_no = dgrd.internal_dgrd_ref_no)
+ where dgrd.dbd_id = pc_dbd_id;
   commit;
   gvn_log_counter :=  gvn_log_counter + 1;
   sp_precheck_process_log(pc_corporate_id,
@@ -14232,169 +14248,6 @@ for cur_dgrd in (
                           pc_dbd_id,
                           gvn_log_counter,
                           'End of Sales GMR Qty Update');
-                                                    
-for cur_gmr_bags in(                          
-select agmr.internal_gmr_ref_no,
-       sum(nvl(agrd.no_of_bags,0)) no_of_bags
-  from agmr_action_gmr agmr,
-       agrd_action_grd@eka_appdb agrd
- where agrd.action_no = agmr.action_no
-   and agrd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-   and agrd.status = 'Active'
-   and agrd.is_deleted = 'N'
-   and agmr.gmr_latest_action_action_id in
-       ('airDetail', 'shipmentDetail', 'railDetail', 'truckDetail','warehouseReceipt')
-   and agmr.is_internal_movement = 'N'
-   and agmr.is_deleted = 'N'
-   group by agmr.internal_gmr_ref_no) loop
-update process_gmr gmr
-   set gmr.no_of_bags = cur_gmr_bags.no_of_bags
- where gmr.dbd_id = pc_dbd_id
-   and gmr.is_deleted = 'N'
-   and gmr.internal_gmr_ref_no = cur_gmr_bags.internal_gmr_ref_no;
-        vn_row_cnt := vn_row_cnt + 1;
-        if vn_row_cnt >= 500 then
-          commit;
-          vn_row_cnt := 0;
-        end if;
-   
-end loop;   
-commit;
- gvn_log_counter :=  gvn_log_counter + 1;
- sp_precheck_process_log(pc_corporate_id,
-                          pd_trade_date,
-                          pc_dbd_id,
-                          gvn_log_counter,
-                          'End of GMR No of Bags Update For GRD ');
-
-for cur_gmr_bags in(                          
-select agmr.internal_gmr_ref_no,
-       sum(nvl(agrd.no_of_bags,0)) no_of_bags
-  from agmr_action_gmr agmr,
-       adgrd_action_dgrd@eka_appdb agrd
- where agrd.action_no = agmr.action_no
-   and agrd.internal_gmr_ref_no = agmr.internal_gmr_ref_no
-   and agrd.status = 'Active'
-   and agrd.status = 'Active'
-   and agmr.gmr_latest_action_action_id in
-       ('shipmentAdvise','railAdvice','truckAdvice','airAdvice','releaseOrder')
-   and agmr.is_internal_movement = 'N'
-   and agmr.is_deleted = 'N'
-   group by agmr.internal_gmr_ref_no) loop
-update process_gmr gmr
-   set gmr.no_of_bags = cur_gmr_bags.no_of_bags
- where gmr.dbd_id = pc_dbd_id
-   and gmr.is_deleted = 'N'
-   and gmr.internal_gmr_ref_no = cur_gmr_bags.internal_gmr_ref_no;
-        vn_row_cnt := vn_row_cnt + 1;
-        if vn_row_cnt >= 500 then
-          commit;
-          vn_row_cnt := 0;
-        end if;
-   
-end loop;   
-commit;
- gvn_log_counter :=  gvn_log_counter + 1;
- sp_precheck_process_log(pc_corporate_id,
-                          pd_trade_date,
-                          pc_dbd_id,
-                          gvn_log_counter,
-                          'End of GMR No of Bags Update For DGRD ');
-                                                    
-   for cur_shipped_qty in (select agmr.internal_gmr_ref_no,
-                                  nvl(agmr.qty, 0) shipped_qty
-                             from agmr_action_gmr agmr
-                            where (agmr.internal_gmr_ref_no, agmr.action_no) in
-                                  (select agmr.internal_gmr_ref_no,
-                                          max(agmr.action_no) action_no
-                                     from agmr_action_gmr agmr
-                                    where agmr.eff_date <= pd_trade_date
-                                      and agmr.is_deleted = 'N'
-                                    group by agmr.internal_gmr_ref_no)) loop 
- update process_gmr gmr
-    set gmr.shipped_qty = cur_shipped_qty.shipped_qty
-  where gmr.dbd_id = pc_dbd_id
-    and gmr.internal_gmr_ref_no = cur_shipped_qty.internal_gmr_ref_no;
-        vn_row_cnt := vn_row_cnt + 1;
-        if vn_row_cnt >= 500 then
-          commit;
-          vn_row_cnt := 0;
-        end if;
-    
-  end loop;
-  commit;
-  gvn_log_counter :=  gvn_log_counter + 1;
-  sp_precheck_process_log(pc_corporate_id,
-                          pd_trade_date,
-                          pc_dbd_id,
-                          gvn_log_counter,
-                          'End of GMR Shipped Qty Update');
-for cur_sublots in(  
- select ash.internal_gmr_ref_no,
-        count(*) no_of_stocks_wns_done
-   from ash_assay_header        ash,
-        process_grd grd
-  where grd.dbd_id = pc_dbd_id
-    and grd.status = 'Active'
-    and ash.internal_grd_ref_no = grd.internal_grd_ref_no
-    and ash.is_active ='Y'
-    and ash.activity_date <= pd_trade_date
-    and ash.assay_type ='Weighing and Sampling Assay'
-  group by ash.internal_gmr_ref_no
-  ) loop
- update process_gmr gmr
-    set gmr.no_of_stocks_wns_done = cur_sublots.no_of_stocks_wns_done
-  where gmr.internal_gmr_ref_no = cur_sublots.internal_gmr_ref_no
-    and gmr.dbd_id = pc_dbd_id;
-    
-        vn_row_cnt := vn_row_cnt + 1;
-        if vn_row_cnt >= 500 then
-          commit;
-          vn_row_cnt := 0;
-        end if;
-    
-end loop;
-commit;
-gvn_log_counter :=  gvn_log_counter + 1;
-  sp_precheck_process_log(pc_corporate_id,
-                          pd_trade_date,
-                          pc_dbd_id,
-                          gvn_log_counter,
-                          'End of GMR Sublots Update GRD');
-                          
-  for cur_sublots in (select ash.internal_gmr_ref_no,
-                             count(*) no_of_stocks_wns_done
-                        from ash_assay_header   ash,
-                             dgrd_delivered_grd grd
-                       where grd.dbd_id = pc_dbd_id
-                         and grd.status = 'Active'
-                         and ash.internal_grd_ref_no =
-                             grd.internal_dgrd_ref_no
-                         and ash.is_active = 'Y'
-                         and ash.activity_date <= pd_trade_date
-                         and ash.assay_type = 'Weighing and Sampling Assay'
-                       group by ash.internal_gmr_ref_no)
-  loop
-    update process_gmr gmr
-       set gmr.no_of_stocks_wns_done = cur_sublots.no_of_stocks_wns_done
-     where gmr.internal_gmr_ref_no = cur_sublots.internal_gmr_ref_no
-       and gmr.dbd_id = pc_dbd_id
-       and gmr.corporate_id = pc_corporate_id;
-       
-        vn_row_cnt := vn_row_cnt + 1;
-        if vn_row_cnt >= 500 then
-          commit;
-          vn_row_cnt := 0;
-        end if;
-  end loop;
-  commit;
-gvn_log_counter :=  gvn_log_counter + 1;
-  sp_precheck_process_log(pc_corporate_id,
-                          pd_trade_date,
-                          pc_dbd_id,
-                          gvn_log_counter,
-                          'End of GMR Sublots Update for DGRD');                          
-
 for cur_gmr_whname in(
 select phd.* from phd_profileheaderdetails phd) loop
 update process_gmr gmr
@@ -15655,7 +15508,6 @@ insert into gmr_goods_movement_record
    is_apply_container_charge,
    loading_date,
    no_of_containers,
-   no_of_bags,
    gmr_type,
    contract_ref_no,
    cp_id,
@@ -15694,7 +15546,6 @@ insert into gmr_goods_movement_record
    gmr_arrival_status,
    feeding_point_id,
    feeding_point_name,
-   no_of_stocks_wns_done,
    is_new_mtd_ar,
    is_new_ytd_ar,
    is_assay_updated_mtd_ar,
@@ -15823,7 +15674,6 @@ insert into gmr_goods_movement_record
          is_apply_container_charge,
          loading_date,
          no_of_containers,
-         no_of_bags,
          gmr_type,
          contract_ref_no,
          cp_id,
@@ -15862,7 +15712,6 @@ insert into gmr_goods_movement_record
          gmr_arrival_status,
          feeding_point_id,
          feeding_point_name,
-         no_of_stocks_wns_done,
          is_new_mtd_ar,
          is_new_ytd_ar,
          is_assay_updated_mtd_ar,

@@ -23,11 +23,6 @@ create or replace package pkg_phy_mbv_report is
                                pc_process_id   varchar2,
                                pc_process      varchar2,
                                pc_user_id      varchar2);
-  procedure sp_calc_di_valuation_price(pc_corporate_id varchar2,
-                                       pd_trade_date   date,
-                                       pc_process      varchar2,
-                                       pc_process_id   varchar2,
-                                       pc_user_id      varchar2);
   procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
                                        pd_trade_date   date,
                                        pc_process      varchar2,
@@ -40,7 +35,7 @@ create or replace package pkg_phy_mbv_report is
                                     pd_trade_date   date,
                                     pc_process      varchar2,
                                     pc_process_id   varchar2);
-end; 
+end;
 /
 create or replace package body pkg_phy_mbv_report is
 procedure sp_run_mbv_report(pc_corporate_id varchar2,
@@ -59,19 +54,6 @@ begin
                   pc_process_id,
                   pc_process,
                   pc_user_id);
-  vn_logno := vn_logno + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        vn_logno,
-                        'End of ' || vc_error_msg);
-
- /* vc_error_msg := 'sp_calc_di_valuation_price';
-  sp_calc_di_valuation_price(pc_corporate_id,
-                             pd_trade_date,
-                             pc_process,
-                             pc_process_id,
-                             pc_user_id);*/
   vn_logno := vn_logno + 1;
   sp_eodeom_process_log(pc_corporate_id,
                         pd_trade_date,
@@ -2354,37 +2336,39 @@ begin
   --
   -- Derivative Unrealized and Realized PNL
   --
-  for cur_der in (select nvl(sum(case
-                                   when dpd.pnl_type = 'Unrealized' then
-                                    dpd.pnl_in_base_cur
-                                   else
-                                    0
-                                 end),
-                             0) der_unrealized_pnl,
-                         nvl(sum(case
-                                   when dpd.pnl_type = 'Realized' then
-                                    dpd.pnl_in_base_cur
-                                   else
-                                    0
-                                 end),
-                             0) der_realized_pnl,
-                         nvl(sum(case
-                                   when dpd.pnl_type = 'Realized' then
-                                    dpd.closed_quantity
-                                   else
-                                    0
-                                 end),
-                             0) der_realized_qty,
-                         dpd.instrument_id,
-                         dpd.derivative_prodct_id
-                    from dpd_derivative_pnl_daily dpd,
-                         tdc_trade_date_closure tdc
-                   where dpd.process_id = tdc.process_id
-                   and tdc.corporate_id = pc_corporate_id
-                   and tdc.process ='EOM'
-                     and dpd.instrument_type in ('Future')
-                   group by dpd.instrument_id,
-                            dpd.derivative_prodct_id)
+  for cur_der in (
+  select nvl(sum(case
+                 when dpd.pnl_type = 'Unrealized' and
+                      dpd.eod_trade_date = pd_trade_date then
+                  dpd.pnl_in_base_cur
+                 else
+                  0
+               end),
+           0) der_unrealized_pnl,
+       nvl(sum(case
+                 when dpd.pnl_type = 'Realized' then
+                  dpd.pnl_in_base_cur
+                 else
+                  0
+               end),
+           0) der_realized_pnl,
+       nvl(sum(case
+                 when dpd.pnl_type = 'Realized' then
+                  dpd.closed_quantity
+                 else
+                  0
+               end),
+           0) der_realized_qty,
+       dpd.instrument_id,
+       dpd.derivative_prodct_id
+  from dpd_derivative_pnl_daily dpd,
+       tdc_trade_date_closure   tdc
+ where dpd.process_id = tdc.process_id
+   and tdc.corporate_id = pc_corporate_id
+   and tdc.process = 'EOM'
+   and dpd.instrument_type in ('Future')
+ group by dpd.instrument_id,
+          dpd.derivative_prodct_id)
   loop
     update mbv_metal_balance_valuation mbv
        set mbv.der_unrealized_pnl = cur_der.der_unrealized_pnl,
@@ -2771,397 +2755,6 @@ exception
                                                          pd_trade_date);
     sp_insert_error_log(vobj_error_log);
 end;
-procedure sp_calc_di_valuation_price(pc_corporate_id varchar2,
-                                     pd_trade_date   date,
-                                     pc_process      varchar2,
-                                     pc_process_id   varchar2,
-                                     pc_user_id      varchar2) as
-
-  cursor cur_mar_price is
-    select pcdi.pcdi_id,
-           pcm.contract_ref_no,
-           ppfd.instrument_id,
-           dim.instrument_name,
-           div.price_source_id,
-           ps.price_source_name,
-           div.available_price_id,
-           apm.available_price_name,
-           div.price_unit_id,
-           pum.price_unit_name,
-           ppu.product_price_unit_id ppu_price_unit_id,
-           (case
-             when pcdi.delivery_period_type = 'Date' then
-              last_day(pcdi.delivery_to_date)
-             when pcdi.delivery_period_type = 'Month' then
-              last_day(to_date(to_char('01-' || pcdi.delivery_to_month || ' ' ||
-                                       pcdi.delivery_to_year),
-                               'dd-Mon-yyyy'))
-           end) delivery_date,
-           poch.element_id
-      from pcm_physical_contract_main     pcm,
-           pcdi_pc_delivery_item          pcdi,
-           poch_price_opt_call_off_header poch,
-           pocd_price_option_calloff_dtls pocd,
-           pcbpd_pc_base_price_detail     pcbpd,
-           ppfh_phy_price_formula_header  ppfh,
-           ppfd_phy_price_formula_details ppfd,
-           dim_der_instrument_master      dim,
-           div_der_instrument_valuation   div,
-           ps_price_source                ps,
-           apm_available_price_master     apm,
-           pum_price_unit_master          pum,
-           pdd_product_derivative_def     pdd,
-           v_ppu_pum                      ppu
-     where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-       and pcm.process_id = pc_process_id
-       and pcm.contract_status <> 'Cancelled'
-       and pcdi.pcdi_id = poch.pcdi_id
-       and pcdi.is_active = 'Y'
-       and poch.poch_id = pocd.poch_id
-       and pocd.price_type <> 'Fixed'
-       and poch.is_active = 'Y'
-       and pcdi.process_id = pc_process_id
-       and pocd.pcbpd_id = pcbpd.pcbpd_id
-       and pcbpd.is_active = 'Y'
-       and pcbpd.process_id = pc_process_id
-       and pcbpd.pcbpd_id = ppfh.pcbpd_id
-       and ppfh.is_active = 'Y'
-       and ppfh.process_id = pc_process_id
-       and ppfh.ppfh_id = ppfd.ppfh_id
-       and ppfd.is_active = 'Y'
-       and ppfd.process_id = pc_process_id
-       and ppfd.instrument_id = dim.instrument_id
-       and dim.instrument_id = div.instrument_id
-       and div.is_deleted = 'N'
-       and div.price_source_id = ps.price_source_id
-       and div.available_price_id = apm.available_price_id
-       and div.price_unit_id = pum.price_unit_id
-       and dim.product_derivative_id = pdd.derivative_def_id
-       and div.price_unit_id = ppu.price_unit_id
-       and pdd.product_id = ppu.product_id
-       and pcdi.price_option_call_off_status <> 'Not Called Off'
-     group by pcdi.pcdi_id,
-              pcm.contract_ref_no,
-              ppfd.instrument_id,
-              dim.instrument_name,
-              div.price_source_id,
-              ps.price_source_name,
-              div.available_price_id,
-              apm.available_price_name,
-              div.price_unit_id,
-              pum.price_unit_name,
-              ppu.product_price_unit_id,
-              pcdi.delivery_period_type,
-              pcdi.delivery_to_date,
-              pcdi.delivery_to_month,
-              pcdi.delivery_to_year,
-              poch.element_id
-    union all
-    select pcdi.pcdi_id,
-           pcm.contract_ref_no,
-           ppfd.instrument_id,
-           dim.instrument_name,
-           div.price_source_id,
-           ps.price_source_name,
-           div.available_price_id,
-           apm.available_price_name,
-           div.price_unit_id,
-           pum.price_unit_name,
-           ppu.product_price_unit_id ppu_price_unit_id,
-           (case
-             when pcdi.delivery_period_type = 'Date' then
-              last_day(pcdi.delivery_to_date)
-             when pcdi.delivery_period_type = 'Month' then
-              last_day(to_date(to_char('01-' || pcdi.delivery_to_month || ' ' ||
-                                       pcdi.delivery_to_year),
-                               'dd-Mon-yyyy'))
-           end) delivery_date,
-           pcbph.element_id
-      from pcm_physical_contract_main     pcm,
-           pcdi_pc_delivery_item          pcdi,
-           pci_physical_contract_item     pci,
-           pcipf_pci_pricing_formula      pcipf,
-           pcbph_pc_base_price_header     pcbph,
-           pcbpd_pc_base_price_detail     pcbpd,
-           ppfh_phy_price_formula_header  ppfh,
-           ppfd_phy_price_formula_details ppfd,
-           dim_der_instrument_master      dim,
-           div_der_instrument_valuation   div,
-           ps_price_source                ps,
-           apm_available_price_master     apm,
-           pum_price_unit_master          pum,
-           pdd_product_derivative_def     pdd,
-           v_ppu_pum                      ppu
-     where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-       and pcm.process_id = pc_process_id
-       and pcm.contract_status <> 'Cancelled'
-       and pcdi.is_active = 'Y'
-       and pcdi.process_id = pc_process_id
-       and pci.pcdi_id = pcdi.pcdi_id
-       and pci.process_id = pc_process_id
-       and pci.is_active = 'Y'
-       and pci.internal_contract_item_ref_no =
-           pcipf.internal_contract_item_ref_no
-       and pcipf.process_id = pc_process_id
-       and pcipf.is_active = 'Y'
-       and pcipf.pcbph_id = pcbph.pcbph_id
-       and pcbph.process_id = pc_process_id
-       and pcbph.is_active = 'Y'
-       and pcbph.pcbph_id = pcbpd.pcbph_id
-       and pcbpd.is_active = 'Y'
-       and pcbpd.process_id = pc_process_id
-       and pcbpd.pcbpd_id = ppfh.pcbpd_id
-       and ppfh.is_active = 'Y'
-       and ppfh.process_id = pc_process_id
-       and ppfh.ppfh_id = ppfd.ppfh_id
-       and ppfd.is_active = 'Y'
-       and ppfd.process_id = pc_process_id
-       and ppfd.instrument_id = dim.instrument_id
-       and dim.instrument_id = div.instrument_id
-       and div.is_deleted = 'N'
-       and div.price_source_id = ps.price_source_id
-       and div.available_price_id = apm.available_price_id
-       and div.price_unit_id = pum.price_unit_id
-       and dim.product_derivative_id = pdd.derivative_def_id
-       and div.price_unit_id = ppu.price_unit_id
-       and pdd.product_id = ppu.product_id
-       and pcdi.price_option_call_off_status = 'Not Called Off'
-     group by pcdi.pcdi_id,
-              pcm.contract_ref_no,
-              ppfd.instrument_id,
-              dim.instrument_name,
-              div.price_source_id,
-              ps.price_source_name,
-              div.available_price_id,
-              apm.available_price_name,
-              div.price_unit_id,
-              pum.price_unit_name,
-              ppu.product_price_unit_id,
-              pcdi.delivery_period_type,
-              pcdi.delivery_to_date,
-              pcdi.delivery_to_month,
-              pcdi.delivery_to_year,
-              pcbph.element_id;
-
-  vn_price                     number;
-  vc_price_unit_id             varchar2(15);
-  vd_3rd_wed_of_qp             date;
-  vc_price_dr_id               varchar2(15);
-  vobj_error_log               tableofpelerrorlog := tableofpelerrorlog();
-  vn_eel_error_count           number := 1;
-  vd_valid_quote_date          date;
-  vd_quotes_date               date;
-  workings_days                number;
-  vc_price_unit_cur_id         varchar2(15);
-  vc_price_unit_cur_code       varchar2(15);
-  vc_price_unit_weight_unit_id varchar2(15);
-  vc_price_unit_weight_unit    varchar2(15);
-  vn_price_unit_weight         number;
-  vc_error_msg                 varchar2(100);
-begin
-  for cur_mar_price_rows in cur_mar_price
-  loop
-    vn_price         := null;
-    vd_3rd_wed_of_qp := pkg_metals_general.f_get_next_day(cur_mar_price_rows.delivery_date,
-                                                          'Wed',
-                                                          3);
-    while true
-    loop
-      if pkg_metals_general.f_is_day_holiday(cur_mar_price_rows.instrument_id,
-                                             vd_3rd_wed_of_qp) then
-        vd_3rd_wed_of_qp := vd_3rd_wed_of_qp + 1;
-      else
-        exit;
-      end if;
-    end loop;
-  
-    if vd_3rd_wed_of_qp <= pd_trade_date then
-      workings_days  := 0;
-      vd_quotes_date := pd_trade_date + 1;
-      while workings_days <> 2
-      loop
-        if pkg_metals_general.f_is_day_holiday(cur_mar_price_rows.instrument_id,
-                                               vd_quotes_date) then
-          vd_quotes_date := vd_quotes_date + 1;
-        else
-          workings_days := workings_days + 1;
-          if workings_days <> 2 then
-            vd_quotes_date := vd_quotes_date + 1;
-          end if;
-        end if;
-      end loop;
-      vd_3rd_wed_of_qp := vd_quotes_date;
-    end if;
-    ---- get the dr_id             
-    begin
-      select drm.dr_id
-        into vc_price_dr_id
-        from drm_derivative_master drm
-       where drm.instrument_id = cur_mar_price_rows.instrument_id
-         and drm.prompt_date = vd_3rd_wed_of_qp
-         and rownum <= 1
-         and drm.price_point_id is null
-         and drm.is_deleted = 'N';
-    exception
-      when no_data_found then
-        if vd_3rd_wed_of_qp is not null then
-          vobj_error_log.extend;
-          vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                               'procedure sp_calc_DI_Valuation_price',
-                                                               'PHY-002',
-                                                               'Price missing for ' ||
-                                                               cur_mar_price_rows.instrument_name ||
-                                                               ',Price Source:' ||
-                                                               cur_mar_price_rows.price_source_name ||
-                                                             --  ' Contract Ref No: ' ||
-                                                           --    cur_mar_price_rows.contract_ref_no ||
-                                                               ',Price Unit:' ||
-                                                               cur_mar_price_rows.price_unit_name || ',' ||
-                                                               cur_mar_price_rows.available_price_name ||
-                                                               ' Price,Prompt Date:' ||
-                                                               vd_3rd_wed_of_qp,
-                                                               cur_mar_price_rows.contract_ref_no,
-                                                               pc_process,
-                                                               pc_user_id,
-                                                               sysdate,
-                                                               pd_trade_date);
-          sp_insert_error_log(vobj_error_log);
-        end if;
-    end;
-  
-    --get the price              
-    begin
-      select dqd.price,
-             dqd.price_unit_id
-        into vn_price,
-             vc_price_unit_id
-        from dq_derivative_quotes        dq,
-             dqd_derivative_quote_detail dqd,
-             cdim_corporate_dim          cdim
-       where dq.dq_id = dqd.dq_id
-         and dqd.dr_id = vc_price_dr_id
-         and dq.process_id = pc_process_id
-         and dq.instrument_id = cur_mar_price_rows.instrument_id
-         and dq.process_id = dqd.process_id
-         and dqd.available_price_id = cur_mar_price_rows.available_price_id
-         and dq.price_source_id = cur_mar_price_rows.price_source_id
-         and dqd.price_unit_id = cur_mar_price_rows.price_unit_id
-         and dq.trade_date = cdim.valid_quote_date
-         and dq.is_deleted = 'N'
-         and dqd.is_deleted = 'N'
-         and rownum <= 1
-         and cdim.corporate_id = pc_corporate_id
-         and cdim.instrument_id = dq.instrument_id;
-    exception
-      when no_data_found then
-        select cdim.valid_quote_date
-          into vd_valid_quote_date
-          from cdim_corporate_dim cdim
-         where cdim.corporate_id = pc_corporate_id
-           and cdim.instrument_id = cur_mar_price_rows.instrument_id;
-        vobj_error_log.extend;
-        vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id, --
-                                                             'procedure sp_calc_DI_Valuation_price',
-                                                             'PHY-002', --
-                                                             'Price missing for ' ||
-                                                             cur_mar_price_rows.instrument_name ||
-                                                             ',Price Source:' ||
-                                                             cur_mar_price_rows.price_source_name || --
-                                                         --    ' Contract Ref No: ' ||
-                                                           --  cur_mar_price_rows.contract_ref_no ||
-                                                             ',Price Unit:' ||
-                                                             cur_mar_price_rows.price_unit_name || ',' ||
-                                                             cur_mar_price_rows.available_price_name ||
-                                                             ' Price,Prompt Date:' ||
-                                                             to_char(vd_3rd_wed_of_qp,
-                                                                     'dd-Mon-yyyy') ||
-                                                             ' Trade Date :' ||
-                                                             to_char(vd_valid_quote_date,
-                                                                     'dd-Mon-yyyy'),
-                                                             cur_mar_price_rows.contract_ref_no,
-                                                             pc_process,
-                                                             pc_user_id,
-                                                             sysdate,
-                                                             pd_trade_date);
-        sp_insert_error_log(vobj_error_log);
-      
-    end;
-    vc_price_unit_id := cur_mar_price_rows.ppu_price_unit_id;
-  
-    -- Get Price Unit Currency, Quantity Details
-    begin
-      select cm.cur_id,
-             cm.cur_code,
-             qum.qty_unit_id,
-             qum.qty_unit,
-             ppu.weight
-        into vc_price_unit_cur_id,
-             vc_price_unit_cur_code,
-             vc_price_unit_weight_unit_id,
-             vc_price_unit_weight_unit,
-             vn_price_unit_weight
-        from v_ppu_pum                ppu,
-             cm_currency_master       cm,
-             qum_quantity_unit_master qum
-       where ppu.product_price_unit_id = vc_price_unit_id
-         and ppu.cur_id = cm.cur_id
-         and ppu.weight_unit_id = qum.qty_unit_id;
-    exception
-      when others then
-        vc_price_unit_cur_id         := null;
-        vc_price_unit_cur_code       := null;
-        vc_price_unit_weight_unit_id := null;
-        vc_price_unit_weight_unit    := null;
-        vn_price_unit_weight         := null;
-    end;
-  
-    insert into mbv_di_valuation_price
-      (process_id,
-       contract_ref_no,
-       pcdi_id,
-       element_id,
-       delivery_date,
-       price,
-       price_unit_id,
-       price_unit_cur_id,
-       price_unit_cur_code,
-       price_unit_weight,
-       price_unit_weight_unit_id,
-       price_unit_weight_unit)
-    values
-      (pc_process_id,
-       cur_mar_price_rows.contract_ref_no,
-       cur_mar_price_rows.pcdi_id,
-       cur_mar_price_rows.element_id,
-       cur_mar_price_rows.delivery_date,
-       vn_price,
-       vc_price_unit_id,
-       vc_price_unit_cur_id,
-       vc_price_unit_cur_code,
-       vn_price_unit_weight,
-       vc_price_unit_weight_unit_id,
-       vc_price_unit_weight_unit);
-  end loop;
-  commit;
-exception
-  when others then
-    vobj_error_log.extend;
-    vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                         'procedure pkg_phy_mbv_report.sp_calc_di_valuation_price',
-                                                         'M2M-013',
-                                                         'Code:' || sqlcode ||
-                                                         'Message:' ||
-                                                         sqlerrm ||
-                                                         '  Error Msg: ' ||
-                                                         vc_error_msg,
-                                                         '',
-                                                         pc_process,
-                                                         null,
-                                                         sysdate,
-                                                         pd_trade_date);
-    sp_insert_error_log(vobj_error_log);
-  
-end;
 procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
                                      pd_trade_date   date,
                                      pc_process      varchar2,
@@ -3169,7 +2762,8 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
 
   cursor cur_diff is
   --- Normal concentrate contracts
-    select pcm.internal_contract_ref_no,
+    select /*+ ordered*/ 
+           pcm.internal_contract_ref_no,
            pcdi.pcdi_id,
            pcdi.delivery_item_no,
            pcm.contract_ref_no || '(' || pcdi.delivery_item_no || ')' contract_ref_no_del_item_no,
@@ -3289,7 +2883,8 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
        and ucm.from_qty_unit_id = pcs.payable_qty_unit_id
        and ucm.to_qty_unit_id = pdm.base_quantity_unit
     union all -- base metal contracts
-    select pcm.internal_contract_ref_no,
+    select /*+ ordered*/ 
+           pcm.internal_contract_ref_no,
            pcdi.pcdi_id,
            pcdi.delivery_item_no,
            pcm.contract_ref_no || '(' || pcdi.delivery_item_no || ')' contract_ref_no_del_item_no,
@@ -6449,6 +6044,5 @@ exception
                                                          pd_trade_date);
     sp_insert_error_log(vobj_error_log);
 end;
-
 end pkg_phy_mbv_report; 
 /
