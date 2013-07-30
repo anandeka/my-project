@@ -3960,6 +3960,7 @@ create or replace package body pkg_phy_pre_check_process is
    ---Added Suresh
    delete from temp_pci_treatment_elemnts temp
     where temp.corporate_id = pc_corporate_id;
+   commit;
    insert into temp_pci_treatment_elemnts
      (corporate_id, internal_contract_item_ref_no, element_id)
      select pc_corporate_id,
@@ -3990,6 +3991,7 @@ create or replace package body pkg_phy_pre_check_process is
   
     delete from temp_pci_refine_elemnts temp
      where temp.corporate_id = pc_corporate_id;
+   commit;
    insert into temp_pci_refine_elemnts
      (corporate_id, internal_contract_item_ref_no, element_id)
      select pc_corporate_id,
