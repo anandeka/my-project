@@ -200,7 +200,7 @@ create or replace package body pkg_phy_pre_check_process is
      where tdc.corporate_id = pc_corporate_id
        and tdc.trade_date = pd_trade_date
        and tdc.process = pc_process;
-/* vn_logno := vn_logno + 1;
+ vn_logno := vn_logno + 1;
    sp_precheck_process_log(pc_corporate_id,
                             pd_trade_date,
                             gvc_dbd_id,
@@ -211,7 +211,7 @@ create or replace package body pkg_phy_pre_check_process is
                                      pc_process,
                                      vc_process_id,
                                      pc_user_id,gvc_dbd_id);
-  */
+  
     if pkg_process_status.sp_get(pc_corporate_id, pc_process, pd_trade_date) =
        'Cancel' then
       goto cancel_process;
