@@ -22071,7 +22071,7 @@ begin
               ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
               (pqca.typical / 100))
              else
-              (((grd.current_qty * (asm.dry_wet_qty_ratio / 100))) *
+              (((grd.current_qty*ucm.multiplication_factor* (asm.dry_wet_qty_ratio / 100))) *
               pqca.typical)
            end) assay_qty,
            (case
@@ -22086,7 +22086,7 @@ begin
               ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
               (pqcapd.payable_percentage / 100))
              else
-              ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
+              ((grd.current_qty *ucm.multiplication_factor* (asm.dry_wet_qty_ratio / 100)) *
               pqcapd.payable_percentage)
            end) payable_qty,
            (case
@@ -22118,7 +22118,8 @@ begin
            pqca_pq_chemical_attributes    pqca,
            pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
            rm_ratio_master                rm,
-           qum_quantity_unit_master       qum
+           qum_quantity_unit_master       qum,
+           ucm_unit_conversion_master     ucm
      where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
        and gmr.is_internal_movement = 'Y'
        and gmr.is_deleted = 'N'
@@ -22138,6 +22139,10 @@ begin
        and qum.qty_unit_id =
            (case when rm.ratio_name = '%' then grd.qty_unit_id else
             rm.qty_unit_id_numerator end)
+       and ucm.from_qty_unit_id = grd.qty_unit_id
+       and ucm.to_qty_unit_id =
+             (case when rm.ratio_name = '%' then ash_pricing.net_weight_unit else
+              rm.qty_unit_id_denominator end)
        and gmr.eff_date <= pd_trade_date
        and rm.is_active = 'Y'
        and pqca.is_active = 'Y'
@@ -22234,7 +22239,7 @@ begin
               ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
               (pqca.typical / 100))
              else
-              (((grd.current_qty * (asm.dry_wet_qty_ratio / 100))) *
+              (((grd.current_qty *ucm.multiplication_factor* (asm.dry_wet_qty_ratio / 100))) *
               pqca.typical)
            end) assay_qty,
            (case
@@ -22277,7 +22282,8 @@ begin
            aml_attribute_master_list aml,
            pqca_pq_chemical_attributes pqca,
            rm_ratio_master rm,
-           qum_quantity_unit_master qum
+           qum_quantity_unit_master qum,
+           ucm_unit_conversion_master ucm
      where grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
        and gmr.is_internal_movement = 'Y'
        and gmr.is_deleted = 'N'
@@ -22294,6 +22300,10 @@ begin
        and qum.qty_unit_id =
            (case when rm.ratio_name = '%' then grd.qty_unit_id else
             rm.qty_unit_id_numerator end)
+       and ucm.from_qty_unit_id = grd.qty_unit_id
+       and ucm.to_qty_unit_id =
+             (case when rm.ratio_name = '%' then ash.net_weight_unit else
+              rm.qty_unit_id_denominator end)     
        and gmr.eff_date <= pd_trade_date
        and rm.is_active = 'Y'
        and aml.is_active = 'Y'
@@ -22442,7 +22452,7 @@ update cbt_cb_temp ct
               ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
               (pqca.typical / 100))
              else
-              (((grd.current_qty * (asm.dry_wet_qty_ratio / 100))) *
+              (((grd.current_qty * ucm.multiplication_factor*(asm.dry_wet_qty_ratio / 100))) *
               pqca.typical)
            end) assay_qty,
            (case
@@ -22457,7 +22467,7 @@ update cbt_cb_temp ct
               ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
               (pqcapd.payable_percentage / 100))
              else
-              ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
+              ((grd.current_qty *ucm.multiplication_factor* (asm.dry_wet_qty_ratio / 100)) *
               pqcapd.payable_percentage)
            end) payable_qty,
            (case
@@ -22489,7 +22499,8 @@ update cbt_cb_temp ct
            pqca_pq_chemical_attributes    pqca,
            pqcapd_prd_qlty_cattr_pay_dtls pqcapd,
            rm_ratio_master                rm,
-           qum_quantity_unit_master       qum
+           qum_quantity_unit_master       qum,
+           ucm_unit_conversion_master     ucm
      where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
        and gmr.is_deleted = 'N'
        and grd.status = 'Active'
@@ -22507,6 +22518,10 @@ update cbt_cb_temp ct
        and qum.qty_unit_id =
            (case when rm.ratio_name = '%' then grd.qty_unit_id else
             rm.qty_unit_id_denominator end)
+       and ucm.from_qty_unit_id = grd.qty_unit_id
+       and ucm.to_qty_unit_id =
+             (case when rm.ratio_name = '%' then ash.net_weight_unit else
+              rm.qty_unit_id_denominator end)     
        and grd.current_qty <> 0
        and grd.tolling_stock_type in ('None Tolling')
        and rm.is_active = 'Y'
@@ -22605,7 +22620,7 @@ update cbt_cb_temp ct
               ((grd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
               (pqca.typical / 100))
              else
-              (((grd.current_qty * (asm.dry_wet_qty_ratio / 100))) *
+              (((grd.current_qty *ucm.multiplication_factor* (asm.dry_wet_qty_ratio / 100))) *
               pqca.typical)
            end) assay_qty,
            (case
@@ -22648,7 +22663,8 @@ update cbt_cb_temp ct
            pqca_pq_chemical_attributes pqca,
            aml_attribute_master_list   aml,
            rm_ratio_master             rm,
-           qum_quantity_unit_master    qum
+           qum_quantity_unit_master    qum,
+           ucm_unit_conversion_master  ucm
      where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
        and gmr.is_deleted = 'N'
        and grd.status = 'Active'
@@ -22666,6 +22682,10 @@ update cbt_cb_temp ct
        and qum.qty_unit_id =
            (case when rm.ratio_name = '%' then grd.qty_unit_id else
             rm.qty_unit_id_denominator end)
+       and ucm.from_qty_unit_id = grd.qty_unit_id
+       and ucm.to_qty_unit_id =
+             (case when rm.ratio_name = '%' then ash.net_weight_unit else
+              rm.qty_unit_id_denominator end)     
        and rm.is_active = 'Y'
        and aml.is_active = 'Y'
        and pqca.is_active = 'Y'
