@@ -5,3 +5,4 @@ refresh force on demand
 start with sysdate next SYSDATE+5/1440    
 as
 select * from v_bi_metal_effeincomeloss
+
