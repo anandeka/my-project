@@ -1,0 +1,50 @@
+Patch No*          		:  EKA_METALS_PATCH_1711
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Varaprasad B
+ 
+Created on*        		:  12-Aug-2013 
+
+Bug / Enhancement*              :  Bug
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Debit/Credit Note
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 139196
+Author: varaprasad.b
+Date: 15:42:02, 12 August 2013
+Message:
+Bug #83742 fix - In debit credit output document data is showing multiple times.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_627.sql
+
+
+
+
+
+
