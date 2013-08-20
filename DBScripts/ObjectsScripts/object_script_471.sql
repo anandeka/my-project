@@ -1,0 +1,1 @@
+ALTER TABLE mtfs_mbt_fin_settlement ADD (comments VARCHAR2(4000));
