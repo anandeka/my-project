@@ -63,6 +63,9 @@ BEGIN
                    end) || (case
                      when PFQPP.IS_QP_ANY_DAY_BASIS = 'Y' then
                       ',Is Any Day Basis : true'
+                   end) || (case
+                     when pfqpp.is_spot_pricing = 'Y'then
+                      ', Is Spot Pricing : true'
                    end)
               from PFQPP_PHY_FORMULA_QP_PRICING pfqpp
              where PFQPP.PPFH_ID = ppfh.ppfh_id
