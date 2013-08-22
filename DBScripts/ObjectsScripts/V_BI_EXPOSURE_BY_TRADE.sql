@@ -512,7 +512,8 @@ select pcm.corporate_id,
                                             pocd.qty_to_be_fixed_unit_id,
                                             pdm.base_quantity_unit,
                                             pofh.qty_to_be_fixed -
-                                            nvl(pofh.priced_qty, 0)) unpriced_qty,
+                                            nvl(pofh.priced_qty, 0)
+                                            -nvl(pofh.total_hedge_corrected_qty,0)) unpriced_qty,--for Bug 82962
        pdm.base_quantity_unit qty_unit_id,
        qum.qty_unit
   from pcm_physical_contract_main pcm,
@@ -578,7 +579,6 @@ select pcm.corporate_id,
        0 unpriced_qty,
        pdm.base_quantity_unit qty_unit_id,
        qum.qty_unit
-
   from pcm_physical_contract_main pcm,
        pcdi_pc_delivery_item pcdi,
        pcpd_pc_product_definition pcpd,
@@ -688,7 +688,6 @@ select pcm.corporate_id,
    and pocd.qp_period_type = 'Event'
    and pofh.qty_to_be_fixed - nvl(pofh.priced_qty, 0) > 0
    and pofh.internal_gmr_ref_no is not null
-
 union all
 ---12 th  Event based with Out GMR created
 select pcm.corporate_id,
@@ -773,5 +772,4 @@ select pcm.corporate_id,
    and pocd.qp_period_type = 'Event'
    and pcdi_qty.qty_unit_id = ucm.from_qty_unit_id
    and pdm.base_quantity_unit = ucm.to_qty_unit_id
-   and ucm.is_active = 'Y';
-
+   and ucm.is_active = 'Y' ;
