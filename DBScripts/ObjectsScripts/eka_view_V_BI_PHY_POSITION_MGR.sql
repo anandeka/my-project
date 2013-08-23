@@ -808,7 +808,7 @@ select 'Standard' product_type,
        end) contract_type,
        'Inventory' position_type,
        'Stocks' position_sub_type,
-       grd.internal_grd_ref_no contract_ref_no,
+       gmr.gmr_ref_no contract_ref_no,
        'NA' external_reference_no,
        gmr.inventory_in_date issue_date,
        'NA' counter_party_id,
@@ -837,17 +837,17 @@ select 'Standard' product_type,
        sm_gmr_dest_state.state_id dest_state_id, -- Newly Added
        sm_gmr_dest_state.state_name dest_state_name, -- Newly Added
        rem_dest.region_name dest_loc_group_name, -- Newly Added
-       to_char(sysdate, 'Mon-yyyy') period_month_year,
-       trunc(sysdate) delivery_from_date,
-       trunc(sysdate) delivery_to_date,
-       (nvl(grd.current_qty, 0) + nvl(grd.release_shipped_qty, 0) -
+       to_char(nvl(gmr.inventory_in_date,sysdate), 'Mon-yyyy') period_month_year,
+       trunc(nvl(gmr.inventory_in_date,sysdate),'dd-Mon-yyyy') delivery_from_date,
+       trunc(nvl(gmr.inventory_in_date,sysdate),'dd-Mon-yyyy') delivery_to_date,
+      (nvl(grd.current_qty, 0) + nvl(grd.release_shipped_qty, 0) -
        nvl(grd.title_transfer_out_qty, 0)) * ucm.multiplication_factor qty_in_group_unit,
        qum_gcd.qty_unit group_qty_unit,
        (nvl(grd.current_qty, 0) + nvl(grd.release_shipped_qty, 0) -
        nvl(grd.title_transfer_out_qty, 0)) qty_in_ctract_unit,
        grd.qty_unit_id ctract_qty_unit,
        cm_base_currency.cur_code corp_base_cur,
-       to_char(sysdate, 'Mon-yyyy') delivery_month,
+       to_char(nvl(gmr.inventory_in_date,sysdate), 'Mon-yyyy') delivery_month,--(added for Bug 82969 )
        pci.invoice_currency_id invoice_cur_id,
        cm_invoice_currency.cur_code invoice_cur_code,
        ucm_base.qum_to_qty_unit base_qty_unit,
@@ -1032,4 +1032,4 @@ select product_type,
        warehouse_name,
        shed_id,
        shed_name
-  from v_bi_conc_phy_position
+  from v_bi_conc_phy_position ;

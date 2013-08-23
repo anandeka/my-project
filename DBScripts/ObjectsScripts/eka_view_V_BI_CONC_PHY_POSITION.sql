@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW V_BI_CONC_PHY_POSITION AS
+create or replace view v_bi_conc_phy_position as
 select 'Composite' product_type,
        'Concentrates Open Contracts' section_name,
        pcm.corporate_id,
@@ -149,10 +149,7 @@ select 'Composite' product_type,
                   pci.expected_delivery_year,
                   'dd-Mon-yyyy')
        end delivery_to_date,
-       (ciqs.open_qty -
-       pkg_report_general.fn_deduct_wet_to_dry_qty(pdm.product_id,
-                                                    pci.internal_contract_item_ref_no,
-                                                    ciqs.open_qty)) * (case
+       (ciqs.open_qty * (asm.dry_wet_qty_ratio / 100)) * (case
          when rm.ratio_name = '%' then
           pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
                                                    pdm.product_id),
@@ -172,10 +169,7 @@ select 'Composite' product_type,
                                                1)
        end) * pqca.typical qty_in_group_unit,
        qum_gcd.qty_unit group_qty_unit,
-       (ciqs.open_qty -
-       pkg_report_general.fn_deduct_wet_to_dry_qty(pdm.product_id,
-                                                    pci.internal_contract_item_ref_no,
-                                                    ciqs.open_qty)) * (case
+       (ciqs.open_qty * (asm.dry_wet_qty_ratio / 100)) * (case
          when rm.ratio_name = '%' then
           pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
                                                    pdm.product_id),
@@ -200,10 +194,7 @@ select 'Composite' product_type,
        pcm.invoice_currency_id invoice_cur_id,
        cm_invoice_cur.cur_code invoice_cur_code,
        qum_under.qty_unit base_qty_unit,
-       (ciqs.open_qty -
-       pkg_report_general.fn_deduct_wet_to_dry_qty(pdm.product_id,
-                                                    pci.internal_contract_item_ref_no,
-                                                    ciqs.open_qty)) * (case
+       (ciqs.open_qty * (asm.dry_wet_qty_ratio / 100)) * (case
          when rm.ratio_name = '%' then
           pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
                                                    pdm.product_id),
@@ -320,7 +311,7 @@ select 'Composite' product_type,
    and pcdb.is_active = 'Y'
    and pcm.corporate_id = akc.corporate_id
    and pcpd.profit_center_id = cpc.profit_center_id
-   and cpc.business_line_id = blm.business_line_id
+   and cpc.business_line_id = blm.business_line_id(+)
    and pcpd.strategy_id = css.strategy_id
    and pcpd.product_id = pdm.product_id
    and pdm.product_group_id = pgm.product_group_id
@@ -357,6 +348,7 @@ select 'Composite' product_type,
    and pqca.unit_of_measure = rm.ratio_id(+)
    and pcdb.warehouse_id = phd_wh.profileid(+)
    and pcdb.warehouse_shed_id = sld.storage_loc_id(+)
+  -- and pcm.contract_ref_no like '%533%'
 union all
 -- 2. shipped but not tt for purchase gmrs
 select 'Composite' product_type,
@@ -461,14 +453,7 @@ select 'Composite' product_type,
                   'dd-Mon-yyyy')
        end delivery_to_date,
        ((nvl(grd.current_qty, 0) + nvl(grd.release_shipped_qty, 0) -
-       nvl(grd.title_transfer_out_qty, 0)) -
-       pkg_report_general.fn_deduct_wet_to_dry_qty(pdm.product_id,
-                                                    pci.internal_contract_item_ref_no,
-                                                    (nvl(grd.current_qty, 0) +
-                                                    nvl(grd.release_shipped_qty,
-                                                         0) -
-                                                    nvl(grd.title_transfer_out_qty,
-                                                         0)))) *
+       nvl(grd.title_transfer_out_qty, 0)) * (asm.dry_wet_qty_ratio / 100)) *
        ucm_base.multiplication_factor * (case
          when rm.ratio_name = '%' then
           pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
@@ -486,14 +471,7 @@ select 'Composite' product_type,
        end) *pqca.typical qty_in_group_unit,
        qum_gcd.qty_unit group_qty_unit,
        ((nvl(grd.current_qty, 0) + nvl(grd.release_shipped_qty, 0) -
-       nvl(grd.title_transfer_out_qty, 0)) -
-       pkg_report_general.fn_deduct_wet_to_dry_qty(pdm.product_id,
-                                                    pci.internal_contract_item_ref_no,
-                                                    (nvl(grd.current_qty, 0) +
-                                                    nvl(grd.release_shipped_qty,
-                                                         0) -
-                                                    nvl(grd.title_transfer_out_qty,
-                                                         0)))) *
+       nvl(grd.title_transfer_out_qty, 0)) * (asm.dry_wet_qty_ratio / 100)) *
        ucm.multiplication_factor * (case
          when rm.ratio_name = '%' then
           pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
@@ -516,14 +494,7 @@ select 'Composite' product_type,
        cm_invoice_currency.cur_code invoice_cur_code,
        qum_under.qty_unit base_qty_unit,
        ((nvl(grd.current_qty, 0) + nvl(grd.release_shipped_qty, 0) -
-       nvl(grd.title_transfer_out_qty, 0)) -
-       pkg_report_general.fn_deduct_wet_to_dry_qty(pdm.product_id,
-                                                    pci.internal_contract_item_ref_no,
-                                                    (nvl(grd.current_qty, 0) +
-                                                    nvl(grd.release_shipped_qty,
-                                                         0) -
-                                                    nvl(grd.title_transfer_out_qty,
-                                                         0)))) *
+       nvl(grd.title_transfer_out_qty, 0)) * (asm.dry_wet_qty_ratio / 100)) *
        ucm_base.multiplication_factor * (case
          when rm.ratio_name = '%' then
           pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
@@ -792,7 +763,7 @@ select 'Composite' product_type,
          else
           'NA'
        end dest_loc_group_name,
-       '' period_month_year,
+      to_char(nvl(dgrd.realized_date,sysdate), 'Mon-yyyy') period_month_year,
        case
          when pci.delivery_period_type = 'Date' and pci.is_called_off = 'Y' then
           pci.delivery_from_date
@@ -809,10 +780,7 @@ select 'Composite' product_type,
                   pci.expected_delivery_year,
                   'dd-Mon-yyyy')
        end delivery_to_date,
-       (dgrd.current_qty -
-       pkg_report_general.fn_deduct_wet_to_dry_qty(pdm.product_id,
-                                                    pci.internal_contract_item_ref_no,
-                                                    dgrd.current_qty)) *
+       (dgrd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
        ucm_base.multiplication_factor * (case
          when rm.ratio_name = '%' then
           pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
@@ -829,10 +797,7 @@ select 'Composite' product_type,
                                                1)
        end) *pqca.typical qty_in_group_unit,
        qum_gcd.qty_unit group_qty_unit,
-       (dgrd.current_qty -
-       pkg_report_general.fn_deduct_wet_to_dry_qty(pdm.product_id,
-                                                    pci.internal_contract_item_ref_no,
-                                                    dgrd.current_qty)) *
+       (dgrd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
        ucm.multiplication_factor * (case
          when rm.ratio_name = '%' then
           pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
@@ -850,14 +815,11 @@ select 'Composite' product_type,
        end) * pqca.typical qty_in_ctract_unit,
        qum_dgrd.qty_unit ctract_qty_unit,
        cm_base_cur.cur_code corp_base_cur,
-       to_char(sysdate, 'Mon-yyyy') delivery_month,
+       to_char(nvl(dgrd.realized_date,sysdate), 'Mon-yyyy') delivery_month,
        cm_invoice_curreny.cur_id invoice_cur_id,
        cm_invoice_curreny.cur_code invoice_cur_code,
        qum_under.qty_unit base_qty_unit,
-       (dgrd.current_qty -
-       pkg_report_general.fn_deduct_wet_to_dry_qty(pdm.product_id,
-                                                    pci.internal_contract_item_ref_no,
-                                                    dgrd.current_qty)) *
+       (dgrd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
        ucm_base.multiplication_factor *
        
        (case
@@ -1055,7 +1017,13 @@ select 'Composite' product_type,
        'Stocks -  Actual Stocks' position_type_id,
        'Inventory' position_type,
        'Stocks' position_sub_type,
-       grd.internal_grd_ref_no contract_ref_no,
+       case
+         when pci.contract_ref_no is not null then
+          gmr.gmr_ref_no || ',' || pci.contract_ref_no || ',' ||
+          pci.del_distribution_item_no
+         else
+          gmr.gmr_ref_no
+       end contract_ref_no,
        'NA' external_reference_no,
        gmr.eff_date issue_date,
        'NA' counter_party_id,
@@ -1084,7 +1052,7 @@ select 'Composite' product_type,
        sm_gmr_dest_state.state_id dest_state_id,
        sm_gmr_dest_state.state_name dest_state_name,
        rem_gmr_dest_region.region_name dest_loc_group_name,
-       '' period_month_year,
+       to_char(nvl(gmr.inventory_in_date,sysdate), 'Mon-yyyy') period_month_year,
        case
          when pci.delivery_period_type = 'Date' and pci.is_called_off = 'Y' then
           pci.delivery_from_date
@@ -1102,14 +1070,7 @@ select 'Composite' product_type,
                   'dd-Mon-yyyy')
        end delivery_to_date,
        ((nvl(grd.current_qty, 0) + nvl(grd.release_shipped_qty, 0) -
-       nvl(grd.title_transfer_out_qty, 0)) -
-       pkg_report_general.fn_deduct_wet_to_dry_qty(pdm.product_id,
-                                                    pci.internal_contract_item_ref_no,
-                                                    (nvl(grd.current_qty, 0) +
-                                                    nvl(grd.release_shipped_qty,
-                                                         0) -
-                                                    nvl(grd.title_transfer_out_qty,
-                                                         0)))) *
+       nvl(grd.title_transfer_out_qty, 0))* (asm.dry_wet_qty_ratio / 100)) *
        ucm_base.multiplication_factor *
        
        (case
@@ -1129,14 +1090,7 @@ select 'Composite' product_type,
        end) *pqca.typical qty_in_group_unit,
        qum_gcd.qty_unit group_qty_unit,
        ((nvl(grd.current_qty, 0) + nvl(grd.release_shipped_qty, 0) -
-       nvl(grd.title_transfer_out_qty, 0)) -
-       pkg_report_general.fn_deduct_wet_to_dry_qty(pdm.product_id,
-                                                    pci.internal_contract_item_ref_no,
-                                                    (nvl(grd.current_qty, 0) +
-                                                    nvl(grd.release_shipped_qty,
-                                                         0) -
-                                                    nvl(grd.title_transfer_out_qty,
-                                                         0)))) *
+       nvl(grd.title_transfer_out_qty, 0)) * (asm.dry_wet_qty_ratio / 100)) *
        ucm.multiplication_factor * (case
          when rm.ratio_name = '%' then
           pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
@@ -1154,19 +1108,12 @@ select 'Composite' product_type,
        end) * pqca.typical qty_in_ctract_unit,
        grd.qty_unit_id ctract_qty_unit,
        cm_base_currency.cur_code corp_base_cur,
-       pci.expected_delivery_month || '-' || pci.expected_delivery_year delivery_month,
+       to_char(nvl(gmr.inventory_in_date,sysdate), 'Mon-yyyy') delivery_month,
        pci.invoice_currency_id invoice_cur_id,
        cm_invoice_currency.cur_code invoice_cur_code,
        qum_under.qty_unit base_qty_unit,
        ((nvl(grd.current_qty, 0) + nvl(grd.release_shipped_qty, 0) -
-       nvl(grd.title_transfer_out_qty, 0)) -
-       pkg_report_general.fn_deduct_wet_to_dry_qty(pdm.product_id,
-                                                    pci.internal_contract_item_ref_no,
-                                                    (nvl(grd.current_qty, 0) +
-                                                    nvl(grd.release_shipped_qty,
-                                                         0) -
-                                                    nvl(grd.title_transfer_out_qty,
-                                                         0)))) *
+       nvl(grd.title_transfer_out_qty, 0))* (asm.dry_wet_qty_ratio / 100)) *
        
        (case
          when rm.ratio_name = '%' then
@@ -1298,4 +1245,4 @@ select 'Composite' product_type,
    and pqca.is_elem_for_pricing = 'Y'
    and pqca.unit_of_measure = rm.ratio_id(+)
    and grd.warehouse_profile_id = phd_wh.profileid(+)
-   and grd.tolling_stock_type ='None Tolling'
+   and grd.tolling_stock_type ='None Tolling';
