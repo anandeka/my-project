@@ -330,6 +330,189 @@ select akc.corporate_id,
      and upper(ct.status) = 'VERIFIED'
    --  and ak.corporate_id = '{?CorporateID}'
    --  and ct.trade_date = to_date('{?AsOfDate}','dd-Mon-yyyy')
+union all
+select akc.corporate_id,
+       akc.corporate_name,
+       cm_base.cur_code base_currency,
+       'Physicals' main_section,
+       'Vat' section,
+       null sub_section,
+       ivd.internal_invoice_ref_no,
+       ivd.vat_amount_in_inv_cur,
+       ivd.vat_amount_in_vat_cur,
+       cpc.profit_center_id,
+       cpc.profit_center_short_name profit_center,
+       pdm.product_id,
+       pdm.product_desc product,
+       pcm.trader_id trader_id,
+       gab.firstname || ' ' || gab.lastname trader,
+       cm_pay.cur_id exposure_cur_id,
+       cm_pay.cur_code exposure_currency,
+       iis.invoice_issue_date trade_date,
+       ivd.fx_rate_vc_ic fx_rate, -- fx rate used for invoice currency to vat currency - -siva
+       pcm.contract_ref_no,
+       iis.invoice_ref_no,
+       iis.vat_parent_ref_no parent_invoice_no,
+       null delivery_item_ref_no,
+       null contract_item_ref_no,
+       null gmr_ref_no,
+       null warehouse,
+       null element_name,
+       null currency_pair,
+       iis.payment_due_date expected_payment_due_date,
+       null qp_start_date,
+       null qp_end_date,
+       null qp,
+       null delivery_month,
+       pym.payment_term payment_terms,
+       null qty,
+       null qty_unit,
+       null qty_unit_id,
+       null qty_decimals,
+       null price,
+       null price_unit_id,
+       null price_unit,
+       iis.payable_receivable payable_receivable,
+       (decode(iis.payable_receivable, 'Payable', 1, 'Receivable', -1) *
+       abs(ivd.vat_amount_in_vat_cur)) hedging_amount,
+       '' cost_type,
+       null effective_date,
+       '' buy_sell,
+       null value_date,
+       iis.invoice_created_date correction_date,
+       null activity_type,
+       null activity_date,
+       null cpname,
+       cm_vat.cur_code vat_cur_code,
+       cm_invoice.cur_code invoice_cur_code,
+       null is_hedge_correction,
+       'Y' is_exposure 
+  from ivd_invoice_vat_details     ivd,
+       is_invoice_summary          iis, 
+       pcm_physical_contract_main  pcm,
+       ak_corporate                akc,
+       ak_corporate_user           akcu,
+       gab_globaladdressbook       gab,
+       pcpd_pc_product_definition  pcpd,
+       pym_payment_terms_master    pym,
+       cpc_corporate_profit_center cpc,
+       pdm_productmaster           pdm,
+       cm_currency_master          cm_base,
+       cm_currency_master          cm_pay,
+       cm_currency_master          cm_vat,
+       cm_currency_master          cm_invoice
+ where ivd.internal_invoice_ref_no =  iis.internal_invoice_ref_no
+  and iis.invoice_type_name='AdvancePayment' 
+   and iis.internal_contract_ref_no = pcm.internal_contract_ref_no
+   and ivd.is_separate_invoice = 'N'
+   and ivd.vat_remit_cur_id <> ivd.invoice_cur_id
+   and pcm.corporate_id = akc.corporate_id
+   and pcm.trader_id = akcu.user_id(+)
+   and akcu.gabid = gab.gabid
+   and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
+   and pcpd.input_output = 'Input'
+   and pcm.payment_term_id = pym.payment_term_id
+   and pcpd.profit_center_id = cpc.profit_center_id
+   and pcpd.product_id = pdm.product_id
+   and akc.base_cur_id = cm_base.cur_id
+   and ivd.vat_remit_cur_id = cm_pay.cur_id
+   and akc.base_cur_id = cm_base.cur_id
+   and ivd.vat_remit_cur_id = cm_vat.cur_id
+   and ivd.invoice_cur_id = cm_invoice.cur_id
+   and iis.is_active = 'Y'  
+   and nvl(ivd.vat_amount_in_vat_cur, 0) <> 0
+   union all -- VAT Exposure in INVOICE CURRENCY( for Invoice CCY <> VAT Remit With VAT as "Same Invoice" :-
+   select akc.corporate_id,
+       akc.corporate_name,
+       cm_base.cur_code base_currency,
+       'Physicals' main_section,
+       'Vat' section,
+       null sub_section,
+       ivd.internal_invoice_ref_no,
+       ivd.vat_amount_in_inv_cur,
+       ivd.vat_amount_in_vat_cur,
+       cpc.profit_center_id,
+       cpc.profit_center_short_name profit_center,
+       pdm.product_id,
+       pdm.product_desc product,
+       pcm.trader_id trader_id,
+       gab.firstname || ' ' || gab.lastname trader,
+       cm_pay.cur_id exposure_cur_id,
+       cm_pay.cur_code exposure_currency,
+       iis.invoice_issue_date trade_date,
+       ivd.fx_rate_vc_ic fx_rate,    
+       pcm.contract_ref_no,
+       iis.invoice_ref_no,
+       iis.vat_parent_ref_no parent_invoice_no,
+       null delivery_item_ref_no,
+       null contract_item_ref_no,
+       null gmr_ref_no,
+       null Warehouse,
+       null element_name,
+       null currency_pair,
+       iis.payment_due_date expected_payment_due_date,
+       null qp_start_date,
+       null qp_end_date,
+       null qp,
+       null delivery_month,
+       pym.payment_term payment_terms,
+       null qty,
+       null qty_unit,
+       null qty_unit_id,
+       null qty_decimals,
+       null price,
+       null price_unit_id,
+       null price_unit,
+       iis.payable_receivable payable_receivable,
+       (decode(iis.payable_receivable, 'Payable', -1, 'Receivable', 1) *
+       abs(ivd.vat_amount_in_inv_cur)) hedging_amount,
+       '' cost_type,
+       null effective_date,
+       '' buy_sell,
+       null value_date,
+       iis.invoice_created_date correction_date,
+       null activity_type,
+       null activity_date,
+       null cpname,
+       cm_vat.cur_code vat_cur_code,
+       cm_invoice.cur_code invoice_cur_code,
+       null is_hedge_correction,
+       'Y' is_exposure
+  from ivd_invoice_vat_details ivd,
+       is_invoice_summary iis,     
+       pcm_physical_contract_main pcm,
+       ak_corporate akc,
+       ak_corporate_user akcu,
+       gab_globaladdressbook gab,
+       pcpd_pc_product_definition pcpd,
+       pym_payment_terms_master pym,
+       cpc_corporate_profit_center cpc,
+       pdm_productmaster pdm,
+       cm_currency_master cm_base,
+       cm_currency_master cm_pay,
+        cm_currency_master cm_vat,
+       cm_currency_master cm_invoice
+ where ivd.internal_invoice_ref_no =iis.internal_invoice_ref_no   
+   and iis.INVOICE_TYPE_NAME='AdvancePayment' 
+   and iis.internal_contract_ref_no = pcm.internal_contract_ref_no
+   and ivd.is_separate_invoice = 'N'
+   and ivd.vat_remit_cur_id <> ivd.invoice_cur_id
+   and pcm.corporate_id = akc.corporate_id
+   and pcm.trader_id = akcu.user_id(+)
+   and akcu.gabid = gab.gabid
+   and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no(+)
+   and pcpd.input_output = 'Input'
+   and pcm.payment_term_id = pym.payment_term_id
+   and pcpd.profit_center_id = cpc.profit_center_id
+   and pcpd.product_id = pdm.product_id
+   and akc.base_cur_id = cm_base.cur_id
+   and ivd.invoice_cur_id = cm_pay.cur_id
+   and akc.base_cur_id = cm_base.cur_id
+   and ivd.vat_remit_cur_id=cm_vat.cur_id
+   and ivd.invoice_cur_id=cm_invoice.cur_id
+   and iis.is_active = 'Y'  
+   and nvl(ivd.vat_amount_in_inv_cur,0)<>0
+
 -- below sections removed by siva on 19-Mar-2013, as these sections moved part of report query for performance tunning...
 /*union all
 select akc.corporate_id,
