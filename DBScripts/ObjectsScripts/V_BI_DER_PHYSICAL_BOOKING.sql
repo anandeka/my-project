@@ -41,7 +41,7 @@ select iss.corporate_id,
        nvl(pcm.contract_ref_no, 'NA') contract_ref_no,
        iss.invoice_cur_id invoice_cur_id,
        cm_p.cur_code pay_in_currency,
-       round(iss.total_amount_to_pay, 4) * nvl(iss.fx_to_base, 1) *
+       round(abs(iss.total_amount_to_pay), 4) * nvl(iss.fx_to_base, 1) *
        (case
           when nvl(iss.payable_receivable, 'NA') = 'Payable' then
            -1
@@ -62,7 +62,7 @@ select iss.corporate_id,
           else
            1
         end) end) else 1 end) amount_in_base_cur,
-       round(iss.total_amount_to_pay, 4) *
+       round(abs(iss.total_amount_to_pay), 4) *
        (case
           when nvl(iss.payable_receivable, 'NA') = 'Payable' then
            -1
@@ -160,7 +160,7 @@ select iss.corporate_id,
        'NA' contract_ref_no,
        iss.invoice_cur_id invoice_cur_id,
        cm_p.cur_code pay_in_currency,
-       round(iss.total_amount_to_pay, 4) * nvl(iss.fx_to_base, 1) *
+       round(abs(iss.total_amount_to_pay), 4) * nvl(iss.fx_to_base, 1) *
        (case
           when nvl(iss.payable_receivable, 'NA') = 'Payable' then
            -1
@@ -181,7 +181,7 @@ select iss.corporate_id,
           else
            1
         end) end) else 1 end) amount_in_base_cur,
-       round(iss.total_amount_to_pay, 4) *
+       round(abs(iss.total_amount_to_pay), 4) *
        (case
           when nvl(iss.payable_receivable, 'NA') = 'Payable' then
            -1
