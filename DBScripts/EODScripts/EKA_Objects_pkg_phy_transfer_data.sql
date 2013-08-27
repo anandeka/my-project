@@ -5012,7 +5012,7 @@ create or replace package body pkg_phy_transfer_data is
              recieved_raised_type,
              invoice_created_date,
              profit_center_id,
-             total_amount_to_pay,
+             abs(total_amount_to_pay),
              posting_status,
              amount_paid,
              invoice_status,
