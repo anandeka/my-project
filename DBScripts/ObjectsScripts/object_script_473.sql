@@ -1,0 +1,1 @@
+alter table ASM_ASSAY_SUBLOT_MAPPING add(UMPIRE_ID varchar2(50),UMPIRE_NAME varchar2(100),UMPIRE_REF_NO varchar2(100));
