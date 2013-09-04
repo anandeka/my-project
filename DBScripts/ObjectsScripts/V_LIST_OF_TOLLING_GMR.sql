@@ -23,122 +23,8 @@ AS
           ) latest_action_name,
           gmr.warehouse_profile_id AS warehouse_profile_id,
           shm.companyname AS warehouse, shm.shed_name AS shed_name,
-          (CASE
-              WHEN axm.action_id IN
-                        ('RECORD_OUT_PUT_TOLLING', 'RECEIVE_MATERIAL_MODIFY')
-                 THEN (SELECT f_string_aggregate (grd_rm.product_id)
-                         FROM grd_goods_record_detail grd_rm
-                        WHERE grd_rm.tolling_stock_type =
-                                                        'RM Out Process Stock'
-                          AND grd_rm.internal_gmr_ref_no =
-                                                       gmr.internal_gmr_ref_no)
-              WHEN axm.action_id = 'CREATE_RETURN_MATERIAL'
-                 THEN (SELECT f_string_aggregate (dgrd_rm.product_id)
-                         FROM dgrd_delivered_grd dgrd_rm
-                        WHERE dgrd_rm.tolling_stock_type =
-                                                       'Return Material Stock'
-                          AND dgrd_rm.internal_gmr_ref_no =
-                                                       gmr.internal_gmr_ref_no)
-              WHEN axm.action_id = 'IN_PROCESS_ADJUSTMENT'
-                 THEN (SELECT f_string_aggregate (grd_rm.product_id)
-                         FROM grd_goods_record_detail grd_rm
-                        WHERE grd_rm.tolling_stock_type =
-                                                 'In Process Adjustment Stock'
-                          AND grd_rm.internal_gmr_ref_no =
-                                                       gmr.internal_gmr_ref_no)
-              ELSE cp.product_id
-           END
-          ) AS product_id,
-          (CASE
-              WHEN axm.action_id IN
-                        ('RECORD_OUT_PUT_TOLLING', 'RECEIVE_MATERIAL_MODIFY')
-                 THEN (SELECT f_string_aggregate (pdm_in.product_desc)
-                         FROM grd_goods_record_detail grd_rm,
-                              pdm_productmaster pdm_in
-                        WHERE pdm_in.product_id = grd_rm.product_id
-                          AND grd_rm.tolling_stock_type =
-                                                        'RM Out Process Stock'
-                          AND grd_rm.internal_gmr_ref_no =
-                                                       gmr.internal_gmr_ref_no)
-              WHEN axm.action_id = 'CREATE_RETURN_MATERIAL'
-                 THEN (SELECT f_string_aggregate (pdm_in.product_desc)
-                         FROM dgrd_delivered_grd dgrd_rm,
-                              pdm_productmaster pdm_in
-                        WHERE pdm_in.product_id = dgrd_rm.product_id
-                          AND dgrd_rm.tolling_stock_type =
-                                                       'Return Material Stock'
-                          AND dgrd_rm.internal_gmr_ref_no =
-                                                       gmr.internal_gmr_ref_no)
-              WHEN axm.action_id = 'IN_PROCESS_ADJUSTMENT'
-                 THEN (SELECT f_string_aggregate (DISTINCT pdm_in.product_desc)
-                         FROM grd_goods_record_detail grd_rm,
-                              pdm_productmaster pdm_in
-                        WHERE pdm_in.product_id = grd_rm.product_id
-                          AND grd_rm.tolling_stock_type =
-                                                 'In Process Adjustment Stock'
-                          AND grd_rm.internal_gmr_ref_no =
-                                                       gmr.internal_gmr_ref_no)
-              ELSE cp.product_name
-           END
-          ) AS product_name,
-          (CASE
-              WHEN axm.action_id IN
-                        ('RECORD_OUT_PUT_TOLLING', 'RECEIVE_MATERIAL_MODIFY')
-                 THEN (SELECT f_string_aggregate (grd_rm.quality_id)
-                         FROM grd_goods_record_detail grd_rm
-                        WHERE grd_rm.tolling_stock_type =
-                                                        'RM Out Process Stock'
-                          AND grd_rm.internal_gmr_ref_no =
-                                                       gmr.internal_gmr_ref_no)
-              WHEN axm.action_id = 'CREATE_RETURN_MATERIAL'
-                 THEN (SELECT f_string_aggregate (dgrd_rm.quality_id)
-                         FROM dgrd_delivered_grd dgrd_rm
-                        WHERE dgrd_rm.tolling_stock_type =
-                                                       'Return Material Stock'
-                          AND dgrd_rm.internal_gmr_ref_no =
-                                                       gmr.internal_gmr_ref_no)
-              WHEN axm.action_id = 'IN_PROCESS_ADJUSTMENT'
-                 THEN (SELECT f_string_aggregate (grd_rm.quality_id)
-                         FROM grd_goods_record_detail grd_rm
-                        WHERE grd_rm.tolling_stock_type =
-                                                 'In Process Adjustment Stock'
-                          AND grd_rm.internal_gmr_ref_no =
-                                                       gmr.internal_gmr_ref_no)
-              ELSE cp.quality_id
-           END
-          ) AS quality_id,
-          (CASE
-              WHEN axm.action_id IN
-                        ('RECORD_OUT_PUT_TOLLING', 'RECEIVE_MATERIAL_MODIFY')
-                 THEN (SELECT f_string_aggregate (qat_in.quality_name)
-                         FROM grd_goods_record_detail grd_rm,
-                              qat_quality_attributes qat_in
-                        WHERE qat_in.quality_id = grd_rm.quality_id
-                          AND grd_rm.tolling_stock_type =
-                                                        'RM Out Process Stock'
-                          AND grd_rm.internal_gmr_ref_no =
-                                                       gmr.internal_gmr_ref_no)
-              WHEN axm.action_id = 'CREATE_RETURN_MATERIAL'
-                 THEN (SELECT f_string_aggregate (qat_in.quality_name)
-                         FROM dgrd_delivered_grd dgrd_rm,
-                              qat_quality_attributes qat_in
-                        WHERE qat_in.quality_id = dgrd_rm.quality_id
-                          AND dgrd_rm.tolling_stock_type =
-                                                       'Return Material Stock'
-                          AND dgrd_rm.internal_gmr_ref_no =
-                                                       gmr.internal_gmr_ref_no)
-              WHEN axm.action_id = 'IN_PROCESS_ADJUSTMENT'
-                 THEN (SELECT f_string_aggregate (DISTINCT qat_in.quality_name)
-                         FROM grd_goods_record_detail grd_rm,
-                              qat_quality_attributes qat_in
-                        WHERE qat_in.quality_id = grd_rm.quality_id
-                          AND grd_rm.tolling_stock_type =
-                                                 'In Process Adjustment Stock'
-                          AND grd_rm.internal_gmr_ref_no =
-                                                       gmr.internal_gmr_ref_no)
-              ELSE cp.quality_name
-           END
-          ) AS quality_name,
+          vts.productid AS product_id, vts.product_desc AS product_name,
+          vts.quality_id AS quality_id, vts.quality_name AS quality_name,
           gmr.qty AS gmr_qty, gmr.qty_unit_id AS qty_unit_id,
           qum.qty_unit AS qty_unit, wrd.smelter_cp_id AS cp_profile_id,
           phd_cp.companyname AS cp_name,
@@ -148,33 +34,59 @@ AS
           cp.internal_contract_ref_no AS internal_contract_ref_no,
           cp.contract_ref_no AS contract_ref_no,
           gmr.free_material_status is_free_material, cp.pcdi_id pcdi_id,
-          cp.deliveryitemrefno AS delivery_item_ref_no, wrd.feeding_point_id,
-          sfp.feeding_point_name, cp.contract_status, axs.created_date,
-          aku_create.login_name created_by, axs_last.updated_date,
-          aku_last.login_name updated_by
+          cp.delivery_item_ref_no AS delivery_item_ref_no,
+          wrd.feeding_point_id, cp.contract_status, sfp.feeding_point_name,
+          axs.created_date, aku_create.login_name created_by
      FROM gmr_goods_movement_record gmr,
           gam_gmr_action_mapping gam,
           ak_corporate_user aku_create,
           axs_action_summary axs,
           axm_action_master axm,
           axm_action_master axm_latest,
-          ak_corporate_user aku_last,
-          axs_action_summary axs_last,
           v_shm_shed_master shm,
-          (SELECT pci.internal_contract_ref_no internal_contract_ref_no,
-                  pci.contract_ref_no contract_ref_no,
-                  pci.internal_contract_item_ref_no
-                                                internal_contract_item_ref_no,
-                  pci.contract_item_ref_no contract_item_ref_no,
-                  pci.product_id product_id, pci.product_name product_name,
-                  pci.quality_id quality_id, pci.quality_name quality_name,
+          v_tolling_stocks vts,
+          (SELECT pci.internal_contract_item_ref_no
+                                             AS internal_contract_item_ref_no,
+                  pcm.internal_contract_ref_no AS internal_contract_ref_no,
+                  pcm.contract_ref_no AS contract_ref_no,
+                  (   pcm.contract_ref_no
+                   || ' '
+                   || 'Item No.'
+                   || ' '
+                   || pci.del_distribution_item_no
+                  ) contract_item_ref_no,
+                  pcpd.product_id AS product_id,
+                  pdm.product_desc AS product_name,
+                  pcpq.quality_template_id AS quality_id,
+                  qat.quality_name AS quality_name, pci.pcdi_id AS pcdi_id,
+                  pcdi.price_allocation_method,
+                  (pcm.contract_ref_no || '-' || pcdi.delivery_item_no
+                  ) AS delivery_item_ref_no,
                   gcim.internal_gmr_ref_no internal_gmr_ref_no,
-                  pci.price_allocation_method AS price_allocation_method,
-                  pci.pcdi_id pcdi_id,
-                  pci.delivery_item_ref_no deliveryitemrefno,
-                  pci.contract_status contract_status
-             FROM v_pci pci, gcim_gmr_contract_item_mapping gcim
-            WHERE pci.internal_contract_item_ref_no =
+                  pcm.contract_status contract_status
+             FROM pci_physical_contract_item pci,
+                  pcm_physical_contract_main pcm,
+                  pcdi_pc_delivery_item pcdi,
+                  pcpd_pc_product_definition pcpd,
+                  pdm_productmaster pdm,
+                  qat_quality_attributes qat,
+                  pcpq_pc_product_quality pcpq,
+                  gcim_gmr_contract_item_mapping gcim
+            WHERE pci.pcdi_id = pcdi.pcdi_id
+              AND pci.pcpq_id = pcpq.pcpq_id
+              AND pcpq.pcpq_id = pci.pcpq_id
+              AND qat.quality_id = pcpq.quality_template_id
+              AND qat.product_id = pdm.product_id
+              AND pdm.product_id = pcpd.product_id
+              AND pcpd.internal_contract_ref_no = pcm.internal_contract_ref_no
+              AND pci.is_active = 'Y'
+              AND pcpq.is_active = 'Y'
+              AND pcm.contract_status = 'In Position'
+              AND (   pci.is_called_off = 'Y'
+                   OR pcdi.is_phy_optionality_present = 'N'
+                  )
+              AND pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+              AND pci.internal_contract_item_ref_no =
                                             gcim.internal_contract_item_ref_no) cp,
           wrd_warehouse_receipt_detail wrd,
           phd_profileheaderdetails phd_cp,
@@ -196,7 +108,6 @@ AS
       AND NVL (gmr.tolling_gmr_type, 'None Tolling') IN
              ('Mark For Tolling', 'Received Materials', 'Return Material',
               'In Process Adjustment')
-      AND axs_last.internal_action_ref_no = gmr.internal_action_ref_no
-      AND aku_last.user_id = axs_last.created_by
       AND axm_latest.action_id = gmr.gmr_latest_action_action_id
-      AND qum.qty_unit_id = gmr.qty_unit_id;
+      AND qum.qty_unit_id = gmr.qty_unit_id
+      AND vts.internal_gmr_ref_no = gmr.internal_gmr_ref_no;
