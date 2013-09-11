@@ -48,7 +48,7 @@ with main_q as (
                 qum_quantity_unit_master qum,
                 pofh_price_opt_fixation_header pofh,
                 cpc_corporate_profit_center cpc,
-                vd_voyage_detail vd,
+               -- vd_voyage_detail vd,
                 pfqpp_phy_formula_qp_pricing pfqpp,
                 --v_pci_multiple_premium vp,
                 qum_quantity_unit_master qum_pdm
@@ -72,9 +72,9 @@ with main_q as (
            and pofh.internal_gmr_ref_no = gmr.internal_gmr_ref_no(+)
            and qum.qty_unit_id = pocd.qty_to_be_fixed_unit_id
            and pcpd.profit_center_id = cpc.profit_center_id
-           and gmr.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
+           --and gmr.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
            and ppfh.ppfh_id = pfqpp.ppfh_id
-           and nvl(vd.status, 'Active') = 'Active'
+           --and nvl(vd.status, 'Active') = 'Active'
            and nvl(pfqpp.is_qp_any_day_basis, 'N') <> 'Y'
            and pcm.is_active = 'Y'
            and pcm.contract_status <> 'Cancelled'
@@ -145,7 +145,7 @@ with main_q as (
                pdm_productmaster pdm_under,
                qum_quantity_unit_master qum_under,
                cpc_corporate_profit_center cpc,
-               vd_voyage_detail vd,
+              -- vd_voyage_detail vd,
                pfqpp_phy_formula_qp_pricing pfqpp,
                pcqpd_pc_qual_premium_discount pcqpd,
                ppu_product_price_units ppu,
@@ -173,8 +173,8 @@ with main_q as (
            and aml.underlying_product_id = pdm_under.product_id(+)
            and pdm_under.base_quantity_unit = qum_under.qty_unit_id(+)
            and pcpd.profit_center_id = cpc.profit_center_id
-           and gmr.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
-           and nvl(vd.status, 'Active') = 'Active'
+          -- and gmr.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
+           --and nvl(vd.status, 'Active') = 'Active'
            and ppfh.ppfh_id = pfqpp.ppfh_id
            and pcm.internal_contract_ref_no =
                pcqpd.internal_contract_ref_no(+)
@@ -252,7 +252,7 @@ with main_q as (
                pfd_price_fixation_details pfd,
                --v_pci_multiple_premium vp,
                cpc_corporate_profit_center cpc,
-               vd_voyage_detail vd,
+              -- vd_voyage_detail vd,
                pfqpp_phy_formula_qp_pricing pfqpp,
                qum_quantity_unit_master qum_pdm
          where ak.corporate_id = pcm.corporate_id
@@ -275,8 +275,8 @@ with main_q as (
            and pofh.pofh_id = pfd.pofh_id
            and ppfh.ppfh_id = ppfd.ppfh_id(+)
            and pcpd.profit_center_id = cpc.profit_center_id
-           and gmr.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
-           and nvl(vd.status, 'Active') = 'Active'
+           --and gmr.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
+          -- and nvl(vd.status, 'Active') = 'Active'
            and pfqpp.ppfh_id = ppfh.ppfh_id
            and pcm.contract_type = 'BASEMETAL'
            and pfqpp.is_qp_any_day_basis = 'Y'
@@ -444,7 +444,7 @@ with main_q as (
                pofh_price_opt_fixation_header pofh,
                pfd_price_fixation_details pfd,
                cpc_corporate_profit_center cpc,
-               vd_voyage_detail vd,
+              -- vd_voyage_detail vd,
                pfqpp_phy_formula_qp_pricing pfqpp,
                pcqpd_pc_qual_premium_discount pcqpd,
                ppu_product_price_units ppu,
@@ -468,8 +468,8 @@ with main_q as (
            and pofh.internal_gmr_ref_no = gmr.internal_gmr_ref_no(+)
            and pofh.pofh_id = pfd.pofh_id
            and pcpd.profit_center_id = cpc.profit_center_id
-           and gmr.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
-           and nvl(vd.status, 'Active') = 'Active'
+           --and gmr.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
+           --and nvl(vd.status, 'Active') = 'Active'
            and ppfh.ppfh_id = pfqpp.ppfh_id
            and ppfh.ppfh_id = ppfd.ppfh_id(+)
            and nvl(pfqpp.is_qp_any_day_basis, 'N') = 'Y'
@@ -552,7 +552,7 @@ with main_q as (
                pofh_price_opt_fixation_header pofh,
                pfd_price_fixation_details pfd,
                cpc_corporate_profit_center cpc,
-               vd_voyage_detail vd,
+              -- vd_voyage_detail vd,
                pfqpp_phy_formula_qp_pricing pfqpp,
                pcqpd_pc_qual_premium_discount pcqpd,
                ppu_product_price_units ppu,
@@ -579,8 +579,8 @@ with main_q as (
            and pofh.internal_gmr_ref_no = gmr.internal_gmr_ref_no(+)
            and pofh.pofh_id = pfd.pofh_id
            and pcpd.profit_center_id = cpc.profit_center_id
-           and gmr.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
-           and nvl(vd.status, 'Active') = 'Active'
+           --and gmr.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
+           --and nvl(vd.status, 'Active') = 'Active'
            and ppfh.ppfh_id = pfqpp.ppfh_id
            and pcm.internal_contract_ref_no =
                pcqpd.internal_contract_ref_no(+)
@@ -666,7 +666,7 @@ with main_q as (
                pofh_price_opt_fixation_header pofh,
                pfd_price_fixation_details pfd,
                cpc_corporate_profit_center cpc,
-               vd_voyage_detail vd,
+               --vd_voyage_detail vd,
                pfqpp_phy_formula_qp_pricing pfqpp,
                --v_pci_multiple_premium vp,
                qum_quantity_unit_master qum,
@@ -690,8 +690,8 @@ with main_q as (
            and pofh.internal_gmr_ref_no = gmr.internal_gmr_ref_no(+)
            and pofh.pofh_id = pfd.pofh_id(+)
            and pcpd.profit_center_id = cpc.profit_center_id
-           and gmr.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
-           and nvl(vd.status, 'Active') = 'Active'
+           --and gmr.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
+           --and nvl(vd.status, 'Active') = 'Active'
            and ppfh.ppfh_id = pfqpp.ppfh_id
            and ppfh.ppfh_id = ppfd.ppfh_id(+)
            and nvl(pfqpp.is_qp_any_day_basis, 'N') = 'Y'
@@ -724,123 +724,125 @@ with main_q as (
                   qum_pdm.qty_unit
         union all
         --any day concentrate
-        select ak.corporate_id,
-               pdm_under.product_id,
-               pdm_under.product_desc product_name,
-               5 display_order,
-               'Any Day Exposure' pricing_by,
-               decode(pcm.purchase_sales, 'P', 1, 'S', -1) *
-               (pofh.qty_to_be_fixed - nvl(sum(pfd.qty_fixed), 0)) *
-               pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
-                                                        pdm.product_id),
-                                                    qum.qty_unit_id,
-                                                    nvl(pdm_under.base_quantity_unit,
-                                                        pdm.base_quantity_unit),
-                                                    1) qty,
-               'N' font_bold,
-               nvl(pdm_under.base_quantity_unit, pdm.base_quantity_unit) base_qty_unit_id,
-               /*qum_pdm.qty_unit_id*/qum_pdm.qty_unit base_qty_unit--fix 18-May-2012
-          from pcm_physical_contract_main pcm,
-               gmr_goods_movement_record gmr,
-               ak_corporate ak,
-               pcdi_pc_delivery_item pcdi,
-               pcpd_pc_product_definition pcpd,
-               css_corporate_strategy_setup css,
-               --pcpq_pc_product_quality pcpq,
-               pdm_productmaster pdm,
-               qat_quality_attributes qat,
-               poch_price_opt_call_off_header poch,
-               aml_attribute_master_list aml,
-               pdm_productmaster pdm_under,
-               qum_quantity_unit_master qum_under,
-               pocd_price_option_calloff_dtls pocd,
-               pcbph_pc_base_price_header pcbph,
-               pcbpd_pc_base_price_detail pcbpd,
-               ppfh_phy_price_formula_header ppfh,
-               (select ppfd.ppfh_id,
-                       ppfd.instrument_id,
-                       emt.exchange_id,
-                       emt.exchange_name
-                  from ppfd_phy_price_formula_details ppfd,
-                       dim_der_instrument_master      dim,
-                       pdd_product_derivative_def     pdd,
-                       emt_exchangemaster             emt
-                 where ppfd.is_active = 'Y'
-                   and ppfd.instrument_id = dim.instrument_id
-                   and dim.product_derivative_id = pdd.derivative_def_id
-                   and pdd.exchange_id = emt.exchange_id
-                 group by ppfd.ppfh_id,
-                          ppfd.instrument_id,
-                          emt.exchange_id,
-                          emt.exchange_name) ppfd,
-               pofh_price_opt_fixation_header pofh,
-               pfd_price_fixation_details pfd,
-               cpc_corporate_profit_center cpc,
-               vd_voyage_detail vd,
-               pfqpp_phy_formula_qp_pricing pfqpp,
-               pcqpd_pc_qual_premium_discount pcqpd,
-               qum_quantity_unit_master qum,
-               ppu_product_price_units ppu,
-               pum_price_unit_master pum,
-               qum_quantity_unit_master qum_pdm
-         where ak.corporate_id = pcm.corporate_id
-           and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-           and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-           and pcpd.strategy_id = css.strategy_id
-           --and pcpd.pcpd_id = pcpq.pcpd_id
-           and pdm.product_id = pcpd.product_id
-           --and pcpq.quality_template_id = qat.quality_id
-           and qat.product_id = pdm.product_id
-           and pcdi.pcdi_id = poch.pcdi_id
-           and poch.element_id = aml.attribute_id
-           and aml.underlying_product_id = pdm_under.product_id(+)
-           and pdm_under.base_quantity_unit = qum_under.qty_unit_id(+)
-           and pocd.poch_id = poch.poch_id
-           and pcbph.internal_contract_ref_no = pcm.internal_contract_ref_no
-           and pcbph.element_id = poch.element_id
-           and pcbph.pcbph_id = pcbpd.pcbph_id
-           and pcbpd.pcbpd_id = pocd.pcbpd_id
-           and pcbpd.pcbpd_id = ppfh.pcbpd_id
-           and pofh.pocd_id = pocd.pocd_id(+)
-           and pofh.internal_gmr_ref_no = gmr.internal_gmr_ref_no(+)
-           and pofh.pofh_id = pfd.pofh_id(+)
-           and ppfh.ppfh_id = ppfd.ppfh_id(+)
-           and pcpd.profit_center_id = cpc.profit_center_id
-           and gmr.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
-           and nvl(vd.status, 'Active') = 'Active'
-           and ppfh.ppfh_id = pfqpp.ppfh_id
-           and nvl(pfqpp.is_qp_any_day_basis, 'N') = 'Y'
-           and pcm.internal_contract_ref_no =
-               pcqpd.internal_contract_ref_no(+)
-           and qum.qty_unit_id = pocd.qty_to_be_fixed_unit_id
-           and pcqpd.premium_disc_unit_id = ppu.internal_price_unit_id(+)
-           and ppu.price_unit_id = pum.price_unit_id(+)
-           and pcm.is_active = 'Y'
-           and pcm.contract_status <> 'Cancelled'
-           and pcm.contract_type = 'CONCENTRATES'
-           and pofh.qty_to_be_fixed - nvl(pofh.priced_qty, 0) > 0
-           and pcdi.is_active = 'Y'
-           and nvl(gmr.is_deleted, 'N') = 'N'
-           and pdm.is_active = 'Y'
-           and qum.is_active = 'Y'
-           and qat.is_active = 'Y'
-           and pofh.is_active = 'Y'
-           and poch.is_active = 'Y'
-           and pocd.is_active = 'Y'
-           and ppfh.is_active = 'Y'
-           and pfd.as_of_date(+) <= sysdate
-           and trunc(sysdate) between pofh.qp_start_date and pofh.qp_end_date
-           and qum_pdm.qty_unit_id =
-               nvl(pdm_under.base_quantity_unit, pdm.base_quantity_unit)
-         group by ak.corporate_id,
-                  pdm_under.product_id,
-                  pdm_under.product_desc,
-                  pcm.purchase_sales,
-                  pofh.qty_to_be_fixed,
-                  nvl(pdm_under.product_id, pdm.product_id),
-                  qum.qty_unit_id,
-                  /*qum_pdm.qty_unit_id*/qum_pdm.qty_unit,--Fix 18-May-2012
-                  nvl(pdm_under.base_quantity_unit, pdm.base_quantity_unit)
+select ak.corporate_id,
+       pdm_under.product_id,
+       pdm_under.product_desc product_name,
+       5 display_order,
+       'Any Day Exposure' pricing_by,
+       decode(pcm.purchase_sales, 'P', 1, 'S', -1) *
+       (pofh.qty_to_be_fixed - nvl(sum(pfd.qty_fixed), 0)) *
+       pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
+                                                pdm.product_id),
+                                            qum.qty_unit_id,
+                                            nvl(pdm_under.base_quantity_unit,
+                                                pdm.base_quantity_unit),
+                                            1) qty,
+       'N' font_bold,
+       nvl(pdm_under.base_quantity_unit, pdm.base_quantity_unit) base_qty_unit_id,
+       /*qum_pdm.qty_unit_id*/
+       qum_pdm.qty_unit base_qty_unit --fix 18-May-2012
+  from pcm_physical_contract_main   pcm,
+       gmr_goods_movement_record    gmr,
+       ak_corporate                 ak,
+       pcdi_pc_delivery_item        pcdi,
+       pcpd_pc_product_definition   pcpd,
+       css_corporate_strategy_setup css,
+       --pcpq_pc_product_quality pcpq,
+       pdm_productmaster pdm,
+       qat_quality_attributes qat,
+       poch_price_opt_call_off_header poch,
+       aml_attribute_master_list aml,
+       pdm_productmaster pdm_under,
+       qum_quantity_unit_master qum_under,
+       pocd_price_option_calloff_dtls pocd,
+       pcbph_pc_base_price_header pcbph,
+       pcbpd_pc_base_price_detail pcbpd,
+       ppfh_phy_price_formula_header ppfh,
+       (select ppfd.ppfh_id,
+               ppfd.instrument_id,
+               emt.exchange_id,
+               emt.exchange_name
+          from ppfd_phy_price_formula_details ppfd,
+               dim_der_instrument_master      dim,
+               pdd_product_derivative_def     pdd,
+               emt_exchangemaster             emt
+         where ppfd.is_active = 'Y'
+           and ppfd.instrument_id = dim.instrument_id
+           and dim.product_derivative_id = pdd.derivative_def_id
+           and pdd.exchange_id = emt.exchange_id
+         group by ppfd.ppfh_id,
+                  ppfd.instrument_id,
+                  emt.exchange_id,
+                  emt.exchange_name) ppfd,
+       pofh_price_opt_fixation_header pofh,
+       pfd_price_fixation_details pfd,
+       cpc_corporate_profit_center cpc,
+      -- vd_voyage_detail vd,
+       pfqpp_phy_formula_qp_pricing pfqpp,
+       pcqpd_pc_qual_premium_discount pcqpd,
+       qum_quantity_unit_master qum,
+       ppu_product_price_units ppu,
+       pum_price_unit_master pum,
+       qum_quantity_unit_master qum_pdm
+ where ak.corporate_id = pcm.corporate_id
+   and pcm.contract_type = 'CONCENTRATES'
+   and pcm.contract_status <> 'Cancelled'
+   and pcm.is_active = 'Y'
+   and pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+   and pcdi.is_active = 'Y'
+   and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+   and pcpd.strategy_id = css.strategy_id
+      --and pcpd.pcpd_id = pcpq.pcpd_id
+   and pdm.product_id = pcpd.product_id
+   and pdm.is_active = 'Y'
+      --and pcpq.quality_template_id = qat.quality_id
+   and qat.product_id = pdm.product_id
+   and qat.is_active = 'Y'
+   and  'N'= gmr.is_deleted(+)
+   --and  'Active'= vd.status(+)
+   and qum.is_active = 'Y'
+   and pofh.is_active = 'Y'
+   and pofh.qty_to_be_fixed - nvl(pofh.priced_qty, 0) > 0
+   and nvl(pfqpp.is_qp_any_day_basis, 'N') = 'Y'
+   and poch.is_active = 'Y'
+   and pocd.is_active = 'Y'
+   and ppfh.is_active = 'Y'
+   and pfd.as_of_date(+) <= sysdate
+   and trunc(sysdate) between pofh.qp_start_date and pofh.qp_end_date
+   and qum_pdm.qty_unit_id = pdm_under.base_quantity_unit
+   and pcdi.pcdi_id = poch.pcdi_id
+   and poch.element_id = aml.attribute_id
+   and aml.underlying_product_id = pdm_under.product_id(+)
+   and pdm_under.base_quantity_unit = qum_under.qty_unit_id(+)
+   and pocd.poch_id = poch.poch_id
+   and pcbph.internal_contract_ref_no = pcm.internal_contract_ref_no
+   and pcbph.element_id = poch.element_id
+   and pcbph.pcbph_id = pcbpd.pcbph_id
+   and pcbpd.pcbpd_id = pocd.pcbpd_id
+   and pcbpd.pcbpd_id = ppfh.pcbpd_id
+   and pofh.pocd_id = pocd.pocd_id(+)
+   and pofh.pofh_id = pfd.pofh_id(+)
+   and pofh.internal_gmr_ref_no = gmr.internal_gmr_ref_no(+)
+   and ppfh.ppfh_id = ppfd.ppfh_id(+)
+   and pcpd.profit_center_id = cpc.profit_center_id
+   --and gmr.internal_gmr_ref_no = vd.internal_gmr_ref_no(+)
+      --and nvl(vd.status, 'Active') = 'Active'
+   and ppfh.ppfh_id = pfqpp.ppfh_id
+   and pcm.internal_contract_ref_no = pcqpd.internal_contract_ref_no(+)
+   and qum.qty_unit_id = pocd.qty_to_be_fixed_unit_id
+   and pcqpd.premium_disc_unit_id = ppu.internal_price_unit_id(+)
+   and ppu.price_unit_id = pum.price_unit_id(+)
+ group by ak.corporate_id,
+          pdm_under.product_id,
+          pdm_under.product_desc,
+          pcm.purchase_sales,
+          pofh.qty_to_be_fixed,
+          nvl(pdm_under.product_id, pdm.product_id),
+          qum.qty_unit_id,
+          /*qum_pdm.qty_unit_id*/
+          qum_pdm.qty_unit, --Fix 18-May-2012
+          nvl(pdm_under.base_quantity_unit, pdm.base_quantity_unit)----changes done for performance in join condition(Prasant)
+
         union all
         select akc.corporate_id,
                pdm.product_id,
@@ -908,11 +910,19 @@ select corporate_id,
        product_name,
        dispay_order,
        pricing_by,
-       to_be_fixed_or_fixed_qty,
+       sum(to_be_fixed_or_fixed_qty)to_be_fixed_or_fixed_qty,
        font_bold,
        base_qty_unit_id,
        base_qty_unit
   from main_q
+  group by corporate_id,
+       product_id,
+       product_name,
+       dispay_order,
+       pricing_by,
+       font_bold,
+       base_qty_unit_id,
+       base_qty_unit
 union all
 select corporate_id,
        product_id,
