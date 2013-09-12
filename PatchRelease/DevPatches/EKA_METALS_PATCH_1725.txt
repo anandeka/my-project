@@ -1,0 +1,46 @@
+Patch No*          		:  EKA_METALS_PATCH_1725
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal	
+ 
+Created on*        		:  12-Sep-2013 
+
+Bug / Enhancement*              :  -
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 143359
+Author: anupkumar.agarwal
+Date: 12:09:44 PM, Thursday, September 12, 2013
+Message:
+QP Confirmation Document 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_630.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATE_QUOTA_PERIOD_DOCUMENT.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_478.sql
+
