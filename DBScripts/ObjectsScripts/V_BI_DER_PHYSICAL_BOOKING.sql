@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW v_bi_der_physical_booking AS
+create or replace view v_bi_der_physical_booking as
 with temp_ii as (select iid.internal_invoice_ref_no,
        f_string_aggregate(ii.delivery_item_ref_no) delivery_item_ref_no
   from iid_invoicable_item_details iid,
@@ -8,8 +8,8 @@ with temp_ii as (select iid.internal_invoice_ref_no,
    and iss.internal_invoice_ref_no = iid.internal_invoice_ref_no 
  group by iid.internal_invoice_ref_no),
  temp_gab as(select iss.internal_invoice_ref_no,
-       axs.created_by created_user_id,
-       gab.firstname || '  ' || gab.lastname created_user_name
+       f_string_aggregate(axs.created_by) created_user_id,
+       f_string_aggregate(gab.firstname || '  ' || gab.lastname) created_user_name
   from is_invoice_summary         iss,
        iam_invoice_action_mapping iam,
        axs_action_summary         axs,
@@ -18,7 +18,8 @@ with temp_ii as (select iid.internal_invoice_ref_no,
  where iss.internal_invoice_ref_no = iam.internal_invoice_ref_no
    and iam.invoice_action_ref_no = axs.internal_action_ref_no
    and axs.created_by = ak.user_id
-   and ak.gabid = gab.gabid)
+   and ak.gabid = gab.gabid
+ group by iss.internal_invoice_ref_no)
 select iss.corporate_id,
        akc.corporate_name,
        pdm.product_id,
@@ -248,3 +249,4 @@ select iss.corporate_id,
    and nvl(iss.total_amount_to_pay, 0) <> 0
    and iss.internal_contract_ref_no is null
    and iss.is_active='Y'
+/
