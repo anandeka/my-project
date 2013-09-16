@@ -228,13 +228,13 @@ select temp.derivative_ref_no,
                                                               nvl(pum.cur_id,
                                                                   pum_sett.cur_id),
                                                               ak.base_cur_id,
-                                                              sysdate,
+                                                              drm.prompt_date, ------added for Bug 81747  
                                                               1),
                      4) deal_price_to_base_fx_rate,
                dt.strike_price strike_price,
                pum_strik.price_unit_name strike_price_unit,
                0 strike_price_to_base_fx_rate,
-               dt.premium_discount  premium_discount,
+               dt.premium_discount premium_discount,
                pum_pd.price_unit_name premium_discount_price_unit,
                0 premium_price_to_base_fx_rate,
                pm.period_type_name,
@@ -251,7 +251,7 @@ select temp.derivative_ref_no,
                                                               nvl(cm_cl_comm.cur_id,
                                                                   pum_sett.cur_id),
                                                               ak.base_cur_id,
-                                                              sysdate,
+                                                              drm.prompt_date,
                                                               1),
                      4) clearer_comm_to_base_fx_rate,
                
@@ -263,7 +263,7 @@ select temp.derivative_ref_no,
                                                               nvl(cm_comm.cur_id,
                                                                   pum_sett.cur_id),
                                                               ak.base_cur_id,
-                                                              sysdate,
+                                                              drm.prompt_date,
                                                               1),
                      4) broker_comm_to_base_fx_rate,
                null option_type,
@@ -327,7 +327,7 @@ select temp.derivative_ref_no,
                                                               nvl(pum.cur_id,
                                                                   pum_sett.cur_id),
                                                               ak.base_cur_id,
-                                                              sysdate,
+                                                              drm.prompt_date,
                                                               1),
                      4) fx_to_base,
                dt.total_quantity * (case
@@ -497,8 +497,8 @@ select temp.derivative_ref_no,
            and dt.strategy_id = css.strategy_id(+)
               --  and irmf.is_active = 'Y'
               --    and irmf.is_deleted = 'N'
-           --and dt.status = 'Verified'
-           and dt.status <>'Delete'
+              --and dt.status = 'Verified'
+           and dt.status <> 'Delete'
               /*and emt.exchange_code = 'LME' */
            and pdd.exchange_id = emt.exchange_id
            and akcu.user_id = dt.trader_id
@@ -507,7 +507,7 @@ select temp.derivative_ref_no,
            and cmak.cur_id = ak.base_cur_id
            and dt.clearer_comm_type_id = bct.commission_type_id(+)
               /*and bct.commission_type_id = bcs.commission_type_id(+)
-                                                                   and dim.instrument_type_id = bcs.future_option_type*/
+                                                                                               and dim.instrument_type_id = bcs.future_option_type*/
               --  and bct.is_active = 'Y'
            and dt.price_source_id = ps.price_source_id(+)
            and dt.price_point_id = pp.price_point_id(+)
@@ -719,7 +719,7 @@ select temp.derivative_ref_no,
                                                                       nvl(pum.cur_id,
                                                                           pum_sett.cur_id),
                                                                       ak.base_cur_id,
-                                                                      sysdate,
+                                                                      drm.prompt_date,
                                                                       1),
                              4) deal_price_to_base_fx_rate,
                        dt.strike_price,
@@ -728,7 +728,7 @@ select temp.derivative_ref_no,
                                                                       nvl(pum_strik.cur_id,
                                                                           pum_sett.cur_id),
                                                                       ak.base_cur_id,
-                                                                      sysdate,
+                                                                      drm.prompt_date,
                                                                       1),
                              4) strike_price_to_base_fx_rate,
                        dt.premium_discount,
@@ -737,7 +737,7 @@ select temp.derivative_ref_no,
                                                                       nvl(pum_pd.cur_id,
                                                                           pum_sett.cur_id),
                                                                       ak.base_cur_id,
-                                                                      sysdate,
+                                                                      drm.prompt_date,
                                                                       1),
                              4) premium_price_to_base_fx_rate,
                        pm.period_type_name,
@@ -754,7 +754,7 @@ select temp.derivative_ref_no,
                                                                       nvl(cm_cl_comm.cur_id,
                                                                           pum_sett.cur_id),
                                                                       ak.base_cur_id,
-                                                                      sysdate,
+                                                                      drm.prompt_date,
                                                                       1),
                              4) clearer_comm_to_base_fx_rate,
                        
@@ -767,7 +767,7 @@ select temp.derivative_ref_no,
                                                                       nvl(cm_comm.cur_id,
                                                                           pum_sett.cur_id),
                                                                       ak.base_cur_id,
-                                                                      sysdate,
+                                                                      drm.prompt_date,
                                                                       1),
                              4) broker_comm_to_base_fx_rate,
                        irmf.instrument_type option_type,
@@ -842,7 +842,7 @@ select temp.derivative_ref_no,
                                                                       nvl(pum.cur_id,
                                                                           pum_sett.cur_id),
                                                                       ak.base_cur_id,
-                                                                      sysdate,
+                                                                      drm.prompt_date,
                                                                       1),
                              4) fx_to_base,
                        dt.total_quantity * (case
@@ -1018,8 +1018,8 @@ select temp.derivative_ref_no,
                    and dt.strategy_id = css.strategy_id(+)
                       --   and irmf.is_active = 'Y'
                       --   and irmf.is_deleted = 'N'
-                  -- and dt.status = 'Verified'
-                   and dt.status <>'Delete'
+                      -- and dt.status = 'Verified'
+                   and dt.status <> 'Delete'
                    and akcu.user_id = dt.trader_id
                    and dt.clearer_account_id = bca.account_id(+)
                    and dpm.purpose_id = dt.purpose_id
@@ -1047,11 +1047,11 @@ select temp.derivative_ref_no,
                    and dt.internal_derivative_ref_no =
                        dt_fbi.internal_derivative_ref_no(+)) t
         /*bcs_broker_commission_setup bcs,
-                                       pum_price_unit_master pum_clear
-                                 where t.commission_type_id = bcs.commission_type_id(+)
-                                   and bcs.price_unit_id = pum_clear.price_unit_id(+)
-                                   and t.corporate_id = bcs.corporate_id(+)
-                                   and bcs.future_option_type(+) = t.instrument_type_id*/
+                                                       pum_price_unit_master pum_clear
+                                                 where t.commission_type_id = bcs.commission_type_id(+)
+                                                   and bcs.price_unit_id = pum_clear.price_unit_id(+)
+                                                   and t.corporate_id = bcs.corporate_id(+)
+                                                   and bcs.future_option_type(+) = t.instrument_type_id*/
         ) temp,
        (select dtavg.internal_derivative_ref_no,
                round(sum((case

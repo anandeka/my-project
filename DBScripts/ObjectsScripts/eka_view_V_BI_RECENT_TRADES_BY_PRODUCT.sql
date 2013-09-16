@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW V_BI_RECENT_TRADES_BY_PRODUCT AS
+create or replace view v_bi_recent_trades_by_product as
 select t2.corporate_id,
        t2.product_id,
        t2.product_name,
@@ -108,7 +108,8 @@ select t2.corporate_id,
                    and pci.pcdi_id = pcdi.pcdi_id
                    and pcm.internal_contract_ref_no =
                        pcdi.internal_contract_ref_no
-                   and pcm.approval_status <> 'Rejected' ----added for 78648
+                   and nvl(pcm.approval_status,'NA') <> 'Rejected'
+                      ----added for 78648
                    and pci.pcpq_id = pcpq.pcpq_id
                    and pcpq.pcpq_id = pci.pcpq_id
                    and pcpd.pcpd_id = pcpq.pcpd_id
@@ -229,7 +230,8 @@ select t2.corporate_id,
                    and pcdi.pcdi_id = pci.pcdi_id
                    and pcm.internal_contract_ref_no =
                        pcdi.internal_contract_ref_no
-                   and pcm.approval_status <> 'Rejected' ---added for 78648
+                   and nvl(pcm.approval_status,'NA') <> 'Rejected'
+                      ---added for 78648
                    and aml.attribute_id = pcieq.element_id
                    and aml.underlying_product_id = pdm.product_id
                    and pdm.base_quantity_unit = qum.qty_unit_id
@@ -308,7 +310,8 @@ select t2.corporate_id,
                  where dt.dr_id = drm.dr_id
                    and tab.internal_derivative_ref_no =
                        dt.internal_derivative_ref_no
-                   and dt.approval_status <> 'Rejected' ----added for 78648
+                   and nvl(dt.approval_status,'NA') <> 'Rejected'
+                      ----added for 78648
                    and drm.instrument_id = dim.instrument_id
                    and dim.instrument_type_id = irm.instrument_type_id
                    and dim.product_derivative_id = pdd.derivative_def_id
@@ -318,11 +321,10 @@ select t2.corporate_id,
                    and pdm.base_quantity_unit = ucm.to_qty_unit_id
                    and pdm.base_quantity_unit = qum.qty_unit_id
                    and dt.open_quantity <> 0
-                --Bug 63342 fix end        
+                --Bug 63342 fix end
                 ) t1
          order by t1.product_id,
                   t1.created_date) t2
- where t2.order_seq < 6
+ WHERE t2.order_seq < 6
  order by t2.corporate_id,
-          t2.product_id
-/
+          t2.product_id;
