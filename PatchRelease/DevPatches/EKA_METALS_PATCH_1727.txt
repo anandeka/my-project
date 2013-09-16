@@ -1,0 +1,74 @@
+Patch No *          		:  EKA_METALS_PATCH_1727
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  13-Sep-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  69142,75392
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  APP/REPORT
+
+Sub-Module  			 :  APP/REPORT
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 143743
+Author: suresh.gottipati
+Date: 1:12:08 PM, Monday, September 16, 2013
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/MV_BI_ASSAY_COMPARISION.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/eka_view_V_BI_ASSAY_COMPARISION.sql
+
+Revision: 143736
+Author: suresh.gottipati
+Date: 1:05:14 PM, Monday, September 16, 2013
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_132.sql
+
+
+Revision: 143738
+Author: suresh.gottipati
+Date: 1:07:59 PM, Monday, September 16, 2013
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_631.sql
+
+Revision: 143741
+Author: suresh.gottipati
+Date: 1:10:24 PM, Monday, September 16, 2013
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyArrivalReport_Elements.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFeedConsumptionReport_Elements.rpt
+
+
+
+
