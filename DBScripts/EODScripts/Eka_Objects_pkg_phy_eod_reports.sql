@@ -15004,6 +15004,170 @@ begin
                         'insert CET Over');
   
   commit;
+  insert into ped_penalty_element_details
+    (process_id,
+     internal_gmr_ref_no,
+     internal_grd_ref_no,
+     element_id,
+     element_name,
+     weg_avg_pricing_assay_id,
+     assay_qty,
+     assay_qty_unit_id,
+     grd_wet_qty,
+     grd_dry_qty,
+     grd_qty_unit_id,
+     parent_stock_ref_no,
+     typical,
+     unit_of_measure,
+    ratio_name)
+    select pc_process_id,
+           gmr.internal_gmr_ref_no,
+           grd.internal_grd_ref_no,
+           pqca.element_id,
+           aml.attribute_name,
+           grd.weg_avg_pricing_assay_id,
+           (case
+             when rm.ratio_name = '%' then
+              (pqca.typical * (case
+             when pqca.is_deductible = 'Y' then
+              grd.qty
+             else
+              grd.qty * (asm.dry_wet_qty_ratio / 100)
+           end)) / 100 else(grd.qty * (asm.dry_wet_qty_ratio / 100) * ucm.multiplication_factor * pqca.typical) end) assay_qty,
+           (case
+             when rm.ratio_name = '%' then
+              grd.qty_unit_id
+             else
+              rm.qty_unit_id_numerator
+           end) assay_qty_unit_id,
+           grd.qty,
+           grd.qty * asm.dry_wet_qty_ratio / 100 dry_qty,
+           grd.qty_unit_id as grd_qty_unit_id,
+           ash.internal_grd_ref_no,
+           pqca.typical,
+           pqca.unit_of_measure,
+           rm.ratio_name
+  from process_gmr                 gmr,
+       process_grd                 grd,
+       ash_assay_header            ash,
+       asm_assay_sublot_mapping    asm,
+       pqca_pq_chemical_attributes pqca,
+       rm_ratio_master             rm,
+       ucm_unit_conversion_master  ucm,
+       aml_attribute_master_list   aml
+ where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+   and grd.weg_avg_pricing_assay_id = ash.ash_id
+   and ash.ash_id = asm.ash_id
+   and asm.asm_id = pqca.asm_id
+   and pqca.unit_of_measure = rm.ratio_id
+   and pqca.element_id = aml.attribute_id
+   and grd.qty_unit_id = ucm.from_qty_unit_id
+   and ucm.to_qty_unit_id =
+       (case when rm.ratio_name = '%' then ash.net_weight_unit else
+        rm.qty_unit_id_denominator end)
+   and ash.assay_type in ('Weighted Avg Pricing Assay', 'Shipment Assay')
+   and grd.status = 'Active'
+   and gmr.is_deleted = 'N'
+   and gmr.is_internal_movement = 'N'
+   and pqca.is_elem_for_pricing = 'N'
+   and grd.tolling_stock_type = 'Clone Stock'
+   and pqca.typical<>0
+   and gmr.process_id = pc_process_id
+   and grd.process_id = pc_process_id
+   and gmr.corporate_id = pc_corporate_id
+   and grd.corporate_id = pc_corporate_id;
+  commit;
+  vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'insert PED over Purchase');
+ 
+
+ /*insert into ped_penalty_element_details
+    (process_id,
+     internal_gmr_ref_no,
+     internal_grd_ref_no,
+     element_id,
+     element_name,
+     weg_avg_pricing_assay_id,
+     assay_qty,
+     assay_qty_unit_id,
+     grd_wet_qty,
+     grd_dry_qty,
+     grd_qty_unit_id,
+     parent_stock_ref_no,
+     typical,
+     unit_of_measure,
+     ratio_name)
+    select pc_process_id,
+           gmr.internal_gmr_ref_no,
+           dgrd.internal_dgrd_ref_no,
+           pqca.element_id,
+           aml.attribute_name,
+           dgrd.weg_avg_pricing_assay_id,
+           (case
+             when rm.ratio_name = '%' then
+              (pqca.typical * (case
+             when pqca.is_deductible = 'Y' then
+              dgrd.net_weight
+             else
+              dgrd.net_weight * (asm.dry_wet_qty_ratio / 100)
+           end)) / 100 else(dgrd.net_weight * (asm.dry_wet_qty_ratio / 100) * ucm.multiplication_factor * pqca.typical) end) assay_qty,
+           (case
+             when rm.ratio_name = '%' then
+              dgrd.net_weight_unit_id
+             else
+              rm.qty_unit_id_numerator
+           end) assay_qty_unit_id,
+           dgrd.net_weight,
+           dgrd.net_weight * asm.dry_wet_qty_ratio / 100 dry_qty,
+           dgrd.net_weight_unit_id as grd_qty_unit_id,
+           ash.internal_grd_ref_no,
+           pqca.typical,
+           pqca.unit_of_measure,
+           rm.ratio_name
+      from process_gmr   gmr,
+           dgrd_delivered_grd     dgrd,
+        --   pcpd_pc_product_definition  pcpd,
+           ash_assay_header            ash,
+           asm_assay_sublot_mapping    asm,
+           pqca_pq_chemical_attributes pqca,
+           rm_ratio_master             rm,
+           ucm_unit_conversion_master  ucm,
+           aml_attribute_master_list   aml
+     where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
+       and dgrd.status = 'Active'
+       and gmr.process_id = pc_process_id
+       and dgrd.process_id = pc_process_id
+       and gmr.is_deleted = 'N'
+   --    and gmr.internal_contract_ref_no = pcpd.internal_contract_ref_no
+   --    and pcpd.input_output = 'Input'
+   --    and pcpd.process_id = pc_process_id
+    --   and pcpd.is_active = 'Y'
+       and dgrd.weg_avg_pricing_assay_id = ash.ash_id
+       and ash.ash_id = asm.ash_id
+       and asm.asm_id = pqca.asm_id
+       and pqca.is_elem_for_pricing = 'N'
+       and pqca.unit_of_measure = rm.ratio_id
+       and rm.is_active = 'Y'
+       and pqca.element_id = aml.attribute_id
+       and ucm.from_qty_unit_id = dgrd.net_weight_unit_id
+       and ucm.to_qty_unit_id =
+           (case when rm.ratio_name = '%' then ash.net_weight_unit else
+            rm.qty_unit_id_denominator end)
+       and ash.assay_type in
+           ('Weighted Avg Pricing Assay', 'Shipment Assay');
+  commit;
+  vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'insert PED over Sales'); */                      
+                        
+  sp_gather_stats('ped_penalty_element_details');
                         
   insert into gpq_gmr_payable_qty
     (process_id, internal_gmr_ref_no, element_id, payable_qty, qty_unit_id)
@@ -16988,7 +17152,14 @@ procedure sp_arrival_report(pc_corporate_id varchar2,
            dense_rank() over(partition by internal_grd_ref_no order by section_name, element_id) ele_rank, -- Let the Penalty element be at end,
            grd_to_gmr_qty_factor,
            gmr_wet_qty,
-           arrival_or_delivery
+           arrival_or_delivery,
+           typical,
+           unit_of_measure,
+           ratio_name,
+           internal_contract_ref_no,
+           contract_ref_no,
+           cp_id,
+           cp_name
       from  art_arrival_report_temp art
       where art.corporate_id = pc_corporate_id;
   vobj_error_log                tableofpelerrorlog := tableofpelerrorlog();
@@ -16997,7 +17168,7 @@ procedure sp_arrival_report(pc_corporate_id varchar2,
   vn_wet_qty                    number;
   vn_dry_qty                    number;
   vc_corporate_name             varchar2(100);
-  vn_spq_qty_conv_factor        number;
+  vn_assay_to_base_qty_factor   number;
   vn_assay_qty                  number;
   vn_payable_qty                number;
   vn_gmr_price                  number;
@@ -17101,7 +17272,14 @@ insert into art_arrival_report_temp
    grd_to_gmr_qty_factor,
    qty_type,
    gmr_wet_qty,
-   arrival_or_delivery)
+   arrival_or_delivery,
+   typical,
+   unit_of_measure,
+   ratio_name,
+   internal_contract_ref_no,
+   contract_ref_no,
+   cp_id,
+   cp_name)
   select gmr.gmr_ref_no,
          gmr.internal_gmr_ref_no,
          grd.internal_grd_ref_no,
@@ -17143,13 +17321,23 @@ insert into art_arrival_report_temp
          nvl(grd.grd_to_gmr_qty_factor, 1) grd_to_gmr_qty_factor,
          spq.qty_type,
          gmr.wet_qty gmr_wet_qty,
-         'Arrival' arrival_or_delivery
+         'Arrival' arrival_or_delivery,
+         pqca.typical,
+         pqca.unit_of_measure,
+         rm.ratio_name,
+         gmr.internal_contract_ref_no,
+         gmr.contract_ref_no,
+         gmr.cp_id,
+         gmr.cp_name
     from process_gmr gmr,
          process_grd   grd,
          process_spq     spq,
          aml_attribute_master_list aml,
          pdm_productmaster         pdm_und,
-         qum_quantity_unit_master  qum_und
+         qum_quantity_unit_master  qum_und,        
+         asm_assay_sublot_mapping  asm,
+         pqca_pq_chemical_attributes pqca,
+         rm_ratio_master             rm
    where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
      and grd.status = 'Active'
      and grd.tolling_stock_type = 'None Tolling'
@@ -17166,6 +17354,10 @@ insert into art_arrival_report_temp
      and gmr.process_id = pc_process_id
      and spq.process_id = pc_process_id
      and grd.process_id = pc_process_id
+     and grd.weg_avg_pricing_assay_id=asm.ash_id  
+     and asm.asm_id=pqca.asm_id
+     and pqca.element_id=aml.attribute_id
+     and pqca.unit_of_measure=rm.ratio_id
      and spq.is_active = 'Y'
      and (gmr.is_new_mtd_ar = 'Y' or gmr.is_new_ytd_ar = 'Y' or
          gmr.is_assay_updated_mtd_ar = 'Y' or
@@ -17225,7 +17417,11 @@ insert into art1_arrival_report_temp1
    grd_to_gmr_qty_factor,
    qty_type,
    gmr_wet_qty,
-   arrival_or_delivery)
+   arrival_or_delivery,
+   internal_contract_ref_no,
+   contract_ref_no,
+   cp_id,
+   cp_name)
   select gmr.gmr_ref_no,
          gmr.internal_gmr_ref_no,
          grd.internal_grd_ref_no,
@@ -17267,7 +17463,11 @@ insert into art1_arrival_report_temp1
          nvl(grd.grd_to_gmr_qty_factor, 1) grd_to_gmr_qty_factor,
          'Penalty' qty_type,
          gmr.wet_qty,
-         'Arrival' arrival_or_delivery
+         'Arrival' arrival_or_delivery,
+         gmr.internal_contract_ref_no,
+         gmr.contract_ref_no,
+         gmr.cp_id,
+         gmr.cp_name
     from process_gmr   gmr,
          process_grd     grd
    where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
@@ -17331,7 +17531,14 @@ insert into art_arrival_report_temp
    grd_to_gmr_qty_factor,
    qty_type,
    gmr_wet_qty,
-   arrival_or_delivery)
+   arrival_or_delivery,
+   typical,
+   unit_of_measure,
+   ratio_name,
+   internal_contract_ref_no,
+   contract_ref_no,
+   cp_id,
+   cp_name)
   select art1.gmr_ref_no,
          art1.internal_gmr_ref_no,
          art1.internal_grd_ref_no,
@@ -17349,17 +17556,17 @@ insert into art_arrival_report_temp
          art1.dry_qty,
          art1.qty_unit_id,
          art1.qty_unit,
-         ped.element_id,
-         aml.attribute_name,
+         gepc.element_id,     
+         cpbu.element_name,
          null underlying_product_id,
          null underlying_product_name,
-         null base_quantity_unit_id,
-         null base_quantity_unit,
-         0,--ped.assay_qty assay_content,
-         ped.assay_qty_unit_id assay_qty_unit_id,
+         cpbu.base_qty_unit_id base_quantity_unit_id,
+         cpbu.base_qty_unit  base_quantity_unit,
+         gepc.assay_qty assay_content,
+         gepc.assay_qty_unit_id assay_qty_unit_id,
          qum_ped.qty_unit assay_qty_unit,
          0 payable_qty,
-         ped.assay_qty_unit_id payable_qty_unit_id,
+         gepc.assay_qty_unit_id payable_qty_unit_id,
          art1.payable_qty_unit,
          art1.arrival_status,
          art1.conc_base_qty_unit_id,
@@ -17373,17 +17580,25 @@ insert into art_arrival_report_temp
          art1.grd_to_gmr_qty_factor,
          'Penalty' qty_type,
          art1.wet_qty,
-         'Arrival' arrival_or_delivery
+         'Arrival' arrival_or_delivery,
+         gepc.typical,
+         gepc.unit_of_measure,
+         gepc.ratio_name,
+         art1.internal_contract_ref_no,
+         art1.contract_ref_no,
+         art1.cp_id,
+         art1.cp_name
     from art1_arrival_report_temp1 art1,
-         gepc_gmr_element_pc_charges ped,
-         aml_attribute_master_list   aml,
-         qum_quantity_unit_master    qum_ped
-   where ped.process_id = pc_process_id
+         gepc_gmr_element_pc_charges gepc,      
+         qum_quantity_unit_master    qum_ped,
+         cpbu_corp_penality_base_unit cpbu
+   where gepc.process_id = pc_process_id
      and art1.corporate_id = pc_corporate_id
-     and ped.internal_gmr_ref_no = art1.internal_gmr_ref_no
-     and ped.internal_grd_ref_no = art1.internal_grd_ref_no
-     and ped.element_id = aml.attribute_id
-     and ped.assay_qty_unit_id = qum_ped.qty_unit_id;
+     and gepc.internal_gmr_ref_no = art1.internal_gmr_ref_no
+     and gepc.internal_grd_ref_no = art1.internal_grd_ref_no  
+     and gepc.assay_qty_unit_id = qum_ped.qty_unit_id
+     and cpbu.corporate_id=pc_corporate_id
+     and cpbu.element_id=gepc.element_id;
 commit;              
 
 gvn_log_counter := gvn_log_counter + 1; 
@@ -17437,7 +17652,14 @@ insert into art_arrival_report_temp
    grd_to_gmr_qty_factor,
    qty_type,
    gmr_wet_qty,
-   arrival_or_delivery)
+   arrival_or_delivery,
+   typical,
+   unit_of_measure,
+   ratio_name,
+   internal_contract_ref_no,
+   contract_ref_no,
+   cp_id,
+   cp_name)
   select gmr.gmr_ref_no,
          gmr.internal_gmr_ref_no,
          dgrd.internal_dgrd_ref_no,
@@ -17479,13 +17701,23 @@ insert into art_arrival_report_temp
          nvl(dgrd.dgrd_to_gmr_qty_factor, 1) grd_to_gmr_qty_factor,
          spq.qty_type,
          gmr.wet_qty gmr_wet_qty,
-         'Delivery' arrival_or_delivery
+         'Delivery' arrival_or_delivery,
+         pqca.typical,
+         pqca.unit_of_measure,
+         rm.ratio_name,
+         gmr.internal_contract_ref_no,
+         gmr.contract_ref_no,
+         gmr.cp_id,
+         gmr.cp_name
     from process_gmr gmr,
          dgrd_delivered_grd        dgrd,
          process_spq     spq,
          aml_attribute_master_list aml,
          pdm_productmaster         pdm_und,
-         qum_quantity_unit_master  qum_und
+         qum_quantity_unit_master  qum_und,    
+         asm_assay_sublot_mapping  asm,
+         pqca_pq_chemical_attributes pqca,
+         rm_ratio_master             rm
    where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
      and dgrd.status = 'Active'
      and dgrd.tolling_stock_type = 'None Tolling'
@@ -17501,6 +17733,10 @@ insert into art_arrival_report_temp
      and gmr.process_id = pc_process_id
      and spq.process_id = pc_process_id
      and dgrd.process_id = pc_process_id
+     and dgrd.weg_avg_pricing_assay_id=asm.ash_id  
+     and asm.asm_id=pqca.asm_id
+     and pqca.element_id=aml.attribute_id
+     and pqca.unit_of_measure=rm.ratio_id
      and spq.is_active = 'Y'
      and (gmr.is_new_mtd_ar = 'Y' or gmr.is_new_ytd_ar = 'Y' or
          gmr.is_assay_updated_mtd_ar = 'Y' or
@@ -17558,7 +17794,14 @@ insert into art_arrival_report_temp
    grd_to_gmr_qty_factor,
    qty_type,
    gmr_wet_qty,
-   arrival_or_delivery)
+   arrival_or_delivery,
+   typical,
+   unit_of_measure,
+   ratio_name,
+   internal_contract_ref_no,
+   contract_ref_no,
+   cp_id,
+   cp_name)
   select gmr.gmr_ref_no,
          gmr.internal_gmr_ref_no,
          dgrd.internal_dgrd_ref_no,
@@ -17576,17 +17819,17 @@ insert into art_arrival_report_temp
          dgrd.dry_qty,
          dgrd.net_weight_unit_id qty_unit_id,
          dgrd.net_weight_unit qty_unit,
-         ped.element_id,
-         aml.attribute_name,
+         gepc.element_id,
+         cpbu.element_name,
          null underlying_product_id,
          null underlying_product_name,
-         null base_quantity_unit_id,
-         null base_quantity_unit,
-         0,--ped.assay_qty assay_content,
-         ped.assay_qty_unit_id assay_qty_unit_id,
+         cpbu.base_qty_unit_id base_quantity_unit_id,
+         cpbu.base_qty_unit base_quantity_unit,
+         gepc.assay_qty assay_content,
+         gepc.assay_qty_unit_id assay_qty_unit_id,
          qum_ped.qty_unit assay_qty_unit,
          0 payable_qty,
-         ped.assay_qty_unit_id payable_qty_unit_id,
+         gepc.assay_qty_unit_id payable_qty_unit_id,
          qum_ped.qty_unit payable_qty_unit,
          gmr.gmr_arrival_status arrival_status,
          dgrd.base_qty_unit_id conc_base_qty_unit_id,
@@ -17600,12 +17843,19 @@ insert into art_arrival_report_temp
          nvl(dgrd.dgrd_to_gmr_qty_factor, 1) grd_to_gmr_qty_factor,
          'Penalty' qty_type,
          gmr.wet_qty,
-         'Delivery' arrival_or_delivery
+         'Delivery' arrival_or_delivery,
+         gepc.typical,
+         gepc.unit_of_measure,
+         gepc.ratio_name,
+         gmr.internal_contract_ref_no,
+         gmr.contract_ref_no,
+         gmr.cp_id,
+         gmr.cp_name
     from process_gmr   gmr,
          dgrd_delivered_grd     dgrd,
-         gepc_gmr_element_pc_charges ped,
-         aml_attribute_master_list   aml,
-         qum_quantity_unit_master    qum_ped
+         gepc_gmr_element_pc_charges gepc,     
+         qum_quantity_unit_master    qum_ped,
+         cpbu_corp_penality_base_unit cpbu
    where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
      and dgrd.status = 'Active'
      and dgrd.tolling_stock_type = 'None Tolling'
@@ -17614,11 +17864,12 @@ insert into art_arrival_report_temp
      and gmr.is_deleted = 'N'
      and gmr.process_id = pc_process_id
      and dgrd.process_id = pc_process_id
-     and ped.process_id = pc_process_id
-     and ped.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
-     and ped.internal_grd_ref_no = dgrd.internal_dgrd_ref_no
-     and ped.element_id = aml.attribute_id
-     and ped.assay_qty_unit_id = qum_ped.qty_unit_id
+     and gepc.process_id = pc_process_id
+     and gepc.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
+     and gepc.internal_grd_ref_no = dgrd.internal_dgrd_ref_no   
+     and gepc.assay_qty_unit_id = qum_ped.qty_unit_id
+     and cpbu.element_id=gepc.element_id
+     and cpbu.corporate_id=pc_corporate_id
      and (gmr.is_new_mtd_ar = 'Y' or gmr.is_new_ytd_ar = 'Y' or
          gmr.is_assay_updated_mtd_ar = 'Y' or
          gmr.is_assay_updated_ytd_ar = 'Y');
@@ -17735,19 +17986,18 @@ insert into arg_arrival_report_gmr
   for cur_arrival_rows in cur_arrival
   loop
     vn_counter := vn_counter + 1;
-   if cur_arrival_rows.section_name = 'Non Penalty' then
-    
+        
     begin
       select ucm.multiplication_factor
-        into vn_spq_qty_conv_factor
+        into vn_assay_to_base_qty_factor
         from ucm_unit_conversion_master ucm
        where ucm.from_qty_unit_id = cur_arrival_rows.assay_qty_unit_id
          and ucm.to_qty_unit_id = cur_arrival_rows.base_quantity_unit_id;
     exception
       when others then
-        vn_spq_qty_conv_factor := -1;
+        vn_assay_to_base_qty_factor := -1;
     end;
-    end if;
+  
     --
     -- Wet, Dry, Payable And Assay Quantities are stored in product Base Quantity Unit
     --
@@ -17756,14 +18006,13 @@ insert into arg_arrival_report_gmr
                     cur_arrival_rows.grd_base_qty_conv_factor;
     vn_dry_qty   := cur_arrival_rows.dry_qty *
                     cur_arrival_rows.grd_base_qty_conv_factor;
-    
+    --- earlier assay qty was stored as 0 for penality elements
+     vn_assay_qty := cur_arrival_rows.assay_content * vn_assay_to_base_qty_factor;
     if cur_arrival_rows.section_name = 'Non Penalty' then
       vn_payable_qty := cur_arrival_rows.payable_qty *
-                        vn_spq_qty_conv_factor;
-                        vn_assay_qty := cur_arrival_rows.assay_content * vn_spq_qty_conv_factor;                        
+                        vn_assay_to_base_qty_factor;                                               
     else
-      vn_payable_qty := 0;
-      vn_assay_qty :=0;-- We do not show this for penalty elements
+      vn_payable_qty := 0;     
     end if;
   
     if cur_arrival_rows.ele_rank = 1 then
@@ -17797,7 +18046,11 @@ insert into arg_arrival_report_gmr
          pay_cur_decimal,
          grd_to_gmr_qty_factor,
          gmr_qty,
-         arrival_or_delivery)
+         arrival_or_delivery,
+         internal_contract_ref_no,
+         contract_ref_no,
+         cp_id,
+         cp_name)
       values
         (pc_process_id,
          pd_trade_date,
@@ -17828,7 +18081,11 @@ insert into arg_arrival_report_gmr
          cur_arrival_rows.pay_cur_decimals,
          cur_arrival_rows.grd_to_gmr_qty_factor,
          cur_arrival_rows.gmr_wet_qty,
-         cur_arrival_rows.arrival_or_delivery);
+         cur_arrival_rows.arrival_or_delivery,
+         cur_arrival_rows.internal_contract_ref_no,
+         cur_arrival_rows.contract_ref_no,
+         cur_arrival_rows.cp_id,
+         cur_arrival_rows.cp_name);
     
     end if;
     --
@@ -18153,7 +18410,10 @@ insert into arg_arrival_report_gmr
        qty_type,
        element_base_qty_unit_id,
        element_base_qty_unit,
-       price_in_pay_in
+       price_in_pay_in,
+       typical,
+       unit_of_measure,
+       ratio_name
        )
     values
       (pc_process_id,
@@ -18180,7 +18440,10 @@ insert into arg_arrival_report_gmr
        cur_arrival_rows.qty_type,
        cur_arrival_rows.base_quantity_unit_id,
        cur_arrival_rows.base_quantity_unit,
-       vn_gmr_price_in_pay_in_cur);
+       vn_gmr_price_in_pay_in_cur,
+       cur_arrival_rows.typical,
+       cur_arrival_rows.unit_of_measure,
+       cur_arrival_rows.ratio_name);
   
     if vn_counter = 100 then
       commit;
@@ -18276,7 +18539,11 @@ insert into arg_arrival_report_gmr
      pay_cur_decimal,
      grd_to_gmr_qty_factor,
      gmr_qty,
-     arrival_or_delivery)
+     arrival_or_delivery,
+     internal_contract_ref_no,
+     contract_ref_no,
+     cp_id,
+     cp_name)
     select pc_process_id,
            pd_trade_date,
            corporate_id,
@@ -18309,7 +18576,11 @@ insert into arg_arrival_report_gmr
            pay_cur_decimal,
            grd_to_gmr_qty_factor,
            gmr_qty,
-           arrival_or_delivery
+           arrival_or_delivery,
+           internal_contract_ref_no,
+           contract_ref_no,
+           cp_id,
+           cp_name
       from aro_ar_original aro
      where aro.process_id = pc_process_id
        and exists
@@ -18351,7 +18622,10 @@ insert into arg_arrival_report_gmr
      pc_charges_amt,
      element_base_qty_unit_id,
      element_base_qty_unit,
-     price_in_pay_in
+     price_in_pay_in,
+     typical,
+     unit_of_measure,
+     ratio_name
      )
     select pc_process_id,
            internal_gmr_ref_no,
@@ -18378,7 +18652,10 @@ insert into arg_arrival_report_gmr
            pc_charges_amt,
            element_base_qty_unit_id,
            element_base_qty_unit,
-           price_in_pay_in
+           price_in_pay_in,
+           typical,
+           unit_of_measure,
+           ratio_name
       from areo_ar_element_original areo
      where areo.process_id = pc_process_id
        and exists
@@ -18435,7 +18712,11 @@ insert into ar_arrival_report
    pay_cur_decimal,
    grd_to_gmr_qty_factor,
    gmr_qty,
-   arrival_or_delivery)
+   arrival_or_delivery,
+   internal_contract_ref_no,
+   contract_ref_no,
+   cp_id,
+   cp_name)
   select pc_process_id,
          pd_trade_date,
          corporate_id,
@@ -18468,7 +18749,11 @@ insert into ar_arrival_report
          pay_cur_decimal,
          grd_to_gmr_qty_factor,
          sum(gmr_qty),
-         arrival_or_delivery
+         arrival_or_delivery,
+         internal_contract_ref_no,
+         contract_ref_no,
+         cp_id,
+         cp_name
     from (select aro_current.corporate_id,
                  aro_current.corporate_name,
                  aro_current.gmr_ref_no,
@@ -18499,7 +18784,11 @@ insert into ar_arrival_report
                  aro_current.pay_cur_decimal,
                  null grd_to_gmr_qty_factor,
                  aro_current.gmr_qty,
-                 aro_current.arrival_or_delivery
+                 aro_current.arrival_or_delivery,
+                 aro_current.internal_contract_ref_no,
+                 aro_current.contract_ref_no,
+                 aro_current.cp_id,
+                 aro_current.cp_name
             from aro_ar_original aro_current
            where (aro_current.internal_gmr_ref_no, aro_current.process_id) in
          (select arg.internal_gmr_ref_no,
@@ -18526,7 +18815,11 @@ insert into ar_arrival_report
                     aro_current.pay_cur_code,
                     aro_current.pay_cur_decimal,
                     aro_current.gmr_qty,
-                    aro_current.arrival_or_delivery
+                    aro_current.arrival_or_delivery,
+                    aro_current.internal_contract_ref_no,
+                    aro_current.contract_ref_no,
+                    aro_current.cp_id,
+                    aro_current.cp_name
           union all
           select are_prev.corporate_id,
                  are_prev.corporate_name,
@@ -18558,7 +18851,11 @@ insert into ar_arrival_report
                  are_prev.pay_cur_decimal,
                  null grd_to_gmr_qty_factor,
                  0 gmr_qty,
-                 are_prev.arrival_or_delivery
+                 are_prev.arrival_or_delivery,
+                 are_prev.internal_contract_ref_no,
+                 are_prev.contract_ref_no,
+                 are_prev.cp_id,
+                 are_prev.cp_name
             from aro_ar_original are_prev
    where (are_prev.internal_gmr_ref_no, are_prev.process_id) in
          (select arg.internal_gmr_ref_no,
@@ -18584,7 +18881,11 @@ insert into ar_arrival_report
                     are_prev.pay_cur_code,
                     are_prev.pay_cur_decimal,
                     are_prev.gmr_qty,
-                    are_prev.arrival_or_delivery)
+                    are_prev.arrival_or_delivery,
+                    are_prev.internal_contract_ref_no,
+                    are_prev.contract_ref_no,
+                    are_prev.cp_id,
+                    are_prev.cp_name)
    group by corporate_id,
             corporate_name,
             gmr_ref_no,
@@ -18609,7 +18910,11 @@ insert into ar_arrival_report
             pay_cur_code,
             pay_cur_decimal,
             grd_to_gmr_qty_factor,
-            arrival_or_delivery;
+            arrival_or_delivery,
+            internal_contract_ref_no,
+            contract_ref_no,
+            cp_id,
+            cp_name;
   commit;
   
 insert into are_arrival_report_element
@@ -18637,7 +18942,10 @@ insert into are_arrival_report_element
    rc_charges_amt,
    pc_charges_amt,
    element_base_qty_unit_id,
-   element_base_qty_unit)
+   element_base_qty_unit,
+   typical,
+   unit_of_measure,
+   ratio_name)
   select pc_process_id,
          internal_gmr_ref_no,
          internal_grd_ref_no,
@@ -18662,7 +18970,10 @@ insert into are_arrival_report_element
          sum(rc_charges_amt),
          sum(pc_charges_amt),
          element_base_qty_unit_id,
-         element_base_qty_unit
+         element_base_qty_unit,
+         max(typical),
+         max(unit_of_measure),
+         max(ratio_name)
     from (select areo_current.internal_gmr_ref_no,
                  null internal_grd_ref_no,
                  areo_current.element_id,
@@ -18686,7 +18997,10 @@ insert into are_arrival_report_element
                  sum(areo_current.rc_charges_amt) rc_charges_amt,
                  sum(areo_current.pc_charges_amt) pc_charges_amt,
                  areo_current.element_base_qty_unit_id,
-                 areo_current.element_base_qty_unit
+                 areo_current.element_base_qty_unit,
+                 areo_current.typical,
+                 areo_current.unit_of_measure,
+                 areo_current.ratio_name
             from areo_ar_element_original areo_current
            where  (areo_current.internal_gmr_ref_no, areo_current.process_id) in
          (select arg.internal_gmr_ref_no,
@@ -18704,7 +19018,10 @@ insert into are_arrival_report_element
                     areo_current.section_name,
                     areo_current.qty_type,
                     areo_current.element_base_qty_unit_id,
-                    areo_current.element_base_qty_unit
+                    areo_current.element_base_qty_unit,
+                    areo_current.typical,
+                    areo_current.unit_of_measure,
+                    areo_current.ratio_name
           union all
           select areo_prev.internal_gmr_ref_no,
                  null internal_grd_ref_no,
@@ -18729,7 +19046,10 @@ insert into are_arrival_report_element
                  -1 * sum(areo_prev.rc_charges_amt) rc_charges_amt,
                  -1 * sum(areo_prev.pc_charges_amt) pc_charges_amt,
                  areo_prev.element_base_qty_unit_id,
-                 areo_prev.element_base_qty_unit
+                 areo_prev.element_base_qty_unit,
+                 0 typical,
+                 areo_prev.unit_of_measure,
+                 areo_prev.ratio_name
             from areo_ar_element_original areo_prev
            where (areo_prev.internal_gmr_ref_no, areo_prev.process_id) in
          (select arg.internal_gmr_ref_no,
@@ -18747,7 +19067,9 @@ insert into are_arrival_report_element
                     areo_prev.section_name,
                     areo_prev.qty_type,
                     areo_prev.element_base_qty_unit_id,
-                    areo_prev.element_base_qty_unit)
+                    areo_prev.element_base_qty_unit,
+                    areo_prev.unit_of_measure,
+                    areo_prev.ratio_name)
    group by internal_gmr_ref_no,
             internal_grd_ref_no,
             element_id,
@@ -18808,7 +19130,11 @@ insert into are_arrival_report_element
      pay_cur_decimal,
      grd_to_gmr_qty_factor,
      gmr_qty,
-     arrival_or_delivery)
+     arrival_or_delivery,
+     internal_contract_ref_no,
+     contract_ref_no,
+     cp_id,
+     cp_name)
     select pc_process_id,
            pd_trade_date,
            corporate_id,
@@ -18841,7 +19167,11 @@ insert into are_arrival_report_element
            pay_cur_decimal,
            grd_to_gmr_qty_factor,
            gmr_qty,
-           arrival_or_delivery
+           arrival_or_delivery,
+           internal_contract_ref_no,
+           contract_ref_no,
+           cp_id,
+           cp_name
       from aro_ar_original aro
      where aro.process_id = pc_process_id
        and exists
@@ -18883,7 +19213,10 @@ insert into are_arrival_report_element
      pc_charges_amt,
      element_base_qty_unit_id,
      element_base_qty_unit,
-     price_in_pay_in)
+     price_in_pay_in,
+     typical,
+     unit_of_measure,
+     ratio_name)
     select pc_process_id,
            internal_gmr_ref_no,
            internal_grd_ref_no,
@@ -18909,7 +19242,10 @@ insert into are_arrival_report_element
            pc_charges_amt,
            element_base_qty_unit_id,
            element_base_qty_unit,
-           price_in_pay_in
+           price_in_pay_in,
+           typical,
+           unit_of_measure,
+           ratio_name
       from areo_ar_element_original areo
      where areo.process_id = pc_process_id
        and exists
@@ -18967,7 +19303,11 @@ insert into are_arrival_report_element
    pay_cur_decimal,
    grd_to_gmr_qty_factor,
    gmr_qty,
-   arrival_or_delivery)
+   arrival_or_delivery,
+   internal_contract_ref_no,
+   contract_ref_no,
+   cp_id,
+   cp_name)
   select pc_process_id,
          pd_trade_date,
          corporate_id,
@@ -19000,7 +19340,11 @@ insert into are_arrival_report_element
          pay_cur_decimal,
          grd_to_gmr_qty_factor,
          SUM(gmr_qty),
-         arrival_or_delivery
+         arrival_or_delivery,
+         internal_contract_ref_no,
+         contract_ref_no,
+         cp_id,
+         cp_name
     from (select aro_current.corporate_id,
                  aro_current.corporate_name,
                  aro_current.gmr_ref_no,
@@ -19031,7 +19375,11 @@ insert into are_arrival_report_element
                  aro_current.pay_cur_decimal,
                  null grd_to_gmr_qty_factor,
                  aro_current.gmr_qty,
-                 aro_current.arrival_or_delivery
+                 aro_current.arrival_or_delivery,
+                 aro_current.internal_contract_ref_no,
+                 aro_current.contract_ref_no,
+                 aro_current.cp_id,
+                 aro_current.cp_name
             from aro_ar_original aro_current
            where  (aro_current.internal_gmr_ref_no, aro_current.process_id) in
          (select arg.internal_gmr_ref_no,
@@ -19058,7 +19406,11 @@ insert into are_arrival_report_element
                     aro_current.pay_cur_code,
                     aro_current.pay_cur_decimal,
                     aro_current.gmr_qty,
-                    aro_current.arrival_or_delivery
+                    aro_current.arrival_or_delivery,
+                    aro_current.internal_contract_ref_no,
+                    aro_current.contract_ref_no,
+                    aro_current.cp_id,
+                    aro_current.cp_name
           union all
           select are_prev.corporate_id,
                  are_prev.corporate_name,
@@ -19090,7 +19442,11 @@ insert into are_arrival_report_element
                  are_prev.pay_cur_decimal,
                  null grd_to_gmr_qty_factor,
                  0 gmr_qty,
-                 are_prev.arrival_or_delivery
+                 are_prev.arrival_or_delivery,
+                 are_prev.internal_contract_ref_no,
+                 are_prev.contract_ref_no,
+                 are_prev.cp_id,
+                 are_prev.cp_name
             from aro_ar_original are_prev
            where (are_prev.internal_gmr_ref_no, are_prev.process_id) in
          (select arg.internal_gmr_ref_no,
@@ -19116,7 +19472,11 @@ insert into are_arrival_report_element
                     are_prev.pay_cur_code,
                     are_prev.pay_cur_decimal,
                     are_prev.gmr_qty,
-                    are_prev.arrival_or_delivery)
+                    are_prev.arrival_or_delivery,
+                    are_prev.internal_contract_ref_no,
+                    are_prev.contract_ref_no,
+                    are_prev.cp_id,
+                    are_prev.cp_name)
    group by pc_process_id,
             pd_trade_date,
             corporate_id,
@@ -19143,7 +19503,11 @@ insert into are_arrival_report_element
             pay_cur_code,
             pay_cur_decimal,
             grd_to_gmr_qty_factor,
-            arrival_or_delivery;
+            arrival_or_delivery,
+            internal_contract_ref_no,
+            contract_ref_no,
+            cp_id,
+            cp_name;
 
 
 insert into are_arrival_report_element
@@ -19171,7 +19535,10 @@ insert into are_arrival_report_element
    rc_charges_amt,
    pc_charges_amt,
    element_base_qty_unit_id,
-   element_base_qty_unit)
+   element_base_qty_unit,
+   typical,
+   unit_of_measure,
+   ratio_name)
   select pc_process_id,
          internal_gmr_ref_no,
          internal_grd_ref_no,
@@ -19196,7 +19563,10 @@ insert into are_arrival_report_element
          sum(rc_charges_amt),
          sum(pc_charges_amt),
          element_base_qty_unit_id,
-         element_base_qty_unit
+         element_base_qty_unit,
+         max(typical),
+         max(unit_of_measure),
+         max(ratio_name)
     from (select areo_current.internal_gmr_ref_no,
                  null internal_grd_ref_no,
                  areo_current.element_id,
@@ -19220,7 +19590,10 @@ insert into are_arrival_report_element
                  sum(areo_current.rc_charges_amt) rc_charges_amt,
                  sum(areo_current.pc_charges_amt) pc_charges_amt,
                  areo_current.element_base_qty_unit_id,
-                 areo_current.element_base_qty_unit
+                 areo_current.element_base_qty_unit,
+                 areo_current.typical,
+                 areo_current.unit_of_measure,
+                 areo_current.ratio_name
             from areo_ar_element_original areo_current
            where  (areo_current.internal_gmr_ref_no, areo_current.process_id) in
          (select arg.internal_gmr_ref_no,
@@ -19238,7 +19611,10 @@ insert into are_arrival_report_element
                     areo_current.section_name,
                     areo_current.qty_type,
                     areo_current.element_base_qty_unit_id,
-                    areo_current.element_base_qty_unit
+                    areo_current.element_base_qty_unit,
+                    areo_current.typical,
+                    areo_current.unit_of_measure,
+                    areo_current.ratio_name
           union all
           select areo_prev.internal_gmr_ref_no,
                  null internal_grd_ref_no,
@@ -19263,7 +19639,10 @@ insert into are_arrival_report_element
                  -1 * sum(areo_prev.rc_charges_amt) rc_charges_amt,
                  -1 * sum(areo_prev.pc_charges_amt) pc_charges_amt,
                  areo_prev.element_base_qty_unit_id,
-                 areo_prev.element_base_qty_unit
+                 areo_prev.element_base_qty_unit,
+                 0 typical,
+                 areo_prev.unit_of_measure,
+                 areo_prev.ratio_name
             from areo_ar_element_original areo_prev
            where (areo_prev.internal_gmr_ref_no, areo_prev.process_id) in
          (select arg.internal_gmr_ref_no,
@@ -19281,7 +19660,9 @@ insert into are_arrival_report_element
                     areo_prev.section_name,
                     areo_prev.qty_type,
                     areo_prev.element_base_qty_unit_id,
-                    areo_prev.element_base_qty_unit)
+                    areo_prev.element_base_qty_unit,
+                    areo_prev.unit_of_measure,
+                    areo_prev.ratio_name)
    group by pc_process_id,
             internal_gmr_ref_no,
             internal_grd_ref_no,
@@ -19376,7 +19757,14 @@ procedure sp_feedconsumption_report(pc_corporate_id varchar2,
            nvl(pay_cur_decimals, 2) pay_cur_decimals,
            feeding_point_id,
            feeding_point_name,
-           grd_to_gmr_qty_factor
+           grd_to_gmr_qty_factor,
+           typical,
+           unit_of_measure,
+           ratio_name,
+           internal_contract_ref_no,
+           contract_ref_no,
+           cp_id,
+           cp_name
       from fct_fc_temp t
      where t.corporate_id = pc_corporate_id;
   vobj_error_log                 tableofpelerrorlog := tableofpelerrorlog();
@@ -19384,7 +19772,7 @@ procedure sp_feedconsumption_report(pc_corporate_id varchar2,
   vn_wet_qty                     number;
   vn_dry_qty                     number;
   vc_corporate_name              varchar2(100);
-  vn_spq_qty_conv_factor         number;
+  vn_assay_to_base_qty_factor    number;
   vn_assay_qty                   number;
   vn_payable_qty                 number;
   vn_gmr_price                   number;
@@ -19476,7 +19864,14 @@ begin
      pay_cur_decimals,
      feeding_point_id,
      feeding_point_name,
-     grd_to_gmr_qty_factor)
+     grd_to_gmr_qty_factor,
+     typical,
+     unit_of_measure,
+     ratio_name,
+     internal_contract_ref_no,
+     contract_ref_no,
+     cp_id,
+     cp_name)
     select gmr.gmr_ref_no,
            gmr.internal_gmr_ref_no,
            grd.internal_grd_ref_no,
@@ -19523,13 +19918,22 @@ begin
            grd.invoice_cur_decimals pay_cur_decimals,
            gmr.feeding_point_id,
            gmr.feeding_point_name,
-           nvl(grd.grd_to_gmr_qty_factor, 1)
+           nvl(grd.grd_to_gmr_qty_factor, 1),
+           pqca.typical,
+           pqca.unit_of_measure,
+           rm.ratio_name,
+           gmr.internal_contract_ref_no,
+           gmr.contract_ref_no,
+           gmr.cp_id,
+           gmr.cp_name
       from process_gmr      gmr,
            process_grd        grd,
            process_spq          spq,
            ash_assay_header               ash,
            asm_assay_sublot_mapping       asm,
-           eud_element_underlying_details aml
+           eud_element_underlying_details aml,
+           pqca_pq_chemical_attributes    pqca,
+           rm_ratio_master                rm
      where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
        and grd.internal_grd_ref_no = spq.internal_grd_ref_no
        and gmr.internal_gmr_ref_no = spq.internal_gmr_ref_no
@@ -19549,6 +19953,9 @@ begin
        and spq.corporate_id = pc_corporate_id
        and gmr.corporate_id = pc_corporate_id
        and aml.corporate_id = pc_corporate_id
+       and asm.asm_id=pqca.asm_id
+       and pqca.element_id=aml.element_id
+       and pqca.unit_of_measure=rm.ratio_id
        and ash.assay_type in
            ('Weighted Avg Pricing Assay', 'Shipment Assay')
        and (gmr.is_new_mtd = 'Y' or gmr.is_new_ytd = 'Y' or
@@ -19617,7 +20024,11 @@ sp_eodeom_process_log(pc_corporate_id,
      pay_cur_decimals,
      feeding_point_id,
      feeding_point_name,
-     grd_to_gmr_qty_factor)
+     grd_to_gmr_qty_factor,
+     internal_contract_ref_no,
+     contract_ref_no,
+     cp_id,
+     cp_name)
     select gmr.gmr_ref_no,
            gmr.internal_gmr_ref_no,
            grd.internal_grd_ref_no,
@@ -19664,7 +20075,11 @@ sp_eodeom_process_log(pc_corporate_id,
            grd.invoice_cur_decimals pay_cur_decimals,
            gmr.feeding_point_id,
            gmr.feeding_point_name,
-           nvl(grd.grd_to_gmr_qty_factor, 1)
+           nvl(grd.grd_to_gmr_qty_factor, 1),
+           gmr.internal_contract_ref_no,
+           gmr.contract_ref_no,
+           gmr.cp_id,
+           gmr.cp_name
       from process_gmr   gmr,
            process_grd     grd
      where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
@@ -19734,7 +20149,14 @@ sp_eodeom_process_log(pc_corporate_id,
      pay_cur_decimals,
      feeding_point_id,
      feeding_point_name,
-     grd_to_gmr_qty_factor)
+     grd_to_gmr_qty_factor,
+     typical,
+     unit_of_measure,
+     ratio_name,
+     internal_contract_ref_no,
+     contract_ref_no,
+     cp_id,
+     cp_name)
     select fct1.gmr_ref_no,
            fct1.internal_gmr_ref_no,
            fct1.internal_grd_ref_no,
@@ -19760,11 +20182,11 @@ sp_eodeom_process_log(pc_corporate_id,
            ped.element_name attribute_name,
            null underlying_product_id,
            null underlying_product_name,
-           null base_quantity_unit_id,
-           null base_quantity_unit,
-           0 assay_qty,
-           null assay_qty_unit_id,
-           null assay_qty_unit,
+           cpbu.base_qty_unit_id base_quantity_unit_id,
+           cpbu.base_qty_unit base_quantity_unit,
+           ped.assay_qty assay_qty,
+           ped.assay_qty_unit_id assay_qty_unit_id,
+           qum_ped.qty_unit assay_qty_unit,
            0 payable_qty,
            null payable_qty_unit_id,
            null payable_qty_unit,
@@ -19774,20 +20196,32 @@ sp_eodeom_process_log(pc_corporate_id,
            fct1.pay_cur_id,
            fct1.pay_cur_code,
            'Penalty' qty_type,
-           null, --ped.parent_stock_ref_no,-- check
+           ped.parent_stock_ref_no,
            'Penalty' section_name,
            fct1.grd_base_qty_conv_factor,
            fct1.pcdi_id,
            fct1.pay_cur_decimals,
            fct1.feeding_point_id,
            fct1.feeding_point_name,
-           fct1.grd_to_gmr_qty_factor
+           fct1.grd_to_gmr_qty_factor,
+           ped.typical,
+           ped.unit_of_measure,
+           ped.ratio_name,
+           fct1.internal_contract_ref_no,
+           fct1.contract_ref_no,
+           fct1.cp_id,
+           fct1.cp_name
       from fct1_fc_temp1 fct1,
-           gepc_gmr_element_pc_charges ped
+           ped_penalty_element_details ped,
+           qum_quantity_unit_master    qum_ped,
+           cpbu_corp_penality_base_unit cpbu
      where fct1.internal_gmr_ref_no = ped.internal_gmr_ref_no
        and fct1.internal_grd_ref_no = ped.internal_grd_ref_no
        and ped.process_id = pc_process_id
-       and fct1.corporate_id = pc_corporate_id;
+       and fct1.corporate_id = pc_corporate_id
+       and ped.assay_qty_unit_id = qum_ped.qty_unit_id
+       and ped.element_id=cpbu.element_id
+       and cpbu.corporate_id=pc_corporate_id;
   commit;
   gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
@@ -19798,19 +20232,19 @@ sp_eodeom_process_log(pc_corporate_id,
   for cur_feed_rows in cur_feed
   loop
   vn_row_cnt := vn_row_cnt +1;
-    if cur_feed_rows.section_name = 'Non Penalty' then
+  
     
       begin
         select ucm.multiplication_factor
-          into vn_spq_qty_conv_factor
+          into vn_assay_to_base_qty_factor
           from ucm_unit_conversion_master ucm
          where ucm.from_qty_unit_id = cur_feed_rows.assay_qty_unit_id
            and ucm.to_qty_unit_id = cur_feed_rows.base_quantity_unit_id;
       exception
         when others then
-          vn_spq_qty_conv_factor := -1;
+          vn_assay_to_base_qty_factor := -1;
       end;
-    end if;
+   
     --
     -- Wet, Dry, Payable And Assay Quantities are stored in product Base Quantity Unit
     --
@@ -19818,14 +20252,14 @@ sp_eodeom_process_log(pc_corporate_id,
                   cur_feed_rows.grd_base_qty_conv_factor;
     vn_dry_qty := cur_feed_rows.dry_qty *
                   cur_feed_rows.grd_base_qty_conv_factor;
-  
+     --- earlier assay qty was stored as 0 for penality elements              
+    vn_assay_qty   := cur_feed_rows.assay_qty * vn_assay_to_base_qty_factor;
     if cur_feed_rows.section_name = 'Non Penalty' then
-      vn_payable_qty := cur_feed_rows.payable_qty * vn_spq_qty_conv_factor;
-      vn_assay_qty   := cur_feed_rows.assay_qty * vn_spq_qty_conv_factor;
+      vn_payable_qty := cur_feed_rows.payable_qty * vn_assay_to_base_qty_factor;      
     else
-      vn_payable_qty := 0;
-      vn_assay_qty   := 0;
+      vn_payable_qty := 0;   
     end if;
+    
     if cur_feed_rows.ele_rank = 1 then
       insert into fco_feed_consumption_original
         (process_id,
@@ -19865,7 +20299,11 @@ sp_eodeom_process_log(pc_corporate_id,
          grd_to_gmr_qty_factor,
          other_charges_amt,
          freight_container_charge_amt,
-         pcdi_id)
+         pcdi_id,
+         internal_contract_ref_no,
+         contract_ref_no,
+         cp_id,
+         cp_name)
       values
         (pc_process_id,
          pd_trade_date,
@@ -19904,7 +20342,11 @@ sp_eodeom_process_log(pc_corporate_id,
          cur_feed_rows.grd_to_gmr_qty_factor,
          0, --other_charges_amt
          0, -- freight_container_charge_amt
-         cur_feed_rows.pcdi_id);
+         cur_feed_rows.pcdi_id,
+         cur_feed_rows.internal_contract_ref_no,
+         cur_feed_rows.contract_ref_no,
+         cur_feed_rows.cp_id,
+         cur_feed_rows.cp_name);
     end if;
     --
     -- Get the Price for the GMR and Element
@@ -20233,7 +20675,10 @@ sp_eodeom_process_log(pc_corporate_id,
        element_base_qty_unit_id,
        element_base_qty_unit,
        pcdi_id,
-       price_in_pay_in)
+       price_in_pay_in,
+       typical,
+       unit_of_measure,
+       ratio_name)
     values
       (pc_process_id,
        cur_feed_rows.internal_gmr_ref_no,
@@ -20265,7 +20710,10 @@ sp_eodeom_process_log(pc_corporate_id,
        cur_feed_rows.base_quantity_unit_id,
        cur_feed_rows.base_quantity_unit,
        cur_feed_rows.pcdi_id,
-       vn_gmr_price_in_pay_in_cur);
+       vn_gmr_price_in_pay_in_cur,
+       cur_feed_rows.typical,
+       cur_feed_rows.unit_of_measure,
+       cur_feed_rows.ratio_name);
        if vn_row_cnt >= 500 then  
           commit;
           vn_row_cnt:= 0;
@@ -20377,7 +20825,11 @@ sp_eodeom_process_log(pc_corporate_id,
      is_new,
      mtd_ytd,
      other_charges_amt,
-     freight_container_charge_amt)
+     freight_container_charge_amt,
+     internal_contract_ref_no,
+     contract_ref_no,
+     cp_id,
+     cp_name)
     select process_id,
            eod_trade_date,
            corporate_id,
@@ -20414,7 +20866,11 @@ sp_eodeom_process_log(pc_corporate_id,
            'Y',
            'MTD',
            other_charges_amt,
-           freight_container_charge_amt
+           freight_container_charge_amt,
+           internal_contract_ref_no,
+           contract_ref_no,
+           cp_id,
+           cp_name
       from fco_feed_consumption_original fco
      where fco.process_id = pc_process_id
        and exists
@@ -20462,7 +20918,10 @@ sp_eodeom_process_log(pc_corporate_id,
      element_base_qty_unit_id,
      element_base_qty_unit,
      mtd_ytd,
-     price_in_pay_in)
+     price_in_pay_in,
+     typical,
+     unit_of_measure,
+     ratio_name)
     select process_id,
            internal_gmr_ref_no,
            internal_grd_ref_no,
@@ -20493,7 +20952,10 @@ sp_eodeom_process_log(pc_corporate_id,
            element_base_qty_unit_id,
            element_base_qty_unit,
            'MTD',
-           price_in_pay_in
+           price_in_pay_in,
+           typical,
+           unit_of_measure,
+           ratio_name
       from fceo_feed_con_element_original fceo
      where fceo.process_id = pc_process_id
        and exists
@@ -20549,7 +21011,11 @@ sp_eodeom_process_log(pc_corporate_id,
      is_new,
      mtd_ytd,
      other_charges_amt,
-     freight_container_charge_amt)
+     freight_container_charge_amt,
+     internal_contract_ref_no,
+     contract_ref_no,
+     cp_id,
+     cp_name)
     select process_id,
            eod_trade_date,
            corporate_id,
@@ -20586,7 +21052,11 @@ sp_eodeom_process_log(pc_corporate_id,
            'Y',
            'YTD',
            other_charges_amt,
-           freight_container_charge_amt
+           freight_container_charge_amt,
+           internal_contract_ref_no,
+           contract_ref_no,
+           cp_id,
+           cp_name
       from fco_feed_consumption_original fco
      where fco.process_id = pc_process_id
        and exists
@@ -20633,7 +21103,10 @@ sp_eodeom_process_log(pc_corporate_id,
      element_base_qty_unit_id,
      element_base_qty_unit,
      mtd_ytd,
-     price_in_pay_in)
+     price_in_pay_in,
+     typical,
+     unit_of_measure,
+     ratio_name)
     select process_id,
            internal_gmr_ref_no,
            internal_grd_ref_no,
@@ -20664,7 +21137,10 @@ sp_eodeom_process_log(pc_corporate_id,
            element_base_qty_unit_id,
            element_base_qty_unit,
            'YTD',
-           price_in_pay_in
+           price_in_pay_in,
+           typical,
+           unit_of_measure,
+           ratio_name
       from fceo_feed_con_element_original fceo
      where fceo.process_id = pc_process_id
        and exists
@@ -20775,7 +21251,11 @@ sp_eodeom_process_log(pc_corporate_id,
      other_charges_amt,
      freight_container_charge_amt,
      feeding_point_id,
-     feeding_point_name)
+     feeding_point_name,
+     internal_contract_ref_no,
+     contract_ref_no,
+     cp_id,
+     cp_name)
     select process_id,
            eod_trade_date,
            corporate_id,
@@ -20804,7 +21284,11 @@ sp_eodeom_process_log(pc_corporate_id,
            -1 * sum(other_charges_amt) other_charges_amt,
            -1 * sum(freight_container_charge_amt) freight_container_charge_amt,
            feeding_point_id,
-           feeding_point_name
+           feeding_point_name,
+           internal_contract_ref_no,
+           contract_ref_no,
+           cp_id,
+           cp_name
       from fco_feed_consumption_original fco_prev
      where (fco_prev.internal_gmr_ref_no, fco_prev.process_id) in
            (select fcg.internal_gmr_ref_no,
@@ -20834,7 +21318,11 @@ sp_eodeom_process_log(pc_corporate_id,
               pay_cur_code,
               parent_internal_gmr_ref_no,
               feeding_point_id,
-              feeding_point_name;
+              feeding_point_name,
+              internal_contract_ref_no,
+              contract_ref_no,
+              cp_id,
+              cp_name;
 
   commit;
   gvn_log_counter := gvn_log_counter + 1;
@@ -20877,7 +21365,11 @@ sp_eodeom_process_log(pc_corporate_id,
      other_charges_amt,
      freight_container_charge_amt,
      feeding_point_id,
-     feeding_point_name)
+     feeding_point_name,
+     internal_contract_ref_no,
+     contract_ref_no,
+     cp_id,
+     cp_name)
     select process_id,
            eod_trade_date,
            corporate_id,
@@ -20906,7 +21398,11 @@ sp_eodeom_process_log(pc_corporate_id,
            sum(other_charges_amt) other_charges_amt,
            sum(freight_container_charge_amt) freight_container_charge_amt,
            feeding_point_id,
-           feeding_point_name
+           feeding_point_name,
+           internal_contract_ref_no,
+           contract_ref_no,
+           cp_id,
+           cp_name
       from fco_feed_consumption_original fco
      where (fco.internal_gmr_ref_no, fco.process_id) in
            (select fcg.internal_gmr_ref_no,
@@ -20936,7 +21432,11 @@ sp_eodeom_process_log(pc_corporate_id,
               pay_cur_code,
               parent_internal_gmr_ref_no,
               feeding_point_id,
-              feeding_point_name;
+              feeding_point_name,
+              internal_contract_ref_no,
+              contract_ref_no,
+              cp_id,
+              cp_name;
 
   commit;
   gvn_log_counter := gvn_log_counter + 1;
@@ -20974,7 +21474,11 @@ sp_eodeom_process_log(pc_corporate_id,
      feeding_point_id,
      feeding_point_name,
      other_charges_amt,
-     freight_container_charge_amt)
+     freight_container_charge_amt,
+     internal_contract_ref_no,
+     contract_ref_no,
+     cp_id,
+     cp_name)
     select pc_process_id,
            pd_trade_date,
            corporate_id,
@@ -21003,7 +21507,11 @@ sp_eodeom_process_log(pc_corporate_id,
            feeding_point_id,
            feeding_point_name,
            sum(other_charges_amt),
-           sum(freight_container_charge_amt)
+           sum(freight_container_charge_amt),
+           internal_contract_ref_no,
+           contract_ref_no,
+           cp_id,
+           cp_name
       from fcot_fco_temp t
      where t.corporate_id = pc_corporate_id
      group by corporate_id,
@@ -21028,7 +21536,11 @@ sp_eodeom_process_log(pc_corporate_id,
               is_new,
               mtd_ytd,
               feeding_point_id,
-              feeding_point_name;
+              feeding_point_name,
+              internal_contract_ref_no,
+              contract_ref_no,
+              cp_id,
+              cp_name;
 
   commit;
   gvn_log_counter := gvn_log_counter + 1;
@@ -21074,7 +21586,10 @@ sp_eodeom_process_log(pc_corporate_id,
      base_tc_charges_amt,
      esc_desc_tc_charges_amt,
      element_base_qty_unit_id,
-     element_base_qty_unit)
+     element_base_qty_unit,
+     typical,
+     unit_of_measure,
+     ratio_name)
     select pc_corporate_id,
            pc_process_id,
            fceo_prev.internal_gmr_ref_no,
@@ -21100,7 +21615,10 @@ sp_eodeom_process_log(pc_corporate_id,
            -1 * sum(fceo_prev.base_tc_charges_amt),
            -1 * sum(fceo_prev.esc_desc_tc_charges_amt),
            fceo_prev.element_base_qty_unit_id,
-           fceo_prev.element_base_qty_unit
+           fceo_prev.element_base_qty_unit,
+           0 typical,
+           fceo_prev.unit_of_measure,
+           fceo_prev.ratio_name
       from fceo_feed_con_element_original fceo_prev
      where (fceo_prev.internal_gmr_ref_no, fceo_prev.process_id) in
            (select fcg.internal_gmr_ref_no,
@@ -21122,7 +21640,9 @@ sp_eodeom_process_log(pc_corporate_id,
               fceo_prev.section_name,
               fceo_prev.qty_type,
               fceo_prev.element_base_qty_unit_id,
-              fceo_prev.element_base_qty_unit;
+              fceo_prev.element_base_qty_unit,
+              fceo_prev.unit_of_measure,
+              fceo_prev.ratio_name;
 
   commit;
   gvn_log_counter := gvn_log_counter + 1;
@@ -21162,7 +21682,10 @@ sp_eodeom_process_log(pc_corporate_id,
      base_tc_charges_amt,
      esc_desc_tc_charges_amt,
      element_base_qty_unit_id,
-     element_base_qty_unit)
+     element_base_qty_unit,
+     typical,
+     unit_of_measure,
+     ratio_name)
     select pc_corporate_id,
            pc_process_id,
            fceo_current.internal_gmr_ref_no,
@@ -21188,7 +21711,10 @@ sp_eodeom_process_log(pc_corporate_id,
            sum(fceo_current.base_tc_charges_amt),
            sum(fceo_current.esc_desc_tc_charges_amt),
            fceo_current.element_base_qty_unit_id,
-           fceo_current.element_base_qty_unit
+           fceo_current.element_base_qty_unit,
+           fceo_current.typical,
+           fceo_current.unit_of_measure,
+           fceo_current.ratio_name
       from fceo_feed_con_element_original fceo_current
      where (fceo_current.internal_gmr_ref_no, fceo_current.process_id) in
            (select fcg.internal_gmr_ref_no,
@@ -21210,7 +21736,10 @@ sp_eodeom_process_log(pc_corporate_id,
               fceo_current.section_name,
               fceo_current.qty_type,
               fceo_current.element_base_qty_unit_id,
-              fceo_current.element_base_qty_unit;
+              fceo_current.element_base_qty_unit,
+              fceo_current.typical,
+              fceo_current.unit_of_measure,
+              fceo_current.ratio_name;
   commit;
   gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
@@ -21244,7 +21773,10 @@ sp_eodeom_process_log(pc_corporate_id,
      base_tc_charges_amt,
      esc_desc_tc_charges_amt,
      element_base_qty_unit_id,
-     element_base_qty_unit)
+     element_base_qty_unit,
+     typical,
+     unit_of_measure,
+     ratio_name)
     select pc_process_id,
            internal_gmr_ref_no,
            element_id,
@@ -21269,7 +21801,10 @@ sp_eodeom_process_log(pc_corporate_id,
            sum(base_tc_charges_amt),
            sum(esc_desc_tc_charges_amt),
            element_base_qty_unit_id,
-           element_base_qty_unit
+           element_base_qty_unit,
+           max(typical),
+           max(unit_of_measure),
+           max(ratio_name)           
       from fceot_fceo_temp t
      where t.corporate_id = pc_corporate_id
      group by internal_gmr_ref_no,
@@ -21342,7 +21877,11 @@ sp_eodeom_process_log(pc_corporate_id,
      other_charges_amt,
      freight_container_charge_amt,
      feeding_point_id,
-     feeding_point_name)
+     feeding_point_name,
+     internal_contract_ref_no,
+     contract_ref_no,
+     cp_id,
+     cp_name)
     select process_id,
            eod_trade_date,
            corporate_id,
@@ -21371,7 +21910,11 @@ sp_eodeom_process_log(pc_corporate_id,
            -1 * sum(other_charges_amt) other_charges_amt,
            -1 * sum(freight_container_charge_amt) freight_container_charge_amt,
            feeding_point_id,
-           feeding_point_name
+           feeding_point_name,
+           internal_contract_ref_no,
+           contract_ref_no,
+           cp_id,
+           cp_name
       from fco_feed_consumption_original fco_prev
      where (fco_prev.internal_gmr_ref_no, fco_prev.process_id) in
            (select fcg.internal_gmr_ref_no,
@@ -21401,7 +21944,11 @@ sp_eodeom_process_log(pc_corporate_id,
               pay_cur_code,
               parent_internal_gmr_ref_no,
               feeding_point_id,
-              feeding_point_name;
+              feeding_point_name,
+              internal_contract_ref_no,
+              contract_ref_no,
+              cp_id,
+              cp_name;
 
   commit;
   gvn_log_counter := gvn_log_counter + 1;
@@ -21444,7 +21991,11 @@ sp_eodeom_process_log(pc_corporate_id,
      other_charges_amt,
      freight_container_charge_amt,
      feeding_point_id,
-     feeding_point_name)
+     feeding_point_name,
+     internal_contract_ref_no,
+     contract_ref_no,
+     cp_id,
+     cp_name)
     select process_id,
            eod_trade_date,
            corporate_id,
@@ -21473,7 +22024,11 @@ sp_eodeom_process_log(pc_corporate_id,
            sum(other_charges_amt) other_charges_amt,
            sum(freight_container_charge_amt) freight_container_charge_amt,
            feeding_point_id,
-           feeding_point_name
+           feeding_point_name,
+           internal_contract_ref_no,
+           contract_ref_no,
+           cp_id,
+           cp_name
       from fco_feed_consumption_original fco
      where (fco.internal_gmr_ref_no, fco.process_id) in
            (select fcg.internal_gmr_ref_no,
@@ -21503,7 +22058,11 @@ sp_eodeom_process_log(pc_corporate_id,
               pay_cur_code,
               parent_internal_gmr_ref_no,
               feeding_point_id,
-              feeding_point_name;
+              feeding_point_name,
+              internal_contract_ref_no,
+              contract_ref_no,
+              cp_id,
+              cp_name;
 
   commit;
   gvn_log_counter := gvn_log_counter + 1;
@@ -21541,7 +22100,11 @@ sp_eodeom_process_log(pc_corporate_id,
      feeding_point_id,
      feeding_point_name,
      other_charges_amt,
-     freight_container_charge_amt)
+     freight_container_charge_amt,
+     internal_contract_ref_no,
+     contract_ref_no,
+     cp_id,
+     cp_name)
     select pc_process_id,
            pd_trade_date,
            corporate_id,
@@ -21570,7 +22133,11 @@ sp_eodeom_process_log(pc_corporate_id,
            feeding_point_id,
            feeding_point_name,
            sum(other_charges_amt),
-           sum(freight_container_charge_amt)
+           sum(freight_container_charge_amt),
+           internal_contract_ref_no,
+           contract_ref_no,
+           cp_id,
+           cp_name
       from fcot_fco_temp t
      where t.corporate_id = pc_corporate_id
      group by corporate_id,
@@ -21595,7 +22162,11 @@ sp_eodeom_process_log(pc_corporate_id,
               is_new,
               mtd_ytd,
               feeding_point_id,
-              feeding_point_name;
+              feeding_point_name,
+              internal_contract_ref_no,
+              contract_ref_no,
+              cp_id,
+              cp_name;
 
   commit;
   gvn_log_counter := gvn_log_counter + 1;
@@ -21641,7 +22212,10 @@ sp_eodeom_process_log(pc_corporate_id,
      base_tc_charges_amt,
      esc_desc_tc_charges_amt,
      element_base_qty_unit_id,
-     element_base_qty_unit)
+     element_base_qty_unit,
+     typical,
+     unit_of_measure,
+     ratio_name)
   
     select pc_corporate_id,
            pc_process_id,
@@ -21668,7 +22242,10 @@ sp_eodeom_process_log(pc_corporate_id,
            -1 * sum(fceo_prev.base_tc_charges_amt),
            -1 * sum(fceo_prev.esc_desc_tc_charges_amt),
            fceo_prev.element_base_qty_unit_id,
-           fceo_prev.element_base_qty_unit
+           fceo_prev.element_base_qty_unit,
+           0 typical,
+           fceo_prev.unit_of_measure,
+           fceo_prev.ratio_name
       from fceo_feed_con_element_original fceo_prev
      where (fceo_prev.internal_gmr_ref_no, fceo_prev.process_id) in
            (select fcg.internal_gmr_ref_no,
@@ -21690,7 +22267,9 @@ sp_eodeom_process_log(pc_corporate_id,
               fceo_prev.section_name,
               fceo_prev.qty_type,
               fceo_prev.element_base_qty_unit_id,
-              fceo_prev.element_base_qty_unit;
+              fceo_prev.element_base_qty_unit,
+              fceo_prev.unit_of_measure,
+              fceo_prev.ratio_name;
 
   commit;
   gvn_log_counter := gvn_log_counter + 1;
@@ -21730,7 +22309,10 @@ sp_eodeom_process_log(pc_corporate_id,
      base_tc_charges_amt,
      esc_desc_tc_charges_amt,
      element_base_qty_unit_id,
-     element_base_qty_unit)
+     element_base_qty_unit,
+     typical,
+     unit_of_measure,
+     ratio_name)
     select pc_corporate_id,
            pc_process_id,
            fceo_current.internal_gmr_ref_no,
@@ -21756,7 +22338,10 @@ sp_eodeom_process_log(pc_corporate_id,
            sum(fceo_current.base_tc_charges_amt),
            sum(fceo_current.esc_desc_tc_charges_amt),
            fceo_current.element_base_qty_unit_id,
-           fceo_current.element_base_qty_unit
+           fceo_current.element_base_qty_unit,
+           fceo_current.typical,
+           fceo_current.unit_of_measure,
+           fceo_current.ratio_name
       from fceo_feed_con_element_original fceo_current
      where (fceo_current.internal_gmr_ref_no, fceo_current.process_id) in
            (select fcg.internal_gmr_ref_no,
@@ -21778,7 +22363,10 @@ sp_eodeom_process_log(pc_corporate_id,
               fceo_current.section_name,
               fceo_current.qty_type,
               fceo_current.element_base_qty_unit_id,
-              fceo_current.element_base_qty_unit;
+              fceo_current.element_base_qty_unit,
+              fceo_current.typical,
+              fceo_current.unit_of_measure,
+              fceo_current.ratio_name;
   commit;
   gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
@@ -21812,7 +22400,10 @@ sp_eodeom_process_log(pc_corporate_id,
      base_tc_charges_amt,
      esc_desc_tc_charges_amt,
      element_base_qty_unit_id,
-     element_base_qty_unit)
+     element_base_qty_unit,
+     typical,
+     unit_of_measure,
+     ratio_name)
     select pc_process_id,
            internal_gmr_ref_no,
            element_id,
@@ -21837,7 +22428,10 @@ sp_eodeom_process_log(pc_corporate_id,
            sum(base_tc_charges_amt),
            sum(esc_desc_tc_charges_amt),
            element_base_qty_unit_id,
-           element_base_qty_unit
+           element_base_qty_unit,
+           max(typical),
+           max(unit_of_measure),
+           max(ratio_name)
       from fceot_fceo_temp t
      where t.corporate_id = pc_corporate_id
      group by internal_gmr_ref_no,
@@ -22370,6 +22964,22 @@ update cbt_cb_temp ct
                         gvn_log_counter,
                         'CB Update CBT parent_internal_gmr_ref_no end');
 
+  ------ Deletion of unnecessary penality elements for Internal Movement
+  delete from cbt_cb_temp ct
+ where (ct.parent_internal_gmr_ref_no, ct.element_id) not in      
+       (select gepc.internal_gmr_ref_no,
+               gepc.element_id
+          from gepc_gmr_element_pc_charges gepc
+           where gepc.process_id=pc_process_id)
+   and ct.section_name='Penalty'
+   and ct.corporate_id=pc_corporate_id;
+   commit;
+   gvn_log_counter := gvn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'Deletion of unnecessary penality elements for IM');
   --
   -- all supplier stocks payable elements
   --
@@ -22691,7 +23301,13 @@ update cbt_cb_temp ct
        and pqca.is_active = 'Y'
        and gmr.eff_date <= pd_trade_date
        and gmr.process_id = pc_process_id
-       and grd.process_id = pc_process_id;
+       and grd.process_id = pc_process_id      
+       and exists
+       (select * from gepc_gmr_element_pc_charges gepc
+                 where gepc.process_id=pc_process_id
+                   and gepc.internal_gmr_ref_no=gmr.internal_gmr_ref_no
+                   and gepc.internal_grd_ref_no=grd.internal_grd_ref_no
+                   and gepc.element_id=pqca.element_id);
 
   gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
@@ -24700,11 +25316,21 @@ begin
                     grd.dry_qty grd_dry_qty,
                     nvl(gmr.invoice_cur_decimals,2) pay_cur_decimals,
                     (case
+                     when rm.ratio_name = '%' then
+                      ((grd.qty* (asm.dry_wet_qty_ratio / 100)) *
+                      (pqca.typical / 100))
+                      else
+                       (((grd.qty*ucm.multiplication_factor* (asm.dry_wet_qty_ratio / 100))) *
+                       pqca.typical)
+                        end) assay_qty,
+                    (case
                     when rm.ratio_name = '%' then
                     grd.qty_unit_id
                     else
                     rm.qty_unit_id_numerator
-                    end) assay_qty_unit_id
+                    end) assay_qty_unit_id,              
+                    pqca.unit_of_measure,
+                    rm.ratio_name
                from process_gmr   gmr,
                     process_grd     grd,
                     ash_assay_header            ash,
@@ -24712,7 +25338,8 @@ begin
                     pqca_pq_chemical_attributes pqca,
                     aml_attribute_master_list   aml,
                     pci_physical_contract_item  pci,
-                    rm_ratio_master             rm
+                    rm_ratio_master             rm,
+                    ucm_unit_conversion_master     ucm
               where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
                 and ash.ash_id = asm.ash_id
                 and asm.asm_id = pqca.asm_id
@@ -24725,30 +25352,11 @@ begin
                 and grd.weg_avg_pricing_assay_id = ash.ash_id
                 and grd.internal_contract_item_ref_no =
                     pci.internal_contract_item_ref_no
-                and exists
-              (select *
-                       from pcaph_pc_attr_penalty_header  pcaph,
-                            pcap_pc_attribute_penalty     pcap,
-                            pqd_penalty_quality_details   pqd,
-                            pad_penalty_attribute_details pad,
-                            gph_gmr_penalty_header        gph
-                      where pcaph.pcaph_id = pcap.pcaph_id
-                        and pcaph.pcaph_id = pqd.pcaph_id
-                        and pcaph.pcaph_id = pad.pcaph_id
-                        and pcaph.pcaph_id = gph.pcaph_id
-                        and pqd.pcpq_id = pci.pcpq_id
-                        and pcaph.process_id = pc_process_id
-                        and pcap.process_id = pc_process_id
-                        and pqd.process_id = pc_process_id
-                        and pad.process_id = pc_process_id
-                        and gph.process_id = pc_process_id
-                        and pcaph.is_active = 'Y'
-                        and pcap.is_active = 'Y'
-                        and pqd.is_active = 'Y'
-                        and pad.is_active = 'Y'
-                        and gph.is_active = 'Y'
-                        and gph.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                        and pad.element_id = pqca.element_id)
+                and ucm.from_qty_unit_id = grd.qty_unit_id
+                and ucm.to_qty_unit_id =
+                   (case when rm.ratio_name = '%' then ash.net_weight_unit else
+                   rm.qty_unit_id_denominator end)
+                 and pqca.typical<>0
              union
              select gmr.internal_gmr_ref_no,
                     dgrd.internal_dgrd_ref_no,
@@ -24763,10 +25371,20 @@ begin
                     nvl(gmr.invoice_cur_decimals,2) pay_cur_decimals,
                     (case
                     when rm.ratio_name = '%' then
+                     ((dgrd.net_weight * (asm.dry_wet_qty_ratio / 100)) *
+                     (pqca.typical / 100))
+                     else
+                      (((dgrd.net_weight*ucm.multiplication_factor* (asm.dry_wet_qty_ratio / 100))) *
+                       pqca.typical)
+                       end) assay_qty,
+                    (case
+                    when rm.ratio_name = '%' then
                     dgrd.net_weight_unit_id
                     else
                     rm.qty_unit_id_numerator
-                    end) assay_qty_unit_id
+                    end) assay_qty_unit_id,                  
+                    pqca.unit_of_measure,
+                    rm.ratio_name
                from process_gmr   gmr,
                     dgrd_delivered_grd          dgrd,                  
                     ash_assay_header            ash,
@@ -24774,7 +25392,8 @@ begin
                     pqca_pq_chemical_attributes pqca,
                     aml_attribute_master_list   aml,
                     pci_physical_contract_item  pci,
-                    rm_ratio_master             rm
+                    rm_ratio_master             rm,
+                    ucm_unit_conversion_master     ucm
               where gmr.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
                 and dgrd.weg_avg_pricing_assay_id = ash.ash_id
                 and ash.ash_id = asm.ash_id
@@ -24787,30 +25406,11 @@ begin
                 and pci.process_id = pc_process_id
                 and dgrd.internal_contract_item_ref_no =
                     pci.internal_contract_item_ref_no
-                and exists
-              (select *
-                       from pcaph_pc_attr_penalty_header  pcaph,
-                            pcap_pc_attribute_penalty     pcap,
-                            pqd_penalty_quality_details   pqd,
-                            pad_penalty_attribute_details pad,
-                            gph_gmr_penalty_header        gph
-                      where pcaph.pcaph_id = pcap.pcaph_id
-                        and pcaph.pcaph_id = pqd.pcaph_id
-                        and pcaph.pcaph_id = pad.pcaph_id
-                        and pcaph.pcaph_id = gph.pcaph_id
-                        and pqd.pcpq_id = pci.pcpq_id
-                        and pcaph.process_id = pc_process_id
-                        and pcap.process_id = pc_process_id
-                        and pqd.process_id = pc_process_id
-                        and pad.process_id = pc_process_id
-                        and gph.process_id = pc_process_id
-                        and pcaph.is_active = 'Y'
-                        and pcap.is_active = 'Y'
-                        and pqd.is_active = 'Y'
-                        and pad.is_active = 'Y'
-                        and gph.is_active = 'Y'
-                        and gph.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-                        and pad.element_id = pqca.element_id))
+                and ucm.from_qty_unit_id = dgrd.net_weight_unit_id
+                and ucm.to_qty_unit_id =
+                   (case when rm.ratio_name = '%' then ash.net_weight_unit else
+                   rm.qty_unit_id_denominator end)
+               and pqca.typical<>0)
   loop
     vn_element_pc_charge := 0;
     vn_tier_penalty      := 0;
@@ -25012,7 +25612,11 @@ begin
        grd_dry_qty,
        grd_qty_unit_id,
        pay_cur_decimals,
-       assay_qty_unit_id)
+       assay_qty_unit_id,
+       assay_qty,
+       typical,
+       unit_of_measure,
+       ratio_name)
     values
       (pc_process_id,
        cc.internal_gmr_ref_no,
@@ -25029,7 +25633,18 @@ begin
        cc.grd_dry_qty,
        cc.grd_qty_unit_id,
        cc.pay_cur_decimals,
-       cc.Assay_Qty_Unit_Id);
+       cc.Assay_Qty_Unit_Id,
+       cc.assay_qty,
+       cc.typical,
+       cc.unit_of_measure,
+       cc.ratio_name);
+       ----------
+       -- reint of penality columns where penality not configured
+       vn_element_pc_charge:=0;
+       vc_cur_id:=null;
+       vc_pc_weight_unit_id:=null;
+       vc_penalty_weight_type:=null;
+      --------------------- 
     if vn_commit_count >= 500 then
       vn_commit_count := 0;
       commit;
