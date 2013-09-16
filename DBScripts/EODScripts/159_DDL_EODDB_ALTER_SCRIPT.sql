@@ -120,7 +120,7 @@ CREATE INDEX IDX_PED1 ON PED_PENALTY_ELEMENT_DETAILS(PROCESS_ID);
 
 begin
 delete from CPBU_CORP_PENALITY_BASE_UNIT;
- for cc in (select akc.corporate_id  from ak_corporate akc )
+ for cc in (select akc.corporate_id from ak_corporate@eka_appdb akc where akc.is_active = 'Y' and akc.is_deleted = 'N' and akc.is_internal_corporate = 'N' )
         loop
 Insert into CPBU_CORP_PENALITY_BASE_UNIT
    (CORPORATE_ID, ELEMENT_ID, ELEMENT_NAME, BASE_QTY_UNIT_ID , BASE_QTY_UNIT)
