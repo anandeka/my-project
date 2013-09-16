@@ -105,8 +105,8 @@ select t.corporate_id,
                 end) assay_type,
                 ash.assay_ref_no,
                 (case
-                  when ash.assay_type in ('Umpire Assay', 'Final Assay') then
-                   phd_umpire.companyname
+                  when ash.assay_type ='Final Assay' then
+                   pqca.umpire_name
                   else
                    null
                 end) umpirename,
@@ -126,10 +126,6 @@ select t.corporate_id,
                   (((asm.net_weight  * (asm.dry_wet_qty_ratio / 100))) *
                  pqca.typical)
                  end) assay_content
-                /*pkg_report_general.fn_get_elmt_assay_content_qty(pqca.element_id,
-                                                                 ash.ash_id,
-                                                                 asm.dry_weight,
-                                                                 asm.net_weight_unit) assay_content*/
           from gmr_goods_movement_record   gmr,
                 grd_goods_record_detail     grd,
                 pci_physical_contract_item  pci,
@@ -252,8 +248,8 @@ select t.corporate_id,
                end) assay_type,
                ash.assay_ref_no,
                (case
-                 when ash.assay_type in ('Umpire Assay', 'Final Assay') then
-                  phd_umpire.companyname
+                 when ash.assay_type= 'Final Assay' then
+                  pqca.umpire_name
                  else
                   null
                end) umpirename,
@@ -273,10 +269,7 @@ select t.corporate_id,
                   (((asm.net_weight  * (asm.dry_wet_qty_ratio / 100))) *
                  pqca.typical)
                  end) assay_content
-               /*pkg_report_general.fn_get_elmt_assay_content_qty(pqca.element_id,
-                                                                ash.ash_id,
-                                                                asm.dry_weight,
-                                                                asm.net_weight_unit) assay_content*/
+              
           from gmr_goods_movement_record   gmr,
                dgrd_delivered_grd          dgrd,
                pci_physical_contract_item  pci,
@@ -399,7 +392,7 @@ select t.corporate_id,
                end) assay_type,
                ash.assay_ref_no,
                (case
-                 when ash.assay_type in ('Umpire Assay', 'Final Assay') then
+                 when ash.assay_type ='Umpire Assay' then
                   phd_umpire.companyname
                  else
                   null
@@ -420,10 +413,6 @@ select t.corporate_id,
                   (((asm.net_weight  * (asm.dry_wet_qty_ratio / 100))) *
                  pqca.typical)
                  end) assay_content
-              /* pkg_report_general.fn_get_elmt_assay_content_qty(pqca.element_id,
-                                                                ash.ash_id,
-                                                                asm.dry_weight,
-                                                                asm.net_weight_unit) assay_content*/
           from gmr_goods_movement_record   gmr,
                grd_goods_record_detail     grd,
                pci_physical_contract_item  pci,
@@ -544,7 +533,7 @@ select t.corporate_id,
                end) assay_type,
                ash.assay_ref_no,
                (case
-                 when ash.assay_type in ('Umpire Assay', 'Final Assay') then
+                 when ash.assay_type ='Umpire Assay' then
                   phd_umpire.companyname
                  else
                   null
@@ -565,10 +554,6 @@ select t.corporate_id,
                   (((asm.net_weight  * (asm.dry_wet_qty_ratio / 100))) *
                  pqca.typical)
                  end) assay_content
-             /*  pkg_report_general.fn_get_elmt_assay_content_qty(pqca.element_id,
-                                                                ash.ash_id,
-                                                                asm.dry_weight,
-                                                                asm.net_weight_unit) assay_content*/
           from gmr_goods_movement_record   gmr,
                dgrd_delivered_grd          dgrd,
                pci_physical_contract_item  pci,
