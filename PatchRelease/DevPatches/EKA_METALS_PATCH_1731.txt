@@ -1,0 +1,56 @@
+Patch No *          		:  EKA_METALS_PATCH_1731
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Varaprasad B
+ 
+Created on*        		:  19-Sep-2013
+
+Bug / Enhancement*		:  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 144275
+Author: varaprasad.b
+Date: 16:29:53, 19 September 2013
+Message:
+For EOD Performance.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_481.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
