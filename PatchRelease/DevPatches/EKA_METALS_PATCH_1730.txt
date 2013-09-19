@@ -1,0 +1,56 @@
+Patch No *          		:  EKA_METALS_PATCH_1730
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anand P H
+ 
+Created on*        		:  19-Sep-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  86093
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 144240
+Author: anandp
+Date: 13:19:33, 19 September 2013
+Message:
+For bug no. 86093
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/160_DDL_EODDB_ALTER_SCRIPT.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
