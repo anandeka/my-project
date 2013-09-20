@@ -1,0 +1,56 @@
+Patch No *          		:  EKA_METALS_PATCH_1732
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Anup Kumar Agarwal
+ 
+Created on*        		:  20-Sep-2013
+
+Bug / Enhancement*		:  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  Logistics
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 144418
+Author: anupkumar.agarwal
+Date: 6:28:27 PM, Friday, September 20, 2013
+Message:
+Added Coloumn In Gmr And GMRUL . Population Will Be Done Later 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_482.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
