@@ -1,5 +1,4 @@
-CREATE OR REPLACE VIEW V_DOC_OTHER_CHARGES_INVOICE
-AS
+create or replace view v_doc_other_charges_invoice as
 select 'Other Charges' section_name,
        'Other Charges' sub_section,
        ds.corporate_id,
@@ -12,8 +11,7 @@ select 'Other Charges' section_name,
        akc.phone_no,
        akc.fax_no,
        isd.internal_doc_ref_no,
-       isd.internal_invoice_ref_no,
-       
+       isd.internal_invoice_ref_no,       
        -- Summary Header Details
        isd.invoice_ref_no invoice_no,
        isd.invoice_type_name invoice_type,
@@ -65,8 +63,7 @@ select 'Other Charges' section_name,
        null escalator_descalator,
        -- Penalty Details
        null penalty_rate,
-       null penalty_rate_unit,
-       
+       null penalty_rate_unit,       
        -- Charegs Details
        ioc.other_charge_cost_name cost_name,
        ioc.charge_type,
@@ -87,12 +84,12 @@ select 'Other Charges' section_name,
        null invoice_ref_no,
        null invoice_description,
        null provisional_percentage,
-       null provisional_api_amount,
-       
+       null provisional_api_amount,       
        -- VAT Details
        null our_vat_reg_no,
        null cp_vat_reg_no,
        null vat_code,
+       null vat_text,
        null vat_rate,
        null vat_amount,
        -- Bank Details
@@ -216,6 +213,7 @@ select 'Other Taxes' section_name,
        null our_vat_reg_no,
        null cp_vat_reg_no,
        null vat_code,
+       null vat_text,
        null vat_rate,
        null vat_amount,
        -- Bank Details
@@ -339,6 +337,7 @@ select 'Invoice' section_name,
        null our_vat_reg_no,
        null cp_vat_reg_no,
        null vat_code,
+       null vat_text,
        null vat_rate,
        null vat_amount,
        
@@ -506,6 +505,7 @@ select 'Invoice' section_name,
        vat.cp_vat_no cp_vat_reg_no,
        --vat.main_inv_vat_code vat_code,
        vat.vat_code_name vat_code,
+       vat.vat_text,
        vat.vat_rate,
        vat.vat_amount_in_inv_cur vat_amount,
        -- Bank Details
@@ -635,6 +635,7 @@ select 'Invoice' section_name,
        null our_vat_reg_no,
        null cp_vat_reg_no,
        null vat_code,
+       null vat_text,
        null vat_rate,
        null vat_amount,
        -- Bank Details
@@ -657,4 +658,4 @@ select 'Invoice' section_name,
        ds_document_summary ds,
        v_ak_corporate      akc
  where isd.internal_doc_ref_no = ds.internal_doc_ref_no(+)
-   and ds.corporate_id = akc.corporate_id(+)
+   and ds.corporate_id = akc.corporate_id(+);
