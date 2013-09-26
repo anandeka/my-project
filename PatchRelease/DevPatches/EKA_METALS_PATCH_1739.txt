@@ -1,0 +1,53 @@
+Patch No *              	:  EKA_METALS_PATCH_1739
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Varaprasad B
+ 
+Created on*        		:  26-Sep-2013
+
+Bug / Enhancement*		:  
+
+Bug ID*            		: 
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 145093
+Author: varaprasad.b
+Date: 19:05:52, 26 September 2013
+Message:
+Added one extra column(smelter location) to display on output documnet.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_486.sql
+
+=====================================================================================================
+
+Revision: 145094
+Author: varaprasad.b
+Date: 19:09:26, 26 September 2013
+Message:
+Updated to add one extra column(smelter_location) in is_d table.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_635.sql
