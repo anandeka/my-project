@@ -82,6 +82,7 @@ create or replace package pkg_phy_custom_reports is
                                         pc_user_id         varchar2,
                                         pc_prev_process_id varchar2);
 end; 
+ 
 /
 create or replace package body pkg_phy_custom_reports is
 
@@ -344,6 +345,7 @@ create or replace package body pkg_phy_custom_reports is
                else
                 1
              end)*dcod.quantity_closed quantity,
+             dcod.quantity_closed,
              dcod.quantity_unit_id,
              qum.qty_unit quantity_unit,
              (case
@@ -354,18 +356,6 @@ create or replace package body pkg_phy_custom_reports is
              end) clearer_comm_amt,
              dt.clearer_comm_cur_id,
              cm_clr.cur_code clearer_comm_cur_code,
-             ((case
-               when dt.trade_type = 'Sell' then
-                1
-               else
-                -1
-             end) * (round((dt.trade_price * dcod.quantity_closed *
-                            nvl(pkg_general.f_get_converted_quantity(pdm.product_id,
-                                                                      dcod.quantity_unit_id,
-                                                                      pum_tp.weight_unit_id,
-                                                                      1),
-                                 1)),
-                            4))) trade_amount,
              pkg_general.f_get_base_cur_id(pum_tp.cur_id) trade_currency,
              1 trade_to_corp_fx_rate,
              0 trade_amount_in_base_ccy,
@@ -403,10 +393,10 @@ create or replace package body pkg_phy_custom_reports is
              gab_globaladdressbook       gab_akc
        where dcoh.internal_close_out_ref_no =
              dcod.internal_close_out_ref_no
-         and dcoh.process_id = dcod.process_id
+         and dcoh.dbd_id = dcod.dbd_id
          and dcod.internal_derivative_ref_no =
              dt.internal_derivative_ref_no
-         and dcod.process_id = dt.process_id
+       --  and dcod.process_id = dt.process_id
          and dt.clearer_profile_id = phd.profileid
          and dt.corporate_id = akc.corporate_id
          and dt.profit_center_id = cpc.profit_center_id
@@ -419,11 +409,12 @@ create or replace package body pkg_phy_custom_reports is
          and pdd.product_id = pdm.product_id
          and dt.trade_price_unit_id = pum_tp.price_unit_id(+)
          and dcoh.is_rolled_back = 'Y'
+         and dcoh.undo_closeout_dbd_id = pc_dbd_id
          and pum_tp.weight_unit_id = qum_tp.qty_unit_id(+)
          and pum_tp.cur_id = cm_tp.cur_id(+)
          and dcoh.created_by = akcu.user_id
          and akcu.gabid = gab_akc.gabid
-         and dt.process_id = pc_process_id
+         and dt.dbd_id = pc_dbd_id
       union all
       select dcoh.internal_close_out_ref_no,
              'New' journal_type,
@@ -447,6 +438,7 @@ create or replace package body pkg_phy_custom_reports is
                else
                 1
              end)*dcod.quantity_closed quantity,
+             dcod.quantity_closed,
              dcod.quantity_unit_id,
              qum.qty_unit quantity_unit,
              (case
@@ -457,18 +449,6 @@ create or replace package body pkg_phy_custom_reports is
              end) clearer_comm_amt,
              dt.clearer_comm_cur_id,
              cm_clr.cur_code clearer_comm_cur_code,
-             ((case
-               when dt.trade_type = 'Sell' then
-                1
-               else
-                -1
-             end) * (round((dt.trade_price * dcod.quantity_closed *
-                            nvl(pkg_general.f_get_converted_quantity(pdm.product_id,
-                                                                      dcod.quantity_unit_id,
-                                                                      pum_tp.weight_unit_id,
-                                                                      1),
-                                 1)),
-                            4))) trade_amount,
              pkg_general.f_get_base_cur_id(pum_tp.cur_id) trade_currency,
              1 trade_to_corp_fx_rate,
              0 trade_amount_in_base_ccy,
@@ -507,9 +487,10 @@ create or replace package body pkg_phy_custom_reports is
        where dcoh.internal_close_out_ref_no =
              dcod.internal_close_out_ref_no
          and dcoh.process_id = dcod.process_id
-         and dcod.internal_derivative_ref_no =
-             dt.internal_derivative_ref_no
-         and dcod.process_id = dt.process_id
+         and dcod.internal_derivative_ref_no = dt.internal_derivative_ref_no
+         and dcoh.dbd_id = dcod.dbd_id
+         and dcoh.dbd_id = pc_dbd_id
+       --  and dcod.process_id = dt.process_id
          and dt.clearer_profile_id = phd.profileid
          and dt.corporate_id = akc.corporate_id
          and dt.profit_center_id = cpc.profit_center_id
@@ -521,12 +502,12 @@ create or replace package body pkg_phy_custom_reports is
          and dim.product_derivative_id = pdd.derivative_def_id
          and pdd.product_id = pdm.product_id
          and dt.trade_price_unit_id = pum_tp.price_unit_id(+)
-         and dcoh.is_rolled_back = 'N'
+        -- and dcoh.is_rolled_back = 'N'
          and pum_tp.weight_unit_id = qum_tp.qty_unit_id(+)
          and pum_tp.cur_id = cm_tp.cur_id(+)
          and dcoh.created_by = akcu.user_id
          and akcu.gabid = gab_akc.gabid
-         and dt.process_id = pc_process_id;
+         and dt.dbd_id = pc_dbd_id;
   
   begin
     for cr_cdc_row in cr_cdc_closeout
@@ -539,7 +520,7 @@ create or replace package body pkg_phy_custom_reports is
                                            vc_trade_main_cur_code,
                                            vn_trade_main_cur_conv_rate,
                                            vn_trade_main_decimals);
-        vn_contract_value := (cr_cdc_row.trade_price * cr_cdc_row.quantity *
+        vn_contract_value := (cr_cdc_row.trade_price * cr_cdc_row.quantity_closed *
                              nvl(pkg_general.f_get_converted_quantity(cr_cdc_row.product_id,
                                                                        cr_cdc_row.quantity_unit_id,
                                                                        cr_cdc_row.price_weight_unit_id,
@@ -712,22 +693,24 @@ create or replace package body pkg_phy_custom_reports is
   begin
     delete from temp_ii ii where ii.corporate_id = pc_corporate_id;
     commit;
-    insert into temp_ii
-      (corporate_id, internal_invoice_ref_no, delivery_item_ref_no)
-      select pc_corporate_id,
-             iid.internal_invoice_ref_no,
-             f_string_aggregate(ii.delivery_item_ref_no) delivery_item_ref_no
-        from iid_invoicable_item_details iid,
-             ii_invoicable_item          ii,
-             is_invoice_summary          iss
-       where ii.invoicable_item_id = iid.invoicable_item_id
-         and iss.internal_invoice_ref_no = iid.internal_invoice_ref_no
-         and iss.process_id = pc_process_id
-         and iss.corporate_id = pc_corporate_id
-         and iss.is_active = 'Y'
-         and iid.is_active = 'Y'
-         and ii.is_active = 'Y'
-       group by iid.internal_invoice_ref_no;
+     insert into temp_ii
+       (corporate_id, internal_invoice_ref_no, delivery_item_ref_no)
+       select pc_corporate_id,
+              iss.internal_invoice_ref_no,
+              iid.delivery_item_ref_no
+         from is_invoice_summary iss,
+              (select iid.internal_invoice_ref_no,
+                      f_string_aggregate(ii.delivery_item_ref_no) delivery_item_ref_no
+                 from iid_invoicable_item_details iid,
+                      ii_invoicable_item          ii
+                where ii.invoicable_item_id = iid.invoicable_item_id
+                  and iid.is_active = 'Y'
+                  and ii.is_active = 'Y'
+                group by iid.internal_invoice_ref_no) iid
+        where iss.internal_invoice_ref_no = iid.internal_invoice_ref_no(+)
+          and iss.process_id = pc_process_id
+          and iss.corporate_id = pc_corporate_id;
+        --  and iss.is_active = 'Y';
     commit;
     sp_gather_table_stats('temp_ii');
     for cur_temp_ii in (select iss.internal_invoice_ref_no,
@@ -739,12 +722,11 @@ create or replace package body pkg_phy_custom_reports is
                                dbd_database_dump          dbd,
                                ak_corporate_user          ak,
                                gab_globaladdressbook      gab
-                        
                          where iss.internal_invoice_ref_no =
                                iam.internal_invoice_ref_no
                            and iss.process_id = pc_process_id
                            and iss.corporate_id = pc_corporate_id
-                           and iss.is_active = 'Y'
+                     --      and iss.is_active = 'Y'
                            and iam.invoice_action_ref_no =
                                axs.internal_action_ref_no
                            and axs.dbd_id = dbd.dbd_id
