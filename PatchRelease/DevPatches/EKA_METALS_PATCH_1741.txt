@@ -1,0 +1,83 @@
+Patch No *              	:  EKA_METALS_PATCH_1741
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  03-Oct-2013
+
+Bug / Enhancement*		:  Enhancement
+
+Bug ID*            		: 82835,82837,82838
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  APP/Reports
+
+Sub-Module  			 :  APP/Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 145582
+Author: suresh.gottipati
+Date: 4:04:42 PM, Thursday, October 03, 2013
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_637.sql
+
+
+Revision: 145583
+Author: suresh.gottipati
+Date: 4:05:37 PM, Thursday, October 03, 2013
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_134.sql
+
+
+Revision: 145581
+Author: suresh.gottipati
+Date: 4:02:31 PM, Thursday, October 03, 2013
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AccuralReconAmountMTDDetailedReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AccuralReconAmountMTDSummaryReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AccuralReconAmountYTDDetailedReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AccuralReconAmountYTDSummaryReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AccuralReconQTYMTDSummaryReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AccuralReconQTYYTDSummaryReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AccuralReconQtyMTDDetailedReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AccuralReconQtyYTDDetailedReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyArrivalAmountDetailedReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyArrivalAmountSummaryReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyArrivalQtyDetailedReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyArrivalQtySummaryReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyClosingAmountDetailedReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyClosingAmountSummaryReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyClosingQtyDetailedReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyClosingQtySummaryReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFeedAmountDetailedReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFeedAmountSummaryReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFeedQtyDetailedReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFeedQtySummaryReport.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyTCRCOtherChargesDetailed.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyTCRCOtherChargesSummary.rpt
