@@ -78,7 +78,8 @@ END;
 ------------------------------------------------------------------------------------------
 
 DECLARE
-   CURSOR samplinglabel_drf   IS
+   CURSOR samplinglabel_drf
+   IS
       (SELECT akc.corporate_id
          FROM ak_corporate akc
         WHERE akc.is_active = 'Y' AND akc.is_internal_corporate = 'N');
@@ -86,15 +87,38 @@ BEGIN
    FOR sl_drf IN samplinglabel_drf
    LOOP
       INSERT INTO drf_doc_ref_number_format
-                  (doc_ref_number_format_id, doc_key_id, corporate_id,
-                   prefix, middle_no_start_value, middle_no_last_used_value,
-                   suffix, VERSION, is_deleted, seq_name
+                  (doc_ref_number_format_id, doc_key_id,
+                   corporate_id, prefix, middle_no_start_value,
+                   middle_no_last_used_value, suffix, VERSION, is_deleted,
+                   seq_name
                   )
-           VALUES ('DRF-SL-'|| sl_drf.corporate_id, 'DKM-SL', sl_drf.corporate_id, 'SL',
-             0, 0, '-'|| sl_drf.corporate_id,
-             NULL, 'N', 'SEQDOC_SL'
-            );
+           VALUES ('DRF-SL-' || sl_drf.corporate_id, 'DKM-SL',
+                   sl_drf.corporate_id, 'SL-', 0,
+                   0, '-' || sl_drf.corporate_id, NULL, 'N',
+                   'SEQDOC_SL'
+                  );
    END LOOP;
 
    COMMIT;
-END; 
+END;
+
+--------------------------------------------------------------------------------------------
+
+DECLARE
+   CURSOR samplinglabel_seq
+   IS
+      (SELECT akc.corporate_id
+         FROM ak_corporate akc
+        WHERE akc.is_active = 'Y' AND akc.is_internal_corporate = 'N');
+BEGIN
+   FOR sl_seq IN samplinglabel_seq
+   LOOP
+      EXECUTE IMMEDIATE 'DROP SEQUENCE SEQDOC_SL_' || sl_seq.corporate_id;
+
+      EXECUTE IMMEDIATE    'CREATE SEQUENCE SEQDOC_SL_'
+                        || sl_seq.corporate_id
+                        || ' START WITH 1 MAXVALUE 9999999999999999999999999999 MINVALUE 1 NOCYCLE NOCACHE NOORDER';
+   END LOOP;
+
+   COMMIT;
+END;
