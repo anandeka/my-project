@@ -46,7 +46,7 @@ BEGIN
                    doc_print_name_es, doc_rpt_file_name, is_active,
                    doc_auto_generate
                   )
-           VALUES ('CDC_SL', sl_cdc.corporate_id, 'samplingLabel',
+           VALUES ('CDC_SL', sl_cdc.corporate_id, 'SL_DOC',
                    'Sampling Label Document', NULL,
                    NULL, 'DOC', NULL,
                    NULL, 'AssaySampleMain.rpt', 'Y',
@@ -114,8 +114,11 @@ DECLARE
 BEGIN
    FOR sl_seq IN samplinglabel_seq
    LOOP
-      EXECUTE IMMEDIATE 'DROP SEQUENCE SEQDOC_SL_' || sl_seq.corporate_id;
-
+     BEGIN
+     EXECUTE IMMEDIATE 'DROP SEQUENCE SEQDOC_SL_' || sl_seq.corporate_id;
+     EXCEPTION WHEN OTHERS THEN
+      NULL;
+     END;
       EXECUTE IMMEDIATE    'CREATE SEQUENCE SEQDOC_SL_'
                         || sl_seq.corporate_id
                         || ' START WITH 1 MAXVALUE 9999999999999999999999999999 MINVALUE 1 NOCYCLE NOCACHE NOORDER';
