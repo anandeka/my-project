@@ -1,0 +1,47 @@
+Patch No *              	:  EKA_METALS_PATCH_1743
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar Reddy B
+ 
+Created on*        		:  03-Oct-2013
+
+Bug / Enhancement*		:  Enhancement
+
+Bug ID*            		:  85889
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  O/P Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 145591
+Author: rajeshwar.reddy
+Date: 16:28:10, 03 October 2013
+Message:
+bug fix:85889 and added smelter location
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_488.sql
+
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_638.sql
+
+
