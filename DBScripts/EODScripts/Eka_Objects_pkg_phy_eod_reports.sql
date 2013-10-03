@@ -1597,6 +1597,7 @@ create or replace package body pkg_phy_eod_reports is
     vn_pay_price_cur_decimals    number;
     vn_pay_in_price_unit_weight  number;
     vc_pay_in_price_unit_id      varchar2(15);
+    vn_factor                    number;
   
   begin
     vn_log_counter := gvn_log_counter;
@@ -3846,7 +3847,8 @@ create or replace package body pkg_phy_eod_reports is
                                             pa_gmr.internal_gmr_ref_no
                                         and t.internal_invoice_ref_no =
                                             pa_gmr.latest_internal_invoice_ref_no
-                                        and t.element_id = pa_gmr.element_id)
+                                        and t.element_id = pa_gmr.element_id
+                                        and t.process_id=pa_gmr.process_id)
      where pa_gmr.process_id = pc_process_id
        and pa_gmr.is_pledge = 'N';
     commit;
@@ -4360,6 +4362,53 @@ for cur_calc_oc_fc in (
                           pc_process_id,
                           vn_log_counter,
                           'sp_phy_purchase_accural Non Base Metal End');
+                          
+--- Added update assay/payable qty in base,                          
+for cur_update in (select aml.attribute_id,
+                            pdm.base_quantity_unit,
+                            qum.qty_unit
+                       from aml_attribute_master_list aml,
+                            pdm_productmaster         pdm,
+                            qum_quantity_unit_master  qum
+                      where aml.underlying_product_id = pdm.product_id
+                        and pdm.base_quantity_unit = qum.qty_unit_id)
+  loop
+    update pa_purchase_accural_gmr pa
+       set pa.base_qty_unit_id = cur_update.base_quantity_unit,
+           pa.base_qty_unit    = cur_update.qty_unit
+     where pa.process_id = pc_process_id
+       and pa.element_id = cur_update.attribute_id;
+  end loop;
+  commit;
+  
+  for cur_update in (select pa.payable_qty_unit_id,
+                            pa.base_qty_unit_id
+                       from pa_purchase_accural_gmr pa
+                      where pa.process_id = pc_process_id
+                      and pa.payable_returnable_type <>'Penalty'
+                      group by pa.payable_qty_unit_id,
+                               pa.base_qty_unit_id)
+  loop
+    begin
+    select ucm.multiplication_factor
+      into vn_factor
+      from ucm_unit_conversion_master ucm
+     where ucm.from_qty_unit_id = cur_update.payable_qty_unit_id
+       and ucm.to_qty_unit_id = cur_update.base_qty_unit_id
+       and ucm.is_active = 'Y';
+     exception
+     when others then
+     vn_factor:=-1;
+     end;
+     
+    update pa_purchase_accural_gmr pa
+       set pa.assay_qty_base   = pa.assay_content * vn_factor,
+           pa.payable_qty_base = pa.payable_qty * vn_factor
+     where pa.process_id = pc_process_id
+       and pa.payable_qty_unit_id = cur_update.payable_qty_unit_id
+       and pa.base_qty_unit_id = cur_update.base_qty_unit_id;
+  end loop; 
+ commit;                           
 
 sp_phy_purchase_accural_bm(pc_corporate_id ,
                                        pd_trade_date   ,
@@ -10437,7 +10486,8 @@ begin
                                                                    and t.internal_invoice_ref_no =
                                                                        fcr.internal_invoice_ref_no
                                                                    and t.element_id =
-                                                                       fcr.element_id)
+                                                                       fcr.element_id
+                                                                   and t.process_id=fcr.process_id)
    where fcr.process_id = pc_process_id;
   commit;
   --
@@ -16909,169 +16959,985 @@ insert into tgi_temp_gmr_invoice
                         pc_process_id,
                         gvn_log_counter,
                         'Invoice Amt Over For Normal GMRS');
-  Delete from tgc_temp_gmr_charges t
+  /*Delete from tgc_temp_gmr_charges t
    where t.corporate_id = pc_corporate_id;
-  commit;
+  commit;*/
   --         
   -- Update TC/RC/Penalty Charges from Invoice Per GMR/Element/Invoice      
   --
   insert into tgc_temp_gmr_charges
-    (corporate_id,
-     internal_gmr_ref_no,
-     internal_invoice_ref_no,
-     element_id,
-     tc_amt,
-     rc_amt,
-     penalty_amt)
-    select pc_corporate_id,
-           t.internal_gmr_ref_no,
-           t.internal_invoice_ref_no,
-           t.element_id,
-           nvl(sum(tc_amt), 0) tc_amt,
-           nvl(sum(rc_amt), 0),
-           nvl(sum(penalty_amt), 0)
-      from (select /*+ ordered */
-                   gmr.internal_gmr_ref_no,
-                   intc.internal_invoice_ref_no,
-                   intc.element_id,
-                   sum(tcharges_amount) tc_amt,
-                   0 rc_amt,
-                   0 penalty_amt
-              from process_gmr  gmr,
-                   intc_inv_treatment_charges intc,
-                   process_grd    grd
-             where gmr.process_id = pc_process_id
-               and gmr.latest_internal_invoice_ref_no =
-                   intc.internal_invoice_ref_no
-               and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-               and grd.internal_grd_ref_no = intc.grd_id
-               and grd.process_id = pc_process_id
-             group by gmr.internal_gmr_ref_no,
-                      intc.internal_invoice_ref_no,
-                      intc.element_id
-            union all
-            select /*+ ordered */
-                   gmr.internal_gmr_ref_no,
-                   inrc.internal_invoice_ref_no,
-                   inrc.element_id,
-                   0 tc_amt,
-                   sum(rcharges_amount) rc_amt,
-                   0 penalty_amt
-              from process_gmr gmr,
-                   inrc_inv_refining_charges inrc,
-                   process_grd   grd
-             where gmr.process_id = pc_process_id
-               and gmr.latest_internal_invoice_ref_no =
-                   inrc.internal_invoice_ref_no
-               and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-               and grd.internal_grd_ref_no = inrc.grd_id
-               and grd.process_id = pc_process_id
-             group by gmr.internal_gmr_ref_no,
-                      inrc.element_id,
-                      inrc.internal_invoice_ref_no
-            union all
-            select /*+ ordered */
-                   gmr.internal_gmr_ref_no,
-                   iepd.internal_invoice_ref_no,
-                   iepd.element_id,
-                   0 tc_amt,
-                   0 rc_amt,
-                   sum(iepd.element_penalty_amount) penalty_amt
-              from process_gmr gmr,
-                   iepd_inv_epenalty_details iepd,
-                   process_grd   grd
-             where gmr.process_id = pc_process_id
-               and gmr.latest_internal_invoice_ref_no =
-                   iepd.internal_invoice_ref_no
-               and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-               and grd.internal_grd_ref_no = iepd.stock_id
-               and grd.process_id = pc_process_id
-             group by gmr.internal_gmr_ref_no,
-                      iepd.element_id,
-                      iepd.internal_invoice_ref_no) t
-     group by t.internal_gmr_ref_no,
-              t.internal_invoice_ref_no,
-              t.element_id;
+  (corporate_id,
+   internal_gmr_ref_no,
+   internal_invoice_ref_no,
+   element_id,
+   tc_amt,
+   rc_amt,
+   penalty_amt,
+   product_id,
+   product_name,
+   quality_id,
+   quality_name,
+   warehouse_id,
+   warehouse_name,
+   gmr_ref_no,
+   corporate_name,
+   eod_trade_date,
+   element_name,
+   process_id,
+   tolling_stock_type,
+   is_final_invoiced,
+   pay_cur_code,
+   assay_qty_base,
+   payable_qty_base,
+   base_qty_unit_id,
+   base_qty_unit,
+   qty_type,
+   is_new_invoice,
+   payable_amount)
+  select pc_corporate_id,
+         t.internal_gmr_ref_no,
+         t.internal_invoice_ref_no,
+         t.element_id,
+         nvl(sum(tc_amt), 0) tc_amt,
+         nvl(sum(rc_amt), 0),
+         nvl(sum(penalty_amt), 0),
+         t.product_id,
+         t.product_name,
+         t.quality_id,
+         t.quality_name,
+         t.warehouse_id,
+         t.warehouse_name,
+         t.gmr_ref_no,
+         t.corporate_name,
+         pd_trade_date,
+         t.element_name,
+         pc_process_id,
+         t.tolling_stock_type,
+         t.is_final_invoiced,
+         t.invoice_cur_code,
+         nvl(sum(assay_qty), 0),
+         nvl(sum(payable_qty), 0),
+         t.base_quantity_unit,
+         t.qty_unit,
+         t.qty_type,
+         t.is_new_invoice,
+         nvl(sum(payable_amount),0)
+    from (select /*+ ordered */
+           gmr.internal_gmr_ref_no,
+           intc.internal_invoice_ref_no,
+           intc.element_id,
+           sum(tcharges_amount) tc_amt,
+           0 rc_amt,
+           0 penalty_amt,
+           gmr.product_id,
+           gmr.product_name,
+           gmr.quality_id,
+           gmr.quality_name,
+           gmr.warehouse_profile_id warehouse_id,
+           gmr.warehouse_name,
+           gmr.gmr_ref_no,
+           akc.corporate_name,
+           aml.attribute_name element_name,
+           grd.tolling_stock_type,
+           gmr.is_final_invoiced,
+           gmr.invoice_cur_code,
+           0 assay_qty,
+           0 payable_qty,
+           pdm.base_quantity_unit,
+           qum.qty_unit,
+           'Payable' qty_type,
+           gmr.is_new_invoice,
+           0 payable_amount
+            from process_gmr                gmr,
+                 intc_inv_treatment_charges intc,
+                 process_grd                grd,
+                 ak_corporate               akc,
+                 aml_attribute_master_list  aml,
+                 pdm_productmaster          pdm,
+                 qum_quantity_unit_master   qum
+           where gmr.process_id = pc_process_id
+             and gmr.latest_internal_invoice_ref_no =
+                 intc.internal_invoice_ref_no
+             and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+             and grd.internal_grd_ref_no = intc.grd_id
+             and grd.process_id = pc_process_id
+             and gmr.corporate_id = akc.corporate_id
+             and intc.element_id = aml.attribute_id
+             and aml.underlying_product_id = pdm.product_id
+             and pdm.base_quantity_unit = qum.qty_unit_id
+           group by gmr.internal_gmr_ref_no,
+                    intc.internal_invoice_ref_no,
+                    intc.element_id,
+                    gmr.product_id,
+                    gmr.product_name,
+                    gmr.quality_id,
+                    gmr.quality_name,
+                    gmr.warehouse_profile_id,
+                    gmr.warehouse_name,
+                    gmr.gmr_ref_no,
+                    akc.corporate_name,
+                    aml.attribute_name,
+                    grd.tolling_stock_type,
+                    gmr.is_final_invoiced,
+                    gmr.invoice_cur_code,
+                    pdm.base_quantity_unit,
+                    qum.qty_unit,
+                    gmr.is_new_invoice
+          union all
+          select /*+ ordered */
+           gmr.internal_gmr_ref_no,
+           inrc.internal_invoice_ref_no,
+           inrc.element_id,
+           0 tc_amt,
+           sum(rcharges_amount) rc_amt,
+           0 penalty_amt,
+           gmr.product_id,
+           gmr.product_name,
+           gmr.quality_id,
+           gmr.quality_name,
+           gmr.warehouse_profile_id warehouse_id,
+           gmr.warehouse_name,
+           gmr.gmr_ref_no,
+           akc.corporate_name,
+           aml.attribute_name element_name,
+           grd.tolling_stock_type,
+           gmr.is_final_invoiced,
+           gmr.invoice_cur_code,
+           0 assay_qty,
+           0 payable_qty,
+           pdm.base_quantity_unit,
+           qum.qty_unit,
+           'Payable' qty_type,
+            gmr.is_new_invoice,
+            0 payable_amount
+            from process_gmr               gmr,
+                 inrc_inv_refining_charges inrc,
+                 process_grd               grd,
+                 ak_corporate              akc,
+                 aml_attribute_master_list aml,
+                 pdm_productmaster         pdm,
+                 qum_quantity_unit_master  qum
+           where gmr.process_id = pc_process_id
+             and gmr.latest_internal_invoice_ref_no =
+                 inrc.internal_invoice_ref_no
+             and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+             and grd.internal_grd_ref_no = inrc.grd_id
+             and grd.process_id = pc_process_id
+             and gmr.corporate_id = akc.corporate_id
+             and inrc.element_id = aml.attribute_id
+             and aml.underlying_product_id = pdm.product_id
+             and pdm.base_quantity_unit = qum.qty_unit_id
+           group by gmr.internal_gmr_ref_no,
+                    inrc.element_id,
+                    inrc.internal_invoice_ref_no,
+                    gmr.product_id,
+                    gmr.product_name,
+                    gmr.quality_id,
+                    gmr.quality_name,
+                    gmr.warehouse_profile_id,
+                    gmr.warehouse_name,
+                    gmr.gmr_ref_no,
+                    akc.corporate_name,
+                    aml.attribute_name,
+                    grd.tolling_stock_type,
+                    gmr.is_final_invoiced,
+                    gmr.invoice_cur_code,
+                    pdm.base_quantity_unit,
+                    qum.qty_unit,
+                    gmr.is_new_invoice
+          union all
+          select /*+ ordered */
+           gmr.internal_gmr_ref_no,
+           iepd.internal_invoice_ref_no,
+           iepd.element_id,
+           0 tc_amt,
+           0 rc_amt,
+           sum(iepd.element_penalty_amount) penalty_amt,
+           gmr.product_id,
+           gmr.product_name,
+           gmr.quality_id,
+           gmr.quality_name,
+           gmr.warehouse_profile_id warehouse_id,
+           gmr.warehouse_name,
+           gmr.gmr_ref_no,
+           akc.corporate_name,
+           aml.attribute_name element_name,
+           grd.tolling_stock_type,
+           gmr.is_final_invoiced,
+           gmr.invoice_cur_code,
+           0 assay_qty,
+           0 payable_qty,
+           cpbu.base_qty_unit_id,
+           cpbu.base_qty_unit,
+           'Penalty' qty_type,
+           gmr.is_new_invoice,
+           0 payable_amount
+            from process_gmr                  gmr,
+                 iepd_inv_epenalty_details    iepd,
+                 process_grd                  grd,
+                 ak_corporate                 akc,
+                 aml_attribute_master_list    aml,
+                 cpbu_corp_penality_base_unit cpbu
+           where gmr.process_id = pc_process_id
+             and gmr.latest_internal_invoice_ref_no =
+                 iepd.internal_invoice_ref_no
+             and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+             and grd.internal_grd_ref_no = iepd.stock_id
+             and grd.process_id = pc_process_id
+             and gmr.corporate_id = akc.corporate_id
+             and iepd.element_id = aml.attribute_id
+             and cpbu.element_id = aml.attribute_id
+             and cpbu.corporate_id = pc_corporate_id
+           group by gmr.internal_gmr_ref_no,
+                    iepd.element_id,
+                    iepd.internal_invoice_ref_no,
+                    gmr.product_id,
+                    gmr.product_name,
+                    gmr.quality_id,
+                    gmr.quality_name,
+                    gmr.warehouse_profile_id,
+                    gmr.warehouse_name,
+                    gmr.gmr_ref_no,
+                    akc.corporate_name,
+                    aml.attribute_name,
+                    grd.tolling_stock_type,
+                    gmr.is_final_invoiced,
+                    gmr.invoice_cur_code,
+                    cpbu.base_qty_unit_id,
+                    cpbu.base_qty_unit,
+                     gmr.is_new_invoice
+          union all
+          select /*+ ordered */
+           gmr.internal_gmr_ref_no,
+           iied.internal_invoice_ref_no,
+           iied.element_id,
+           0 tc_amt,
+           0 rc_amt,
+           0 penalty_amt,
+           gmr.product_id,
+           gmr.product_name,
+           gmr.quality_id,
+           gmr.quality_name,
+           gmr.warehouse_profile_id warehouse_id,
+           gmr.warehouse_name,
+           gmr.gmr_ref_no,
+           akc.corporate_name,
+           aml.attribute_name element_name,
+           grd.tolling_stock_type,
+           gmr.is_final_invoiced,
+           gmr.invoice_cur_code,
+           0 assay_qty,
+           sum(element_invoiced_qty * ucm.multiplication_factor) payable_qty,
+           pdm.base_quantity_unit,
+           qum.qty_unit,
+           'Payable' qty_type,
+            gmr.is_new_invoice,
+            sum(iied.element_payable_amount)payable_amount 
+            from process_gmr                   gmr,
+                 iied_inv_item_element_details iied,
+                 process_grd                   grd,
+                 ak_corporate                  akc,
+                 aml_attribute_master_list     aml,
+                 pdm_productmaster             pdm,
+                 qum_quantity_unit_master      qum,
+                 ucm_unit_conversion_master    ucm
+           where gmr.process_id = pc_process_id
+             and gmr.latest_internal_invoice_ref_no =
+                 iied.internal_invoice_ref_no
+             and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+             and grd.internal_grd_ref_no = iied.grd_id
+             and grd.process_id = pc_process_id
+             and gmr.corporate_id = akc.corporate_id
+             and iied.element_id = aml.attribute_id
+             and aml.underlying_product_id = pdm.product_id
+             and pdm.base_quantity_unit = qum.qty_unit_id
+             and ucm.from_qty_unit_id = iied.element_inv_qty_unit_id
+             and ucm.to_qty_unit_id = pdm.base_quantity_unit
+           group by gmr.internal_gmr_ref_no,
+                    iied.internal_invoice_ref_no,
+                    iied.element_id,
+                    gmr.product_id,
+                    gmr.product_name,
+                    gmr.quality_id,
+                    gmr.quality_name,
+                    gmr.warehouse_profile_id,
+                    gmr.warehouse_name,
+                    gmr.gmr_ref_no,
+                    akc.corporate_name,
+                    aml.attribute_name,
+                    grd.tolling_stock_type,
+                    gmr.is_final_invoiced,
+                    gmr.invoice_cur_code,
+                    pdm.base_quantity_unit,
+                    qum.qty_unit,
+                    gmr.is_new_invoice
+          union all          
+          select /*+ ordered */
+                 gmr.internal_gmr_ref_no,
+                 gmr.latest_internal_invoice_ref_no,
+                 pqca.element_id,
+                 0 tc_amt,
+                 0 rc_amt,
+                 0 penalty_amt,
+                 gmr.product_id,
+                 gmr.product_name,
+                 gmr.quality_id,
+                 gmr.quality_name,
+                 gmr.warehouse_profile_id warehouse_id,
+                 gmr.warehouse_name,
+                 gmr.gmr_ref_no,
+                 akc.corporate_name,
+                 aml.attribute_name element_name,
+                 grd.tolling_stock_type,
+                 gmr.is_final_invoiced,
+                 gmr.invoice_cur_code,
+                 sum((case
+                       when rm.ratio_name = '%' then
+                        (pqca.typical * asm.dry_weight) / 100
+                       else
+                        pkg_general.f_get_converted_quantity(aml.underlying_product_id,
+                                                             asm.net_weight_unit,
+                                                             rm.qty_unit_id_denominator,
+                                                             asm.dry_weight) *
+                        pqca.typical
+                     
+                     end) * ucm.multiplication_factor) assay_qty,
+                 0 payble_qty,
+                 pdm.base_quantity_unit,
+                 qum.qty_unit,
+                 'Payable' qty_type,
+                  gmr.is_new_invoice,
+                 0 payable_amount
+            from process_gmr                 gmr,
+                 process_grd                 grd,
+                 iied_inv_item_element_details iid,
+                 iam_invoice_assay_mapping   iam,
+                 ash_assay_header            ash,
+                 asm_assay_sublot_mapping    asm,
+                 pqca_pq_chemical_attributes pqca,
+                 rm_ratio_master             rm,
+                 aml_attribute_master_list   aml,
+                 ak_corporate                akc,
+                 pdm_productmaster           pdm,
+                 qum_quantity_unit_master    qum,
+                 ucm_unit_conversion_master  ucm
+           where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+             and gmr.latest_internal_invoice_ref_no = iid.internal_invoice_ref_no
+             and grd.internal_grd_ref_no = iid.grd_id
+             and iid.internal_invoice_ref_no = iam.internal_invoice_ref_no
+             and iid.grd_id = iam.internal_grd_ref_no
+             and iam.ash_id = ash.ash_id
+             and ash.ash_id = asm.ash_id
+             and asm.asm_id = pqca.asm_id
+             and pqca.element_id=iid.element_id
+             and pqca.element_id = aml.attribute_id
+             and pqca.unit_of_measure = rm.ratio_id
+             and gmr.latest_internal_invoice_ref_no =
+                 iid.internal_invoice_ref_no(+)
+             and grd.process_id = pc_process_id
+             and gmr.process_id = pc_process_id             
+             and gmr.corporate_id = akc.corporate_id
+             and aml.underlying_product_id = pdm.product_id
+             and pdm.base_quantity_unit = qum.qty_unit_id
+             and ucm.from_qty_unit_id = iid.element_inv_qty_unit_id
+             and ucm.to_qty_unit_id = pdm.base_quantity_unit
+           group by gmr.internal_gmr_ref_no,
+                    gmr.latest_internal_invoice_ref_no,
+                    pqca.element_id,
+                    gmr.product_id,
+                    gmr.product_name,
+                    gmr.quality_id,
+                    gmr.quality_name,
+                    gmr.warehouse_profile_id,
+                    gmr.warehouse_name,
+                    gmr.gmr_ref_no,
+                    akc.corporate_name,
+                    aml.attribute_name,
+                    grd.tolling_stock_type,
+                    gmr.is_final_invoiced,
+                    gmr.invoice_cur_code,
+                    pdm.base_quantity_unit,
+                    qum.qty_unit,
+                    gmr.is_new_invoice
+          union all
+          select /*+ ordered */
+           gepd.pledge_input_gmr,
+           iied.internal_invoice_ref_no,
+           gepd.element_id,
+           0 tc_amt,
+           0 rc_amt,
+           0 penalty_amt,
+           gmr_supp.product_id,
+           gmr_supp.product_name product_name,
+           gmr_supp.quality_id,
+           gmr_supp.quality_name,
+           gmr_supp.warehouse_profile_id warehouse_id,
+           gmr_supp.warehouse_name,
+           gepd.pledge_input_gmr_ref_no,
+           akc.corporate_name,
+           aml.attribute_name element_name,
+           grd.tolling_stock_type,
+           gmr.is_final_invoiced,
+           gmr.invoice_cur_code,
+           0 assay_qty,
+           sum(invoiced_qty * ucm.multiplication_factor) payable_qty,
+           pdm.base_quantity_unit,
+           qum.qty_unit,
+           'Payable' qty_type,
+           gmr.is_new_invoice,
+           sum(invoice_item_amount)payable_amount
+            from gepd_gmr_element_pledge_detail gepd,
+                 process_gmr                    gmr,
+                 process_gmr                    gmr_supp,
+                 iid_invoicable_item_details    iied,
+                 process_grd                    grd,
+                 ak_corporate                   akc,
+                 aml_attribute_master_list      aml,
+                 pdm_productmaster              pdm,
+                 qum_quantity_unit_master       qum,
+                 ucm_unit_conversion_master     ucm
+           where gmr.process_id = pc_process_id
+             and gepd.process_id = pc_process_id
+             and gepd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+             and gmr.latest_internal_invoice_ref_no =
+                 iied.internal_invoice_ref_no
+             and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+             and grd.internal_grd_ref_no = iied.stock_id
+             and iied.is_active = 'Y'
+             and grd.process_id = pc_process_id
+             and gmr.corporate_id = akc.corporate_id
+             and gepd.element_id = aml.attribute_id
+             and aml.underlying_product_id = pdm.product_id
+             and pdm.base_quantity_unit = qum.qty_unit_id
+             and ucm.from_qty_unit_id = iied.invoiced_qty_unit_id
+             and ucm.to_qty_unit_id = pdm.base_quantity_unit
+             and gepd.pledge_input_gmr = gmr_supp.internal_gmr_ref_no
+             and gmr_supp.process_id = pc_process_id
+           group by gepd.pledge_input_gmr,
+                    iied.internal_invoice_ref_no,
+                    gepd.element_id,
+                    gmr_supp.product_id,
+                    gmr_supp.product_name,
+                    gmr_supp.quality_id,
+                    gmr_supp.quality_name,
+                    gmr_supp.warehouse_profile_id,
+                    gmr_supp.warehouse_name,
+                    gepd.pledge_input_gmr_ref_no,
+                    akc.corporate_name,
+                    aml.attribute_name,
+                    grd.tolling_stock_type,
+                    gmr.is_final_invoiced,
+                    gmr.invoice_cur_code,
+                    pdm.base_quantity_unit,
+                    qum.qty_unit,
+                    gmr.is_new_invoice) t
+   group by t.internal_gmr_ref_no,
+            t.internal_invoice_ref_no,
+            t.element_id,
+            t.product_id,
+            t.product_name,
+            t.quality_id,
+            t.quality_name,
+            t.warehouse_id,
+            t.warehouse_name,
+            t.gmr_ref_no,
+            t.corporate_name,
+            t.element_name,
+            t.tolling_stock_type,
+            t.is_final_invoiced,
+            t.invoice_cur_code,
+            t.base_quantity_unit,
+            t.qty_unit,
+            t.qty_type,
+            t.is_new_invoice;
   commit;
   
   --- added suresh  
   insert into tgc_temp_gmr_charges
-    (corporate_id,
-     internal_gmr_ref_no,
-     internal_invoice_ref_no,
-     element_id,
-     tc_amt,
-     rc_amt,
-     penalty_amt)
-    select pc_corporate_id,
-           t.internal_gmr_ref_no,
-           t.internal_invoice_ref_no,
-           t.element_id,
-           nvl(sum(tc_amt), 0) tc_amt,
-           nvl(sum(rc_amt), 0),
-           nvl(sum(penalty_amt), 0)
-      from (select /*+ ordered */
-                   gmr.internal_gmr_ref_no,
-                   intc.internal_invoice_ref_no,
-                   intc.element_id,
-                   sum(tcharges_amount) tc_amt,
-                   0 rc_amt,
-                   0 penalty_amt
-              from process_gmr  gmr,
-                   intc_inv_treatment_charges intc,
-                   dgrd_delivered_grd       grd
-             where gmr.process_id = pc_process_id
-               and gmr.latest_internal_invoice_ref_no =
-                   intc.internal_invoice_ref_no
-               and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-               and grd.internal_dgrd_ref_no = intc.grd_id
-               and grd.process_id = pc_process_id
-             group by gmr.internal_gmr_ref_no,
-                      intc.internal_invoice_ref_no,
-                      intc.element_id
-            union all
-            select /*+ ordered */
-                   gmr.internal_gmr_ref_no,
-                   inrc.internal_invoice_ref_no,
-                   inrc.element_id,
-                   0 tc_amt,
-                   sum(rcharges_amount) rc_amt,
-                   0 penalty_amt
-              from process_gmr gmr,
-                   inrc_inv_refining_charges inrc,
-                   dgrd_delivered_grd         grd
-             where gmr.process_id = pc_process_id
-               and gmr.latest_internal_invoice_ref_no =
-                   inrc.internal_invoice_ref_no
-               and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-               and grd.internal_dgrd_ref_no = inrc.grd_id
-               and grd.process_id = pc_process_id
-             group by gmr.internal_gmr_ref_no,
-                      inrc.element_id,
-                      inrc.internal_invoice_ref_no
-            union all
-            select /*+ ordered */
-                   gmr.internal_gmr_ref_no,
-                   iepd.internal_invoice_ref_no,
-                   iepd.element_id,
-                   0 tc_amt,
-                   0 rc_amt,
-                   sum(iepd.element_penalty_amount) penalty_amt
-              from process_gmr gmr,
-                   iepd_inv_epenalty_details iepd,
-                   dgrd_delivered_grd        grd
-             where gmr.process_id = pc_process_id
-               and gmr.latest_internal_invoice_ref_no =
-                   iepd.internal_invoice_ref_no
-               and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-               and grd.internal_dgrd_ref_no = iepd.stock_id
-               and grd.process_id = pc_process_id
-             group by gmr.internal_gmr_ref_no,
-                      iepd.element_id,
-                      iepd.internal_invoice_ref_no) t
-     group by t.internal_gmr_ref_no,
-              t.internal_invoice_ref_no,
-              t.element_id;
+  (corporate_id,
+   internal_gmr_ref_no,
+   internal_invoice_ref_no,
+   element_id,
+   tc_amt,
+   rc_amt,
+   penalty_amt,
+   product_id,
+   product_name,
+   quality_id,
+   quality_name,
+   warehouse_id,
+   warehouse_name,
+   gmr_ref_no,
+   corporate_name,
+   eod_trade_date,
+   element_name,
+   process_id,
+   tolling_stock_type,
+   is_final_invoiced,
+   pay_cur_code,
+   assay_qty_base,
+   payable_qty_base,
+   base_qty_unit_id,
+   base_qty_unit,
+   qty_type,
+   is_new_invoice,
+   payable_amount)
+  select pc_corporate_id,
+         t.internal_gmr_ref_no,
+         t.internal_invoice_ref_no,
+         t.element_id,
+         nvl(sum(tc_amt), 0) tc_amt,
+         nvl(sum(rc_amt), 0),
+         nvl(sum(penalty_amt), 0),
+         t.product_id,
+         t.product_name,
+         t.quality_id,
+         t.quality_name,
+         t.warehouse_id,
+         t.warehouse_name,
+         t.gmr_ref_no,
+         t.corporate_name,
+         pd_trade_date,
+         t.element_name,
+         pc_process_id,
+         t.tolling_stock_type,
+         t.is_final_invoiced,
+         t.invoice_cur_code,
+         nvl(sum(assay_qty), 0),
+         nvl(sum(payable_qty), 0),
+         t.base_quantity_unit,
+         t.qty_unit,
+         t.qty_type,
+         t.is_new_invoice,
+         nvl(sum(payable_amount), 0)
+    from (select /*+ ordered */
+            gmr.internal_gmr_ref_no,
+            intc.internal_invoice_ref_no,
+            intc.element_id,
+            sum(tcharges_amount) tc_amt,
+            0 rc_amt,
+            0 penalty_amt,
+            gmr.product_id,
+            gmr.product_name,
+            gmr.quality_id,
+            gmr.quality_name,
+            gmr.warehouse_profile_id warehouse_id,
+            gmr.warehouse_name,
+            gmr.gmr_ref_no,
+            akc.corporate_name,
+            aml.attribute_name element_name,
+            grd.tolling_stock_type,
+            gmr.is_final_invoiced,
+            gmr.invoice_cur_code,
+            0 assay_qty,
+            0 payable_qty,
+            pdm.base_quantity_unit,
+            qum.qty_unit,
+            'Payable' qty_type,
+            gmr.is_new_invoice,
+            0 payable_amount
+             from process_gmr                gmr,
+                  intc_inv_treatment_charges intc,
+                  dgrd_delivered_grd         grd,
+                  ak_corporate               akc,
+                  aml_attribute_master_list  aml,
+                  pdm_productmaster          pdm,
+                  qum_quantity_unit_master   qum
+            where gmr.process_id = pc_process_id
+              and gmr.latest_internal_invoice_ref_no =
+                  intc.internal_invoice_ref_no
+              and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+              and grd.internal_dgrd_ref_no = intc.grd_id
+              and grd.process_id = pc_process_id
+              and gmr.corporate_id = akc.corporate_id
+              and intc.element_id = aml.attribute_id
+              and aml.underlying_product_id = pdm.product_id
+              and pdm.base_quantity_unit = qum.qty_unit_id
+            group by gmr.internal_gmr_ref_no,
+                     intc.internal_invoice_ref_no,
+                     intc.element_id,
+                     gmr.product_id,
+                     gmr.product_name,
+                     gmr.quality_id,
+                     gmr.quality_name,
+                     gmr.warehouse_profile_id,
+                     gmr.warehouse_name,
+                     gmr.gmr_ref_no,
+                     akc.corporate_name,
+                     aml.attribute_name,
+                     grd.tolling_stock_type,
+                     gmr.is_final_invoiced,
+                     gmr.invoice_cur_code,
+                     pdm.base_quantity_unit,
+                     qum.qty_unit,
+                     gmr.is_new_invoice
+           union all
+           select /*+ ordered */
+            gmr.internal_gmr_ref_no,
+            inrc.internal_invoice_ref_no,
+            inrc.element_id,
+            0 tc_amt,
+            sum(rcharges_amount) rc_amt,
+            0 penalty_amt,
+            gmr.product_id,
+            gmr.product_name,
+            gmr.quality_id,
+            gmr.quality_name,
+            gmr.warehouse_profile_id warehouse_id,
+            gmr.warehouse_name,
+            gmr.gmr_ref_no,
+            akc.corporate_name,
+            aml.attribute_name element_name,
+            grd.tolling_stock_type,
+            gmr.is_final_invoiced,
+            gmr.invoice_cur_code,
+            0 assay_qty,
+            0 payable_qty,
+            pdm.base_quantity_unit,
+            qum.qty_unit,
+            'Payable' qty_type,
+             gmr.is_new_invoice,
+             0 payable_amount
+             from process_gmr               gmr,
+                  inrc_inv_refining_charges inrc,
+                  dgrd_delivered_grd        grd,
+                  ak_corporate              akc,
+                  aml_attribute_master_list aml,
+                  pdm_productmaster         pdm,
+                  qum_quantity_unit_master  qum
+            where gmr.process_id = pc_process_id
+              and gmr.latest_internal_invoice_ref_no =
+                  inrc.internal_invoice_ref_no
+              and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+              and grd.internal_dgrd_ref_no = inrc.grd_id
+              and grd.process_id = pc_process_id
+              and gmr.corporate_id = akc.corporate_id
+              and inrc.element_id = aml.attribute_id
+              and aml.underlying_product_id = pdm.product_id
+              and pdm.base_quantity_unit = qum.qty_unit_id
+            group by gmr.internal_gmr_ref_no,
+                     inrc.element_id,
+                     inrc.internal_invoice_ref_no,
+                     gmr.product_id,
+                     gmr.product_name,
+                     gmr.quality_id,
+                     gmr.quality_name,
+                     gmr.warehouse_profile_id,
+                     gmr.warehouse_name,
+                     gmr.gmr_ref_no,
+                     akc.corporate_name,
+                     aml.attribute_name,
+                     grd.tolling_stock_type,
+                     gmr.is_final_invoiced,
+                     gmr.invoice_cur_code,
+                     pdm.base_quantity_unit,
+                     qum.qty_unit,
+                     gmr.is_new_invoice
+           union all
+           select /*+ ordered */
+            gmr.internal_gmr_ref_no,
+            iepd.internal_invoice_ref_no,
+            iepd.element_id,
+            0 tc_amt,
+            0 rc_amt,
+            sum(iepd.element_penalty_amount) penalty_amt,
+            gmr.product_id,
+            gmr.product_name,
+            gmr.quality_id,
+            gmr.quality_name,
+            gmr.warehouse_profile_id warehouse_id,
+            gmr.warehouse_name,
+            gmr.gmr_ref_no,
+            akc.corporate_name,
+            aml.attribute_name element_name,
+            grd.tolling_stock_type,
+            gmr.is_final_invoiced,
+            gmr.invoice_cur_code,
+            0 assay_qty,
+            0 payable_qty,
+            cpbu.base_qty_unit_id,
+            cpbu.base_qty_unit,
+            'Penalty' qty_type,
+            gmr.is_new_invoice,
+            0 payable_amount
+             from process_gmr                  gmr,
+                  iepd_inv_epenalty_details    iepd,
+                  dgrd_delivered_grd           grd,
+                  ak_corporate                 akc,
+                  aml_attribute_master_list    aml,
+                  cpbu_corp_penality_base_unit cpbu
+            where gmr.process_id = pc_process_id
+              and gmr.latest_internal_invoice_ref_no =
+                  iepd.internal_invoice_ref_no
+              and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+              and grd.internal_dgrd_ref_no = iepd.stock_id
+              and grd.process_id = pc_process_id
+              and gmr.corporate_id = akc.corporate_id
+              and iepd.element_id = aml.attribute_id
+              and cpbu.element_id = aml.attribute_id
+              and cpbu.corporate_id = pc_corporate_id
+            group by gmr.internal_gmr_ref_no,
+                     iepd.element_id,
+                     iepd.internal_invoice_ref_no,
+                     gmr.product_id,
+                     gmr.product_name,
+                     gmr.quality_id,
+                     gmr.quality_name,
+                     gmr.warehouse_profile_id,
+                     gmr.warehouse_name,
+                     gmr.gmr_ref_no,
+                     akc.corporate_name,
+                     aml.attribute_name,
+                     grd.tolling_stock_type,
+                     gmr.is_final_invoiced,
+                     gmr.invoice_cur_code,
+                     cpbu.base_qty_unit_id,
+                     cpbu.base_qty_unit,
+                     gmr.is_new_invoice
+           union all
+           select /*+ ordered */
+            gmr.internal_gmr_ref_no,
+            iied.internal_invoice_ref_no,
+            iied.element_id,
+            0 tc_amt,
+            0 rc_amt,
+            0 penalty_amt,
+            gmr.product_id,
+            gmr.product_name,
+            gmr.quality_id,
+            gmr.quality_name,
+            gmr.warehouse_profile_id warehouse_id,
+            gmr.warehouse_name,
+            gmr.gmr_ref_no,
+            akc.corporate_name,
+            aml.attribute_name element_name,
+            grd.tolling_stock_type,
+            gmr.is_final_invoiced,
+            gmr.invoice_cur_code,
+            0 assay_qty,
+            sum(element_invoiced_qty * ucm.multiplication_factor) payable_qty,
+            pdm.base_quantity_unit,
+            qum.qty_unit,
+            'Payable' qty_type,
+             gmr.is_new_invoice,
+             sum(iied.element_payable_amount) payable_amount
+             from process_gmr                   gmr,
+                  iied_inv_item_element_details iied,
+                  dgrd_delivered_grd            grd,
+                  ak_corporate                  akc,
+                  aml_attribute_master_list     aml,
+                  pdm_productmaster             pdm,
+                  qum_quantity_unit_master      qum,
+                  ucm_unit_conversion_master    ucm
+            where gmr.process_id = pc_process_id
+              and gmr.latest_internal_invoice_ref_no =
+                  iied.internal_invoice_ref_no
+              and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+              and grd.internal_grd_ref_no = iied.grd_id
+              and grd.process_id = pc_process_id
+              and gmr.corporate_id = akc.corporate_id
+              and iied.element_id = aml.attribute_id
+              and aml.underlying_product_id = pdm.product_id
+              and pdm.base_quantity_unit = qum.qty_unit_id
+              and ucm.from_qty_unit_id = iied.element_inv_qty_unit_id
+              and ucm.to_qty_unit_id = pdm.base_quantity_unit
+            group by gmr.internal_gmr_ref_no,
+                     iied.internal_invoice_ref_no,
+                     iied.element_id,
+                     gmr.product_id,
+                     gmr.product_name,
+                     gmr.quality_id,
+                     gmr.quality_name,
+                     gmr.warehouse_profile_id,
+                     gmr.warehouse_name,
+                     gmr.gmr_ref_no,
+                     akc.corporate_name,
+                     aml.attribute_name,
+                     grd.tolling_stock_type,
+                     gmr.is_final_invoiced,
+                     gmr.invoice_cur_code,
+                     pdm.base_quantity_unit,
+                     qum.qty_unit,
+                     gmr.is_new_invoice
+           union all
+           select /*+ ordered */
+            gmr.internal_gmr_ref_no,
+            gmr.latest_internal_invoice_ref_no,
+            pqca.element_id,
+            0 tc_amt,
+            0 rc_amt,
+            0 penalty_amt,
+            gmr.product_id,
+            gmr.product_name,
+            gmr.quality_id,
+            gmr.quality_name,
+            gmr.warehouse_profile_id warehouse_id,
+            gmr.warehouse_name,
+            gmr.gmr_ref_no,
+            akc.corporate_name,
+            aml.attribute_name element_name,
+            grd.tolling_stock_type,
+            gmr.is_final_invoiced,
+            gmr.invoice_cur_code,
+            sum((case
+                  when rm.ratio_name = '%' then
+                   (pqca.typical * asm.dry_weight) / 100
+                  else
+                   pkg_general.f_get_converted_quantity(aml.underlying_product_id,
+                                                        asm.net_weight_unit,
+                                                        rm.qty_unit_id_denominator,
+                                                        asm.dry_weight) *
+                   pqca.typical
+                
+                end) * ucm.multiplication_factor) assay_qty,
+            0 payble_qty,
+            pdm.base_quantity_unit,
+            qum.qty_unit,
+            'Payable' qty_type,
+             gmr.is_new_invoice,
+             0 payable_amount
+             from process_gmr                 gmr,
+                  dgrd_delivered_grd          grd,
+                  iied_inv_item_element_details iid,
+                  iam_invoice_assay_mapping   iam,
+                  ash_assay_header            ash,
+                  asm_assay_sublot_mapping    asm,
+                  pqca_pq_chemical_attributes pqca,
+                  rm_ratio_master             rm,
+                  aml_attribute_master_list   aml,
+                  ak_corporate                akc,
+                  pdm_productmaster           pdm,
+                  qum_quantity_unit_master    qum,
+                  ucm_unit_conversion_master  ucm
+            where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+              and gmr.latest_internal_invoice_ref_no =iid.internal_invoice_ref_no
+              and grd.internal_grd_ref_no = iid.grd_id
+              and iid.internal_invoice_ref_no = iam.internal_invoice_ref_no
+              and iid.grd_id = iam.internal_grd_ref_no
+              and iam.ash_id = ash.ash_id
+              and ash.ash_id = asm.ash_id
+              and asm.asm_id = pqca.asm_id
+              and pqca.element_id = aml.attribute_id
+              and pqca.unit_of_measure = rm.ratio_id
+              and gmr.latest_internal_invoice_ref_no =
+                  iid.internal_invoice_ref_no(+)
+              and grd.process_id = pc_process_id
+              and gmr.process_id = pc_process_id
+              and gmr.corporate_id = akc.corporate_id
+              and aml.underlying_product_id = pdm.product_id
+              and pdm.base_quantity_unit = qum.qty_unit_id
+              and ucm.from_qty_unit_id = iid.element_inv_qty_unit_id
+              and ucm.to_qty_unit_id = pdm.base_quantity_unit
+            group by gmr.internal_gmr_ref_no,
+                     gmr.latest_internal_invoice_ref_no,
+                     pqca.element_id,
+                     gmr.product_id,
+                     gmr.product_name,
+                     gmr.quality_id,
+                     gmr.quality_name,
+                     gmr.warehouse_profile_id,
+                     gmr.warehouse_name,
+                     gmr.gmr_ref_no,
+                     akc.corporate_name,
+                     aml.attribute_name,
+                     grd.tolling_stock_type,
+                     gmr.is_final_invoiced,
+                     gmr.invoice_cur_code,
+                     pdm.base_quantity_unit,
+                     qum.qty_unit,
+                     gmr.is_new_invoice
+           union all -- Pledge GMR'S                                        
+          select /*+ ordered */
+           gepd.pledge_input_gmr,
+           iied.internal_invoice_ref_no,
+           gepd.element_id,
+           0 tc_amt,
+           0 rc_amt,
+           0 penalty_amt,
+           gmr_supp.product_id,
+           gmr_supp.product_name product_name,
+           gmr_supp.quality_id,
+           gmr_supp.quality_name,
+           gmr_supp.warehouse_profile_id warehouse_id,
+           gmr_supp.warehouse_name,
+           gepd.pledge_input_gmr_ref_no,
+           akc.corporate_name,
+           aml.attribute_name element_name,
+           grd.tolling_stock_type,
+           gmr.is_final_invoiced,
+           gmr.invoice_cur_code,
+           0 assay_qty,
+           sum(invoiced_qty * ucm.multiplication_factor) payable_qty,
+           pdm.base_quantity_unit,
+           qum.qty_unit,
+           'Payable' qty_type,
+            gmr.is_new_invoice,
+            sum(iied.invoice_item_amount) payable_amount
+            from gepd_gmr_element_pledge_detail gepd,
+                 process_gmr                    gmr,
+                 process_gmr                    gmr_supp,
+                 iid_invoicable_item_details    iied,
+                 dgrd_delivered_grd             grd,
+                 ak_corporate                   akc,
+                 aml_attribute_master_list      aml,
+                 pdm_productmaster              pdm,
+                 qum_quantity_unit_master       qum,
+                 ucm_unit_conversion_master     ucm
+           where gmr.process_id = pc_process_id
+             and gepd.process_id = pc_process_id
+             and gepd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+             and gmr.latest_internal_invoice_ref_no =
+                 iied.internal_invoice_ref_no
+             and gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+             and grd.internal_grd_ref_no = iied.stock_id
+             and iied.is_active = 'Y'
+             and grd.process_id = pc_process_id
+             and gmr.corporate_id = akc.corporate_id
+             and gepd.element_id = aml.attribute_id
+             and aml.underlying_product_id = pdm.product_id
+             and pdm.base_quantity_unit = qum.qty_unit_id
+             and ucm.from_qty_unit_id = iied.invoiced_qty_unit_id
+             and ucm.to_qty_unit_id = pdm.base_quantity_unit
+             and gepd.pledge_input_gmr = gmr_supp.internal_gmr_ref_no
+             and gmr_supp.process_id = pc_process_id
+           group by gepd.pledge_input_gmr,
+                    iied.internal_invoice_ref_no,
+                    gepd.element_id,
+                    gmr_supp.product_id,
+                    gmr_supp.product_name,
+                    gmr_supp.quality_id,
+                    gmr_supp.quality_name,
+                    gmr_supp.warehouse_profile_id,
+                    gmr_supp.warehouse_name,
+                    gepd.pledge_input_gmr_ref_no,
+                    akc.corporate_name,
+                    aml.attribute_name,
+                    grd.tolling_stock_type,
+                    gmr.is_final_invoiced,
+                    gmr.invoice_cur_code,
+                    pdm.base_quantity_unit,
+                    qum.qty_unit,
+                     gmr.is_new_invoice) t
+   group by t.internal_gmr_ref_no,
+            t.internal_invoice_ref_no,
+            t.element_id,
+            t.product_id,
+            t.product_name,
+            t.quality_id,
+            t.quality_name,
+            t.warehouse_id,
+            t.warehouse_name,
+            t.gmr_ref_no,
+            t.corporate_name,
+            t.element_name,
+            t.tolling_stock_type,
+            t.is_final_invoiced,
+            t.invoice_cur_code,
+            t.base_quantity_unit,
+            t.qty_unit,
+            t.qty_type,
+            t.is_new_invoice;
+commit;
  --- end suresh
   sp_gather_stats('tgi_temp_gmr_invoice');
   sp_gather_stats('tgc_temp_gmr_charges');
@@ -17084,7 +17950,7 @@ insert into tgi_temp_gmr_invoice
                                      where is1.internal_invoice_ref_no =
                                            t.internal_invoice_ref_no
                                        and is1.process_id = pc_process_id)
-   where t.corporate_id = pc_corporate_id;
+   where t.process_id = pc_process_id;
   gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
                         pd_trade_date,
@@ -17201,6 +18067,7 @@ procedure sp_arrival_report(pc_corporate_id varchar2,
   vc_pay_cur_code              varchar2(15);
   vn_pay_price_cur_id_factor   number;
   vn_pay_price_cur_decimals    number;
+  vc_previous_process_id       varchar2(15);
 
 begin
 
@@ -19688,6 +20555,256 @@ gvn_log_counter := gvn_log_counter + 1;
                         pc_process_id,
                         gvn_log_counter,
                         'Populate YTD Delta Data Over');
+  begin
+  select tdc.process_id
+      into vc_previous_process_id
+      from tdc_trade_date_closure tdc
+     where tdc.corporate_id = pc_corporate_id
+       and process = pc_process
+       and tdc.trade_date = (select max(trade_date)
+                               from tdc_trade_date_closure
+                              where corporate_id = pc_corporate_id
+                                and trade_date < pd_trade_date
+                                and process = pc_process);
+   exception
+   when others then
+   vc_previous_process_id:=null;
+   end;
+                       
+-- GMR NEW in the EOM and  GMR Old and updated in the EOM
+insert into aro_ar_original_report
+  (process_id,
+   eod_trade_date,
+   corporate_id,
+   corporate_name,
+   gmr_ref_no,
+   internal_gmr_ref_no,
+   product_id,
+   product_name,
+   quality_id,
+   quality_name,
+   arrival_status,
+   warehouse_id,
+   warehouse_name,
+   shed_id,
+   shed_name,
+   conc_base_qty_unit_id,
+   conc_base_qty_unit,
+   other_charges_amt,
+   pay_cur_id,
+   pay_cur_code,
+   pay_cur_decimal,
+   arrival_or_delivery,
+   freight_container_charge_amt,
+   contract_ref_no,
+   internal_contract_ref_no,
+   cp_id,
+   cp_name)
+  select process_id,
+         eod_trade_date,
+         corporate_id,
+         corporate_name,
+         gmr_ref_no,
+         internal_gmr_ref_no,
+         product_id,
+         product_name,
+         quality_id,
+         quality_name,
+         arrival_status,
+         warehouse_id,
+         warehouse_name,
+         shed_id,
+         shed_name,
+         conc_base_qty_unit_id,
+         conc_base_qty_unit,
+         sum(other_charges_amt),
+         pay_cur_id,
+         pay_cur_code,
+         pay_cur_decimal,
+         arrival_or_delivery,
+         freight_container_charge_amt,
+         contract_ref_no,
+         internal_contract_ref_no,
+         cp_id,
+         cp_name
+    from aro_ar_original aro
+   where aro.process_id = pc_process_id
+   group by process_id,
+            eod_trade_date,
+            corporate_id,
+            corporate_name,
+            gmr_ref_no,
+            internal_gmr_ref_no,
+            product_id,
+            product_name,
+            quality_id,
+            quality_name,
+            arrival_status,
+            warehouse_id,
+            warehouse_name,
+            shed_id,
+            shed_name,
+            conc_base_qty_unit_id,
+            conc_base_qty_unit,
+            pay_cur_id,
+            pay_cur_code,
+            pay_cur_decimal,
+            arrival_or_delivery,
+            freight_container_charge_amt,
+            contract_ref_no,
+            internal_contract_ref_no,
+            cp_id,
+            cp_name;
+commit;
+-- GMR OLD Not in Current Month
+insert into aro_ar_original_report
+  (process_id,
+   eod_trade_date,
+   corporate_id,
+   corporate_name,
+   gmr_ref_no,
+   internal_gmr_ref_no,
+   product_id,
+   product_name,
+   quality_id,
+   quality_name,
+   arrival_status,
+   warehouse_id,
+   warehouse_name,
+   shed_id,
+   shed_name,
+   conc_base_qty_unit_id,
+   conc_base_qty_unit,
+   other_charges_amt,
+   pay_cur_id,
+   pay_cur_code,
+   pay_cur_decimal,
+   arrival_or_delivery,
+   freight_container_charge_amt,
+   contract_ref_no,
+   internal_contract_ref_no,
+   cp_id,
+   cp_name)
+  select pc_process_id,
+         pd_trade_date,
+         aro_prev.corporate_id,
+         aro_prev.corporate_name,
+         gmr_ref_no,
+         internal_gmr_ref_no,
+         product_id,
+         product_name,
+         quality_id,
+         quality_name,
+         arrival_status,
+         warehouse_id,
+         warehouse_name,
+         shed_id,
+         shed_name,
+         conc_base_qty_unit_id,
+         conc_base_qty_unit,
+         other_charges_amt,
+         pay_cur_id,
+         pay_cur_code,
+         pay_cur_decimal,
+         arrival_or_delivery,
+         freight_container_charge_amt,
+         contract_ref_no,
+         internal_contract_ref_no,
+         cp_id,
+         cp_name
+    from aro_ar_original_report        aro_prev
+   where aro_prev.process_id = vc_previous_process_id
+     and not exists
+   (select 1
+            from aro_ar_original_report aro
+           where aro.internal_gmr_ref_no = aro_prev.internal_gmr_ref_no
+             and aro.process_id = pc_process_id);
+commit;
+
+insert into areor_ar_ele_original_report
+  (process_id,
+   internal_gmr_ref_no,
+   element_id,
+   element_name,
+   assay_qty,
+   payable_qty,
+   section_name,
+   payable_amt_price_ccy,
+   payable_amt_pay_ccy,
+   base_tc_charges_amt,
+   esc_desc_tc_charges_amt,
+   rc_charges_amt,
+   pc_charges_amt,
+   element_base_qty_unit_id,
+   element_base_qty_unit)
+  select pc_process_id,
+         internal_gmr_ref_no,
+         element_id,
+         element_name,
+         sum(assay_qty),
+         sum(payable_qty),
+         section_name,
+         sum(payable_amt_price_ccy),
+         sum(payable_amt_pay_ccy),
+         sum(base_tc_charges_amt),
+         sum(esc_desc_tc_charges_amt),
+         sum(rc_charges_amt),
+         sum(pc_charges_amt),
+         element_base_qty_unit_id,
+         element_base_qty_unit
+    from areo_ar_element_original areo
+   where areo.process_id = pc_process_id
+   group by process_id,
+            internal_gmr_ref_no,
+            element_id,
+            element_name,
+            section_name,
+            element_base_qty_unit_id,
+            element_base_qty_unit;
+        
+commit;
+
+insert into areor_ar_ele_original_report
+  (process_id,
+   internal_gmr_ref_no,
+   element_id,
+   element_name,
+   assay_qty,
+   payable_qty,
+   section_name,
+   payable_amt_price_ccy,
+   payable_amt_pay_ccy,
+   base_tc_charges_amt,
+   esc_desc_tc_charges_amt,
+   rc_charges_amt,
+   pc_charges_amt,
+   element_base_qty_unit_id,
+   element_base_qty_unit)
+  select pc_process_id,
+         internal_gmr_ref_no,
+         element_id,
+         element_name,
+         assay_qty,
+         payable_qty,
+         section_name,
+         payable_amt_price_ccy,
+         payable_amt_pay_ccy,
+         base_tc_charges_amt,
+         esc_desc_tc_charges_amt,
+         rc_charges_amt,
+         pc_charges_amt,
+         element_base_qty_unit_id,
+         element_base_qty_unit
+    from areor_ar_ele_original_report areo_prev
+   where areo_prev.process_id = vc_previous_process_id
+     and not exists
+   (select 1
+            from areor_ar_ele_original_report areo
+           where areo.internal_gmr_ref_no = areo_prev.internal_gmr_ref_no
+             and areo.element_id=areo_prev.element_id
+             and areo.process_id = pc_process_id);
+commit;
+                        
 exception
   when others then
     vobj_error_log.extend;
@@ -19803,6 +20920,7 @@ procedure sp_feedconsumption_report(pc_corporate_id varchar2,
   vn_pay_price_cur_id_factor     number;
   vn_pay_price_cur_decimals      number;
   vn_row_cnt                     number;
+  vc_previous_process_id         varchar2(15);
 begin
   select akc.corporate_name
     into vc_corporate_name
@@ -22457,6 +23575,216 @@ sp_eodeom_process_log(pc_corporate_id,
                         pc_process_id,
                         gvn_log_counter,
                         'Insert FCE YTD Delta Over');
+  --Added Suresh
+  begin
+  select tdc.process_id
+      into vc_previous_process_id
+      from tdc_trade_date_closure tdc
+     where tdc.corporate_id = pc_corporate_id
+       and process = pc_process
+       and tdc.trade_date = (select max(trade_date)
+                               from tdc_trade_date_closure
+                              where corporate_id = pc_corporate_id
+                                and trade_date < pd_trade_date
+                                and process = pc_process);
+   exception
+   when others then
+   vc_previous_process_id:=null;
+   end;
+  insert into for_feed_original_report
+  (process_id,
+   eod_trade_date,
+   corporate_id,
+   corporate_name,
+   product_id,
+   product_name,
+   quality_id,
+   quality_name,
+   parent_gmr_ref_no,
+   warehouse_id,
+   warehouse_name,
+   conc_base_qty_unit_id,
+   conc_base_qty_unit,
+   pay_cur_id,
+   pay_cur_code,
+   pay_cur_decimal,
+   parent_internal_gmr_ref_no,
+   other_charges_amt)
+  select process_id,
+         eod_trade_date,
+         corporate_id,
+         corporate_name,
+         product_id,
+         product_name,
+         quality_id,
+         quality_name,
+         parent_gmr_ref_no,
+         warehouse_id,
+         warehouse_name,
+         conc_base_qty_unit_id,
+         conc_base_qty_unit,
+         pay_cur_id,
+         pay_cur_code,
+         pay_cur_decimal,
+         parent_internal_gmr_ref_no,
+         sum(other_charges_amt)
+    from fco_feed_consumption_original fco
+   where fco.process_id =pc_process_id
+   group by process_id,
+            eod_trade_date,
+            corporate_id,
+            corporate_name,
+            product_id,
+            product_name,
+            quality_id,
+            quality_name,
+            parent_gmr_ref_no,
+            warehouse_id,
+            warehouse_name,
+            conc_base_qty_unit_id,
+            conc_base_qty_unit,
+            pay_cur_id,
+            pay_cur_code,
+            pay_cur_decimal,
+            parent_internal_gmr_ref_no;
+commit;
+insert into for_feed_original_report
+  (process_id,
+   eod_trade_date,
+   corporate_id,
+   corporate_name,
+   product_id,
+   product_name,
+   quality_id,
+   quality_name,
+   parent_gmr_ref_no,
+   warehouse_id,
+   warehouse_name,
+   conc_base_qty_unit_id,
+   conc_base_qty_unit,
+   pay_cur_id,
+   pay_cur_code,
+   pay_cur_decimal,
+   parent_internal_gmr_ref_no,
+   other_charges_amt)
+  select pc_process_id,
+         pd_trade_date,
+         corporate_id,
+         corporate_name,
+         product_id,
+         product_name,
+         quality_id,
+         quality_name,
+         parent_gmr_ref_no,
+         warehouse_id,
+         warehouse_name,
+         conc_base_qty_unit_id,
+         conc_base_qty_unit,
+         pay_cur_id,
+         pay_cur_code,
+         pay_cur_decimal,
+         parent_internal_gmr_ref_no,
+         other_charges_amt
+    from for_feed_original_report  for_prev
+   where for_prev.process_id = vc_previous_process_id
+     and not exists
+   (select 1
+            from for_feed_original_report feed
+           where feed.parent_internal_gmr_ref_no = for_prev.parent_internal_gmr_ref_no
+             and feed.process_id = pc_process_id); 
+  commit;
+  insert into feor_feed_ele_original_report
+  (process_id,  
+   element_id,
+   element_name,
+   assay_qty,
+   payable_qty,
+   payable_returnable_type,
+   parent_internal_gmr_ref_no,
+   section_name,
+   qty_type,
+   payable_amt_price_ccy,
+   payable_amt_pay_ccy,
+   base_tc_charges_amt,
+   esc_desc_tc_charges_amt,
+   rc_charges_amt,
+   pc_charges_amt,
+   element_base_qty_unit_id,
+   element_base_qty_unit)
+  select process_id,        
+         element_id,
+         element_name,
+         sum(assay_qty),
+         sum(payable_qty),
+         payable_returnable_type,
+         parent_internal_gmr_ref_no,
+         section_name,
+         qty_type,
+         sum(payable_amt_price_ccy),
+         sum(payable_amt_pay_ccy),
+         sum(base_tc_charges_amt),
+         sum(esc_desc_tc_charges_amt),
+         sum(rc_charges_amt),
+         sum(pc_charges_amt),
+         element_base_qty_unit_id,
+         element_base_qty_unit
+    from fceo_feed_con_element_original fceo
+   where fceo.process_id = pc_process_id
+    group by process_id,            
+             element_id,
+             element_name,
+             payable_returnable_type,
+             parent_internal_gmr_ref_no,
+             section_name,
+             qty_type,
+             element_base_qty_unit_id,
+             element_base_qty_unit;
+commit;
+       
+insert into feor_feed_ele_original_report
+  (process_id,
+   element_id,
+   element_name,
+   assay_qty,
+   payable_qty,
+   payable_returnable_type,
+   parent_internal_gmr_ref_no,
+   section_name,
+   qty_type,
+   payable_amt_price_ccy,
+   payable_amt_pay_ccy,
+   base_tc_charges_amt,
+   esc_desc_tc_charges_amt,
+   rc_charges_amt,
+   pc_charges_amt,
+   element_base_qty_unit_id,
+   element_base_qty_unit)
+  select pc_process_id,         
+         element_id,
+         element_name,
+         assay_qty,
+         payable_qty,
+         payable_returnable_type,
+         parent_internal_gmr_ref_no,
+         section_name,
+         qty_type,
+         payable_amt_price_ccy,
+         payable_amt_pay_ccy,
+         base_tc_charges_amt,
+         esc_desc_tc_charges_amt,
+         rc_charges_amt,
+         pc_charges_amt,
+         element_base_qty_unit_id,
+         element_base_qty_unit
+    from feor_feed_ele_original_report fceo_prev
+    where fceo_prev.process_id = vc_previous_process_id
+     and not exists
+   (select 1
+            from feor_feed_ele_original_report feed
+           where feed.parent_internal_gmr_ref_no = fceo_prev.parent_internal_gmr_ref_no
+             and feed.element_id=fceo_prev.element_id
+             and feed.process_id = pc_process_id); 
+ commit;          
 exception
   when others then
     vobj_error_log.extend;
@@ -26258,6 +27586,36 @@ insert into iocd_ioc_details
      and iids.process_id = pc_process_id
      and scm.cost_id = ioc.other_charge_cost_id;
 commit;
+--- Added Suresh
+       for cur_update in (select nvl(sum(case
+                                      when is_container_freight_charge = 'Y' then
+                                       (iocd.amount_in_inv_cur)
+                                      else
+                                       0
+                                    end),
+                                0) container_fright,
+                            nvl(sum(case
+                                      when is_container_freight_charge = 'N' then
+                                       (iocd.amount_in_inv_cur)
+                                      else
+                                       0
+                                    end),
+                                0) other_charges,
+                            iocd.internal_gmr_ref_no
+                       from iocd_ioc_details iocd
+                      where iocd.process_id = pc_process_id
+                      group by iocd.internal_gmr_ref_no)
+  loop
+    update tgc_temp_gmr_charges t
+       set t.other_charges_amt            = cur_update.other_charges,
+           t.freight_container_charge_amt = cur_update.container_fright
+     where t.internal_gmr_ref_no          = cur_update.internal_gmr_ref_no
+       and t.process_id = pc_process_id
+       and t.qty_type<>'Penalty'
+       and rownum < 2;
+  end loop;
+  commit;
+
 exception
   when others then
     vobj_error_log.extend;

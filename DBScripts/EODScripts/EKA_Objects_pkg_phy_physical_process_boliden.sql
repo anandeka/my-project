@@ -3932,6 +3932,11 @@ create or replace package body pkg_phy_physical_process is
     commit;
     delete iids_iid_summary where process_id = pc_process_id;
     delete iocd_ioc_details where process_id = pc_process_id;
+    delete tgc_temp_gmr_charges where process_id = pc_process_id;
+    delete aro_ar_original_report where process_id = pc_process_id;
+    delete areor_ar_ele_original_report where process_id = pc_process_id;
+    delete for_feed_original_report where process_id = pc_process_id;
+    delete feor_feed_ele_original_report where process_id = pc_process_id;
     commit;
   
     --end Suresh 

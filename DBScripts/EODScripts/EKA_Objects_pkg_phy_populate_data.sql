@@ -3863,7 +3863,8 @@ update process_gmr gmr
        gmr.is_final_invoiced              = cur_gmr_invoice.fi_done,
        gmr.latest_internal_invoice_ref_no = cur_gmr_invoice.latest_internal_invoice_ref_no,
        gmr.invoice_ref_no                 = cur_gmr_invoice.invoice_ref_no,
-       gmr.is_new_final_invoice           = case when cur_gmr_invoice.fi_done = 'Y' and cur_gmr_invoice.is_invoice_new = 'Y' then 'Y' else 'N' end
+       gmr.is_new_final_invoice           = case when cur_gmr_invoice.fi_done = 'Y' and cur_gmr_invoice.is_invoice_new = 'Y' then 'Y' else 'N' end,
+       gmr.is_new_invoice                 =  cur_gmr_invoice.is_invoice_new
  where gmr.dbd_id = gvc_dbd_id
    and gmr.internal_gmr_ref_no = cur_gmr_invoice.internal_gmr_ref_no;
 end loop;
@@ -9215,7 +9216,8 @@ commit;
  -- Purchase from GRD      
  
   for cur_grd in (select grd.internal_gmr_ref_no,
-                         grd.product_id
+                         grd.product_id,
+                         pdm.product_desc
                     from process_grd       grd,
                          pdm_productmaster pdm
                    where element_id is null
@@ -9223,10 +9225,12 @@ commit;
                      and grd.product_id = pdm.product_id
                      and pdm.product_type_id = 'Standard'
                    group by grd.internal_gmr_ref_no,
-                            grd.product_id)
+                            grd.product_id,
+                            pdm.product_desc)
   loop
     update process_gmr gmr
-       set gmr.product_id = cur_grd.product_id
+       set gmr.product_id = cur_grd.product_id,
+           gmr.product_name=cur_grd.product_desc
      where gmr.corporate_id = pc_corporate_id
        and gmr.internal_gmr_ref_no = cur_grd.internal_gmr_ref_no;
        vn_row_cnt := vn_row_cnt + 1;
@@ -9246,12 +9250,14 @@ commit;
                            'inside grd_data product_id update1');
 -- Sales from DGRD
   for cur_dgrd in (select dgrd.internal_gmr_ref_no,
-                          dgrd.product_id
+                          dgrd.product_id,
+                          dgrd.product_name
                      from dgrd_delivered_grd dgrd
                     where dgrd.dbd_id = gvc_dbd_id)
   loop
     update process_gmr gmr
-       set gmr.product_id = cur_dgrd.product_id
+       set gmr.product_id = cur_dgrd.product_id,
+           gmr.product_name=cur_dgrd.product_name
      where gmr.dbd_id = gvc_dbd_id
        and gmr.internal_gmr_ref_no = cur_dgrd.internal_gmr_ref_no
        and gmr.corporate_id = pc_corporate_id;
@@ -9273,20 +9279,23 @@ commit;
                            gvn_log_counter,
                            'inside grd_data product_id update2');
   for cur_grd in (select grd.internal_gmr_ref_no,
-                         grd.product_id
+                         grd.product_id,
+                         pdm.product_desc
                     from process_grd              grd,
                          pdm_productmaster        pdm,
                          pdtm_product_type_master pdtm
-                   where grd.tolling_stock_type in ('None Tolling')
+                   where grd.tolling_stock_type in ('None Tolling','Clone Stock')
                      and grd.product_id = pdm.product_id
                      and pdm.product_type_id = pdtm.product_type_id
                      and pdtm.product_type_name = 'Composite'
                      and grd.dbd_id = gvc_dbd_id
                    group by grd.internal_gmr_ref_no,
-                            grd.product_id)
+                            grd.product_id,
+                            pdm.product_desc)
   loop
     update process_gmr gmr
-       set gmr.product_id = cur_grd.product_id
+       set gmr.product_id = cur_grd.product_id,
+           gmr.product_name=cur_grd.product_desc
      where gmr.internal_gmr_ref_no = cur_grd.internal_gmr_ref_no
        and gmr.dbd_id = gvc_dbd_id
        and gmr.corporate_id = pc_corporate_id;
@@ -9304,7 +9313,8 @@ commit;
                            gvn_log_counter,
                            'inside grd_data product_id update3');
   for cur_grd in (select grd.internal_gmr_ref_no,
-                         grd.product_id
+                         grd.product_id,
+                         pdm.product_desc
                     from dgrd_delivered_grd       grd,
                          pdm_productmaster        pdm,
                          pdtm_product_type_master pdtm
@@ -9314,10 +9324,12 @@ commit;
                      and pdtm.product_type_name = 'Composite'
                      and grd.dbd_id = gvc_dbd_id
                    group by grd.internal_gmr_ref_no,
-                            grd.product_id)
+                            grd.product_id,
+                            pdm.product_desc)
   loop
     update process_gmr gmr
-       set gmr.product_id = cur_grd.product_id
+       set gmr.product_id = cur_grd.product_id,
+           gmr.product_name=cur_grd.product_desc
      where gmr.internal_gmr_ref_no = cur_grd.internal_gmr_ref_no
        and gmr.dbd_id = gvc_dbd_id;
        vn_row_cnt := vn_row_cnt + 1;
@@ -14185,6 +14197,7 @@ sp_precheck_process_log(pc_corporate_id,
        sum(grd.qty * nvl(grd.grd_to_gmr_qty_factor, 1)) wet_qty,
        sum(grd.dry_qty * nvl(grd.grd_to_gmr_qty_factor, 1)) dry_qty,
        max(grd.quality_name) quality_name,
+       max(grd.quality_id)quality_id,
        max(grd.pcdi_id) pcdi_id
   from process_grd grd
  where grd.dbd_id = pc_dbd_id
@@ -14197,6 +14210,7 @@ sp_precheck_process_log(pc_corporate_id,
        set gmr.no_of_containers = cur_containers.no_of_containers,
            gmr.dry_qty          = cur_containers.dry_qty,
            gmr.wet_qty          = cur_containers.wet_qty,
+           gmr.quality_id       = cur_containers.quality_id,
            gmr.quality_name     = cur_containers.quality_name,
            gmr.pcdi_id          = cur_containers.pcdi_id
      where gmr.dbd_id = pc_dbd_id
@@ -15568,7 +15582,10 @@ insert into gmr_goods_movement_record
    is_pc_changed_ytd,
    is_new_debit_credit_invoice,
    debit_credit_invoice_no,
-   pcdi_id)
+   pcdi_id,
+   product_name,
+   quality_id,
+   is_new_invoice)
   select internal_gmr_ref_no,
          gmr_ref_no,
          gmr_first_int_action_ref_no,
@@ -15734,7 +15751,10 @@ insert into gmr_goods_movement_record
          is_pc_changed_ytd,
          is_new_debit_credit_invoice,
          debit_credit_invoice_no,
-         pcdi_id
+         pcdi_id,
+         product_name,
+         quality_id,
+         is_new_invoice
     from process_gmr
     where corporate_id = pc_corporate_id;    
  commit;
