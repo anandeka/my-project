@@ -22,12 +22,3 @@
  -- Create/Recreate indexes 
 create index ASD_D1 on ASD_ASSAY_SAMPLE_D (internal_doc_ref_no, corporate_id);
 
---------------------------------------------------------------------------------------
-
-CREATE SEQUENCE SEQDOC_SL
-  START WITH 1
-  MAXVALUE 9999999999999999999999999999
-  MINVALUE 1
-  NOCYCLE
-  NOCACHE
-  NOORDER;
