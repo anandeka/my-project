@@ -1,4 +1,5 @@
 
+set define off;
 DECLARE
    CURSOR samplinglabel_dc
    IS
