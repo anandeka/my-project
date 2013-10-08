@@ -174,7 +174,8 @@ select 'Invoice' section_name,
        null api_invoice_currency,
        null provisional_amount_unit,
        'N' is_api_pi,
-       isd.total_premium_amount as premium_discount
+       isd.total_premium_amount as premium_discount,
+       isd.smelter_location
   from is_d isd,
        is_child_d isc,
        is_bdp_child_d isp_c1,
@@ -374,7 +375,8 @@ select 'Invoice' section_name,
        ispcd.invoice_currency api_invoice_currency,
        ispcd.invoice_currency provisional_amount_unit,
        'Y' is_api_pi,
-       null premium_discount
+       null premium_discount,
+       isd.smelter_location
   from is_d              isd,
        is_parent_child_d ispcd,
        --api_details_d api_d,
@@ -560,7 +562,7 @@ select 'Invoice' section_name,
        --ispcd.invoice_currency provisional_amount_unit,
        api_d.invoice_currency provisional_amount_unit,
        'Y' is_api_pi,
-       null premium_discount
+       null premium_discount,isd.smelter_location
   from is_d isd,
        --is_parent_child_d ispcd,
        api_details_d       api_d,
@@ -746,7 +748,8 @@ select 'Invoice' section_name,
        null api_invoice_currency,
        null provisional_amount_unit,
        'N' is_api_pi,
-       null premium_discount
+       null premium_discount,
+       isd.smelter_location
   from is_d isd,
        is_bdp_child_d isp_c1,
        is_bds_child_d isp_c2,
@@ -956,7 +959,8 @@ select 'Invoice' section_name,
        null api_invoice_currency,
        null provisional_amount_unit,
        'N' is_api_pi,
-       null premium_discount
+       null premium_discount,
+       isd.smelter_location
   from is_d isd,
        is_bdp_child_d isp_c1,
        is_bds_child_d isp_c2,
@@ -1161,7 +1165,8 @@ select 'Invoice' section_name,
        null api_invoice_currency,
        null provisional_amount_unit,
        'N' is_api_pi,
-       null premium_discount
+       null premium_discount,
+       isd.smelter_location
   from is_d isd,
        ds_document_summary ds,
        v_ak_corporate akc,
@@ -1364,7 +1369,8 @@ select 'Other Charges' section_name,
        null api_invoice_currency,
        null provisional_amount_unit,
        null is_api_pi,
-       null premium_discount
+       null premium_discount,
+       isd.smelter_location
   from ioc_d               ioc,
        is_d                isd,
        ds_document_summary ds,
@@ -1543,7 +1549,8 @@ select 'Other Taxes' section_name,
        null api_invoice_currency,
        null provisional_amount_unit,
        null is_api_pi,
-       null premium_discount
+       null premium_discount,
+       isd.smelter_location
   from itd_d               itd,
        is_d                isd,
        ds_document_summary ds,
