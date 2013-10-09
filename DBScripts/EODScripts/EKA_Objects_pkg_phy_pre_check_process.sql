@@ -4271,6 +4271,7 @@ create or replace package body pkg_phy_pre_check_process is
     vc_error_loc            varchar2(100);
     pn_charge_amt           number;
     pc_charge_price_unit_id varchar2(20);
+     vc_exch_rate_string        varchar2(100);
   begin
     vc_error_loc := 1;
     sp_write_log(pc_corporate_id,
@@ -4319,6 +4320,8 @@ create or replace package body pkg_phy_pre_check_process is
                  and pcpd.dbd_id = pci.dbd_id
                  and pci.pcdi_id = pcdi.pcdi_id
                  and pci.dbd_id = pcdi.dbd_id
+                 and pcm.dbd_id = pc_dbd_id
+                 and pcpd.dbd_id = pc_dbd_id
                  and pcdi.internal_contract_ref_no =
                      pcm.internal_contract_ref_no
                  and pcdi.is_active = 'Y'
@@ -4328,6 +4331,7 @@ create or replace package body pkg_phy_pre_check_process is
                  and pcm.contract_type = 'CONCENTRATES'
                  and pcm.is_tolling_contract = 'Y'
                  and pcm.is_tolling_extn = 'Y'
+                 and pcm.is_pass_through='N'
                  and pcpd.input_output = 'Input'
                  and pcpd.product_id = pdm.product_id
                  and pci.m2m_city_id = cim.city_id
@@ -4399,6 +4403,7 @@ create or replace package body pkg_phy_pre_check_process is
                              pcmte.int_contract_ref_no
                          and pcm.is_tolling_contract = 'Y'
                          and pcm.is_tolling_extn = 'Y'
+                         and pcm.is_pass_through='N'
                          and grd.shed_id = shm.storage_loc_id(+)
                          and grd.dbd_id = pc_dbd_id
                          and gmr.dbd_id = pc_dbd_id
@@ -4414,7 +4419,6 @@ create or replace package body pkg_phy_pre_check_process is
                          and pcm.is_active = 'Y'
                          and nvl(grd.inventory_status, 'NA') <> 'Out'
                          and pcm.purchase_sales = 'P'
-                         and pcm.contract_status = 'In Position'
                       union all
                       select pcm.corporate_id,
                              pcm.contract_ref_no,
@@ -4451,6 +4455,7 @@ create or replace package body pkg_phy_pre_check_process is
                              pcmte.int_contract_ref_no
                          and pcm.is_tolling_contract = 'Y'
                          and pcm.is_tolling_extn = 'Y'
+                         and pcm.is_pass_through='N'
                          and pcdi.pcdi_id = pci.pcdi_id
                          and agh.int_sales_contract_item_ref_no =
                              pci.internal_contract_item_ref_no
@@ -4529,7 +4534,8 @@ create or replace package body pkg_phy_pre_check_process is
        element_name,
        product_type,
        is_tolling_contract,
-       is_tolling_extn)
+       is_tolling_extn,
+       payment_due_date)
       (select pcm.corporate_id corporate_id,
               mv_qat.conc_product_id conc_product_id,
               mv_qat.conc_quality_id conc_quality_id,
@@ -4565,7 +4571,8 @@ create or replace package body pkg_phy_pre_check_process is
               aml.attribute_name,
               'CONCENTRATES',
               pcm.is_tolling_contract,
-              pcm.is_tolling_extn
+              pcm.is_tolling_extn,
+              pcdi.payment_due_date
          from pcm_physical_contract_main     pcm,
               pcmte_pcm_tolling_ext          pcmte,
               pci_physical_contract_item     pci,
@@ -4593,6 +4600,7 @@ create or replace package body pkg_phy_pre_check_process is
           and pcm.contract_status in ('In Position', 'Pending Approval')
           and pcm.is_tolling_contract = 'Y'
           and pcm.is_tolling_extn = 'Y'
+          and pcm.is_pass_through='N'
           and pcm.corporate_id = mvp.corporate_id
           and mv_qat.conc_product_id = mvp.product_id(+)
           and mv_qat.attribute_id = aml.attribute_id
@@ -4659,7 +4667,8 @@ create or replace package body pkg_phy_pre_check_process is
        shipment_date,
        internal_m2m_id,
        is_tolling_contract,
-       is_tolling_extn)
+       is_tolling_extn,
+       payment_due_date)
       select m2m.corporate_id,
              m2m.product_group_type,
              m2m.product_id conc_product_id,
@@ -4693,7 +4702,8 @@ create or replace package body pkg_phy_pre_check_process is
              m2m.shipment_date,
              null internal_m2m_id,
              m2m.is_tolling_contract,
-             m2m.is_tolling_extn
+             m2m.is_tolling_extn,
+             payment_due_date
         from (select temp.corporate_id,
                      temp.product_group_type,
                      mv_qat.product_id element_product_id,
@@ -4731,7 +4741,8 @@ create or replace package body pkg_phy_pre_check_process is
                      to_char(pd_trade_date, 'yyyy') shipment_year,
                      pd_trade_date shipment_date,
                      temp.is_tolling_contract,
-                     temp.is_tolling_extn
+                     temp.is_tolling_extn,
+                     payment_due_date
                 from (select case
                                when nvl(grd.is_afloat, 'N') = 'Y' and
                                     nvl(grd.inventory_status, 'NA') in
@@ -4772,8 +4783,9 @@ create or replace package body pkg_phy_pre_check_process is
                              grd.quality_id quality_id,
                              pci.m2m_inco_term,
                              pcm.is_tolling_contract,
-                             pcpch.element_id,
                              pcm.is_tolling_extn,
+                             pd_trade_date payment_due_date,
+                             aml.attribute_id element_id,
                              aml.attribute_name element_name
                         from grd_goods_record_detail        grd,
                              gmr_goods_movement_record      gmr,
@@ -4823,6 +4835,7 @@ create or replace package body pkg_phy_pre_check_process is
                              pcmte.int_contract_ref_no
                          and pcm.is_tolling_contract = 'Y'
                          and pcm.is_tolling_extn = 'Y'
+                         and pcm.is_pass_through='N'
                          and gmr.is_internal_movement = 'N'
                          and aml.attribute_id = pcpch.element_id
                          and aml.is_active = 'Y'
@@ -4832,19 +4845,19 @@ create or replace package body pkg_phy_pre_check_process is
                                when nvl(gmr.inventory_status, 'NA') =
                                     'Under CMA' then
                                 'UnderCMA NTT'
-                               when nvl(grd.is_afloat, 'N') = 'Y' and
-                                    nvl(grd.inventory_status, 'NA') in
+                               when nvl(dgrd.is_afloat, 'N') = 'Y' and
+                                    nvl(dgrd.inventory_status, 'NA') in
                                     ('In', 'None', 'NA') then
                                 'Shipped NTT'
-                               when nvl(grd.is_afloat, 'N') = 'Y' and
-                                    nvl(grd.inventory_status, 'NA') = 'Out' then
+                               when nvl(dgrd.is_afloat, 'N') = 'Y' and
+                                    nvl(dgrd.inventory_status, 'NA') = 'Out' then
                                 'Shipped TT'
-                               when nvl(grd.is_afloat, 'N') = 'N' and
-                                    nvl(grd.inventory_status, 'NA') in
+                               when nvl(dgrd.is_afloat, 'N') = 'N' and
+                                    nvl(dgrd.inventory_status, 'NA') in
                                     ('In', 'None', 'NA') then
                                 'Stock NTT'
-                               when nvl(grd.is_afloat, 'N') = 'N' and
-                                    nvl(grd.inventory_status, 'NA') = 'Out' then
+                               when nvl(dgrd.is_afloat, 'N') = 'N' and
+                                    nvl(dgrd.inventory_status, 'NA') = 'Out' then
                                 'Stock TT'
                                else
                                 'Others'
@@ -4855,86 +4868,89 @@ create or replace package body pkg_phy_pre_check_process is
                              pci.internal_contract_item_ref_no,
                              pcm.internal_contract_ref_no,
                              gmr.internal_gmr_ref_no,
-                             grd.internal_grd_ref_no,
+                             dgrd.internal_dgrd_ref_no internal_grd_ref_no,
                              pcm.contract_type,
                              pcm.contract_ref_no,
                              pcdi.pcdi_id,
                              case
-                               when nvl(grd.stock_status, 'N') =
+                               when nvl(dgrd.stock_status, 'N') =
                                     'For Invoicing' then
                                 nvl(gmr.destination_city_id,
                                     gmr.discharge_city_id)
                                else
                                 case
-                               when nvl(grd.is_afloat, 'N') = 'N' then
+                               when nvl(dgrd.is_afloat, 'N') = 'N' then
                                 shm.city_id
                                else
                                 nvl(gmr.destination_city_id,
                                     gmr.discharge_city_id)
                              end end city_id,
-                             grd.product_id,
+                             dgrd.product_id,
                              pcpq.assay_header_id,
-                             grd.quality_id,
+                             dgrd.quality_id,
                              pci.m2m_inco_term,
                              pcm.is_tolling_contract,
-                             pcpch.element_id,
                              pcm.is_tolling_extn,
+                             pd_trade_date payment_due_date,
+                             aml.attribute_id element_id,
                              aml.attribute_name element_name
                         from gmr_goods_movement_record      gmr,
-                             pcm_physical_contract_main     pcm,
-                             pcmte_pcm_tolling_ext          pcmte,
-                             pcdi_pc_delivery_item          pcdi,
                              pci_physical_contract_item     pci,
-                             pcpq_pc_product_quality        pcpq,
-                             grd_goods_record_detail        grd,
-                             sld_storage_location_detail    shm,
+                             pcm_physical_contract_main     pcm,
+                             pcdi_pc_delivery_item          pcdi,
                              gsm_gmr_stauts_master          gsm,
-                             dipch_di_payablecontent_header dipch,
+                             agh_alloc_group_header         agh,
+                             sld_storage_location_detail    shm,
+                             dgrd_delivered_grd             dgrd,
+                             pcpq_pc_product_quality        pcpq,
                              pcpch_pc_payble_content_header pcpch,
-                             aml_attribute_master_list      aml
+                             aml_attribute_master_list      aml,
+                             pcmte_pcm_tolling_ext          pcmte
                        where gmr.internal_contract_ref_no =
                              pcm.internal_contract_ref_no(+)
                          and pcm.internal_contract_ref_no =
-                             pcmte.int_contract_ref_no
-                         and pcm.internal_contract_ref_no =
                              pcdi.internal_contract_ref_no
                          and pcdi.pcdi_id = pci.pcdi_id
+                         and agh.int_sales_contract_item_ref_no =
+                             pci.internal_contract_item_ref_no
                          and pcpq.pcpq_id = pci.pcpq_id
-                         and gmr.internal_gmr_ref_no =
-                             grd.internal_gmr_ref_no
-                         and grd.shed_id = shm.storage_loc_id(+)
-                         and gmr.status_id = gsm.status_id
-                         and pcdi.pcdi_id = dipch.pcdi_id
-                         and dipch.pcpch_id = pcpch.pcpch_id
-                         and pcpch.payable_type = 'Payable'
+                         and agh.int_alloc_group_id = dgrd.int_alloc_group_id
+                         and dgrd.shed_id = shm.storage_loc_id(+)
                          and pcm.purchase_sales = 'S'
                          and pcm.contract_type = 'CONCENTRATES'
                          and pcm.is_tolling_contract = 'Y'
                          and pcm.is_tolling_extn = 'Y'
+                         and pcm.is_pass_through='N'
+                         and pcm.contract_status = 'In Position'
                          and gsm.is_required_for_m2m = 'Y'
                          and gmr.dbd_id = pc_dbd_id
                          and pci.dbd_id = pc_dbd_id
                          and pcm.dbd_id = pc_dbd_id
-                         and grd.dbd_id = pc_dbd_id
+                         and dgrd.dbd_id = pc_dbd_id
                          and pcdi.dbd_id = pc_dbd_id
                          and pcpq.dbd_id = pc_dbd_id
-                         and dipch.dbd_id = pc_dbd_id
-                         and pcpch.dbd_id = pc_dbd_id
+                         and agh.dbd_id = pc_dbd_id
                          and gmr.corporate_id = pc_corporate_id
+                         and gmr.status_id = gsm.status_id
+                         and agh.is_deleted = 'N'
                          and gmr.is_deleted = 'N'
-                         and grd.is_deleted = 'N'
                          and pci.is_active = 'Y'
                          and pcm.is_active = 'Y'
                          and pcdi.is_active = 'Y'
                          and pcpq.is_active = 'Y'
-                         and dipch.is_active = 'Y'
-                         and pcpch.is_active = 'Y'
-                         and grd.status = 'Active'
+                         and upper(agh.realized_status) in
+                             ('UNREALIZED', 'UNDERCMA', 'REVERSEREALIZED',
+                              'REVERSEUNDERCMA')
+                         and dgrd.status = 'Active'
+                         and dgrd.net_weight > 0
                          and gmr.is_internal_movement = 'N'
-                         and aml.is_active = 'Y'
+                         and pcpch.internal_contract_ref_no =
+                             pcm.internal_contract_ref_no
+                         and pcpch.dbd_id = pc_dbd_id
                          and pcpch.element_id = aml.attribute_id
-                         and pcm.contract_status = 'In Position'
-                      union all -- Internal movement
+                         and pcm.internal_contract_ref_no =
+                             pcmte.int_contract_ref_no
+                      union all -- Internal movement Not sure why contract details are null ?? need to check
                       select case
                                when nvl(grd.is_afloat, 'N') = 'Y' and
                                     nvl(grd.inventory_status, 'NA') in
@@ -4975,9 +4991,11 @@ create or replace package body pkg_phy_pre_check_process is
                              grd.quality_id quality_id,
                              null m2m_inco_term,
                              null is_tolling_contract,
-                             null element_id,
                              null is_tolling_extn,
+                             pd_trade_date payment_due_date,
+                             aml.attribute_id element_id,
                              aml.attribute_name element_name
+                      
                         from grd_goods_record_detail        grd,
                              gmr_goods_movement_record      gmr,
                              sld_storage_location_detail    shm,
@@ -5009,8 +5027,7 @@ create or replace package body pkg_phy_pre_check_process is
                          and pci.dbd_id = pc_dbd_id
                          and pcdi.dbd_id = pc_dbd_id
                          and pcpch.dbd_id = pc_dbd_id
-                         and pcpch.element_id = aml.attribute_id
-                         and aml.is_active = 'Y') temp,
+                         and pcpch.element_id = aml.attribute_id) temp,
                      mv_conc_qat_quality_valuation mv_qat,
                      mvp_m2m_valuation_point mvp,
                      mvpl_m2m_valuation_point_loc mvpl,
@@ -5025,7 +5042,34 @@ create or replace package body pkg_phy_pre_check_process is
                  and mvpl.loc_city_id = temp.city_id
                  and temp.element_id = mv_qat.attribute_id) m2m;
   
-    --End of insert into tmpc for Inventory  Concentrate
+    for cur_ppu in (select tmpc.conc_product_id,
+                           ppu.product_price_unit_id
+                      from tmpc_temp_m2m_pre_check tmpc,
+                           pdm_productmaster       pdm,
+                           v_ppu_pum               ppu,
+                           ak_corporate            akc
+                     where tmpc.corporate_id = pc_corporate_id
+                       and tmpc.product_type = 'CONCENTRATES'
+                       and tmpc.is_tolling_contract = 'Y'
+                       and tmpc.is_tolling_extn = 'Y'
+                       and tmpc.conc_product_id = pdm.product_id
+                       and ppu.product_id = pdm.product_id
+                       and ppu.weight_unit_id = pdm.base_quantity_unit
+                       and ppu.cur_id = akc.base_cur_id
+                     group by tmpc.conc_product_id,
+                              ppu.product_price_unit_id)
+    loop
+    
+      update tmpc_temp_m2m_pre_check tmpc
+         set tmpc.conc_base_price_unit_id_ppu = cur_ppu.product_price_unit_id
+       where tmpc.corporate_id = pc_corporate_id
+         and tmpc.product_type = 'CONCENTRATES'
+         and tmpc.is_tolling_contract = 'Y'
+         and tmpc.is_tolling_extn = 'Y'
+         and tmpc.conc_product_id = cur_ppu.conc_product_id;
+    
+    end loop;
+  
     sp_write_log(pc_corporate_id,
                  pd_trade_date,
                  'Precheck M2M',
@@ -5146,10 +5190,7 @@ create or replace package body pkg_phy_pre_check_process is
                            and pci.is_active = 'Y'
                            and pcm.is_active = 'Y'
                            and pcpd.is_active = 'Y'
-                           and pcpq.is_active = 'Y'
-                           and pqca.is_active = 'Y'
-                           and ash.is_active = 'Y'
-                           and asm.is_active = 'Y') t,
+                           and pcpq.is_active = 'Y') t,
                        tmpc_temp_m2m_pre_check tmpc
                  where tmpc.section_name = 'OPEN'
                    and tmpc.corporate_id = pc_corporate_id
@@ -5176,7 +5217,7 @@ create or replace package body pkg_phy_pre_check_process is
          and tmpc.corporate_id = pc_corporate_id;
     end loop;
     -------------------- 
-  
+    commit;
     for cc2 in (select t.pcdi_id,
                        t.internal_contract_ref_no,
                        t.internal_contract_item_ref_no,
@@ -5280,10 +5321,7 @@ create or replace package body pkg_phy_pre_check_process is
                            and pci.is_active = 'Y'
                            and pcm.is_active = 'Y'
                            and pcpq.is_active = 'Y'
-                           and pcpd.is_active = 'Y'
-                           and pqca.is_active = 'Y'
-                           and ash.is_active = 'Y'
-                           and asm.is_active = 'Y') t,
+                           and pcpd.is_active = 'Y') t,
                        tmpc_temp_m2m_pre_check tmpc
                  where tmpc.section_name = 'OPEN'
                    and tmpc.corporate_id = pc_corporate_id
@@ -5310,7 +5348,7 @@ create or replace package body pkg_phy_pre_check_process is
          and tmpc.corporate_id = pc_corporate_id;
     end loop;
     -------
-  
+    commit;
     sp_write_log(pc_corporate_id,
                  pd_trade_date,
                  'Precheck M2M',
@@ -5671,8 +5709,7 @@ create or replace package body pkg_phy_pre_check_process is
                      akc.base_cur_id,
                      pdm.base_quantity_unit,
                      pum.price_unit_id,
-                     pum.price_unit_name,
-                     tmpc.contract_ref_no
+                     pum.price_unit_name
                 from tmpc_temp_m2m_pre_check tmpc,
                      ak_corporate            akc,
                      pdm_productmaster       pdm,
@@ -5695,8 +5732,7 @@ create or replace package body pkg_phy_pre_check_process is
                         pdm.base_quantity_unit,
                         pum.price_unit_name,
                         pdm.product_desc,
-                        pum.price_unit_id,
-                        tmpc.contract_ref_no
+                        pum.price_unit_id
               union all
               select tmpc.corporate_id,
                      tmpc.conc_product_id product_id,
@@ -5704,8 +5740,7 @@ create or replace package body pkg_phy_pre_check_process is
                      akc.base_cur_id,
                      pdm_conc.base_quantity_unit,
                      pum.price_unit_id,
-                     pum.price_unit_name,
-                     tmpc.contract_ref_no
+                     pum.price_unit_name
                 from tmpc_temp_m2m_pre_check tmpc,
                      ak_corporate            akc,
                      pdm_productmaster       pdm,
@@ -5728,8 +5763,7 @@ create or replace package body pkg_phy_pre_check_process is
                         akc.base_cur_id,
                         pdm_conc.product_desc,
                         pdm_conc.base_quantity_unit,
-                        pum.price_unit_id,
-                        tmpc.contract_ref_no) t
+                        pum.price_unit_id) t
        where not exists (select 1
                 from ppu_product_price_units ppu
                where ppu.product_id = t.product_id
@@ -5897,11 +5931,12 @@ create or replace package body pkg_phy_pre_check_process is
                              qat.quality_name conc_qat_name,
                              tmpc.element_id,
                              tmpc.element_name,
-                             tmpc.base_price_unit_id_in_ppu,
+                             tmpc.conc_base_price_unit_id_ppu,
                              tmpc.shipment_month,
                              tmpc.shipment_year,
                              tmpc.mvp_id valuation_point_id,
-                             tmpc.valuation_point
+                             tmpc.valuation_point,
+                             tmpc.payment_due_date
                         from tmpc_temp_m2m_pre_check tmpc,
                              pdm_productmaster       pdm,
                              qat_quality_attributes  qat
@@ -5915,28 +5950,31 @@ create or replace package body pkg_phy_pre_check_process is
                                 tmpc.conc_product_id,
                                 pdm.product_desc,
                                 tmpc.conc_quality_id,
-                                tmpc.base_price_unit_id_in_ppu,
+                                tmpc.conc_base_price_unit_id_ppu,
                                 tmpc.element_id,
                                 tmpc.valuation_point,
                                 tmpc.mvp_id,
                                 qat.quality_name,
                                 tmpc.element_name,
                                 tmpc.shipment_month,
-                                tmpc.shipment_year)
+                                tmpc.shipment_year,
+                                tmpc.payment_due_date)
       loop
         --for treatment charge precheck
-        pkg_phy_pre_check_process.sp_calc_m2m_tc_pc_rc_charge(cc_tmpc.corporate_id,
-                                                              pd_trade_date,
-                                                              cc_tmpc.conc_product_id,
-                                                              cc_tmpc.conc_quality_id,
-                                                              cc_tmpc.valuation_point_id, --valuation_id
-                                                              'Treatment Charges', --charge_type
-                                                              cc_tmpc.element_id,
-                                                              cc_tmpc.shipment_month,
-                                                              cc_tmpc.shipment_year,
-                                                              cc_tmpc.base_price_unit_id_in_ppu,
-                                                              pn_charge_amt,
-                                                              pc_charge_price_unit_id);
+      
+        pkg_phy_pre_check_process.sp_m2m_tc_pc_rc_charge(cc_tmpc.corporate_id,
+                                                         pd_trade_date,
+                                                         cc_tmpc.conc_product_id,
+                                                         cc_tmpc.conc_quality_id,
+                                                         cc_tmpc.valuation_point_id,
+                                                         'Treatment Charges',
+                                                         cc_tmpc.element_id,
+                                                         cc_tmpc.shipment_month,
+                                                         cc_tmpc.shipment_year,
+                                                         cc_tmpc.conc_base_price_unit_id_ppu,
+                                                         cc_tmpc.payment_due_date,
+                                                         pn_charge_amt,
+                                                         vc_exch_rate_string);
       
         if pn_charge_amt = 0 then
           insert into eel_eod_eom_exception_log
@@ -5961,20 +5999,35 @@ create or replace package body pkg_phy_pre_check_process is
              sysdate,
              pc_user_id,
              pd_trade_date);
+        else
+        
+          update tmpc_temp_m2m_pre_check tmpc
+             set tmpc.m2m_treatment_charge = pn_charge_amt,
+                 tmpc.m2m_tc_fw_exch_rate  = vc_exch_rate_string
+           where tmpc.corporate_id = pc_corporate_id
+             and tmpc.conc_product_id = cc_tmpc.conc_product_id
+             and tmpc.conc_quality_id = cc_tmpc.conc_quality_id
+             and tmpc.mvp_id = cc_tmpc.valuation_point_id
+             and tmpc.element_id = cc_tmpc.element_id
+             and tmpc.shipment_month = cc_tmpc.shipment_month
+             and tmpc.shipment_year = cc_tmpc.shipment_year
+             and tmpc.payment_due_date = cc_tmpc.payment_due_date;
+        
         end if;
         --for refine charge precheck
-        pkg_phy_pre_check_process.sp_calc_m2m_tc_pc_rc_charge(cc_tmpc.corporate_id,
-                                                              pd_trade_date,
-                                                              cc_tmpc.conc_product_id,
-                                                              cc_tmpc.conc_quality_id,
-                                                              cc_tmpc.valuation_point_id, --valuation_id
-                                                              'Refining Charges', --charge_type
-                                                              cc_tmpc.element_id,
-                                                              cc_tmpc.shipment_month,
-                                                              cc_tmpc.shipment_year,
-                                                              cc_tmpc.base_price_unit_id_in_ppu,
-                                                              pn_charge_amt,
-                                                              pc_charge_price_unit_id);
+        pkg_phy_pre_check_process.sp_m2m_tc_pc_rc_charge(cc_tmpc.corporate_id,
+                                                         pd_trade_date,
+                                                         cc_tmpc.conc_product_id,
+                                                         cc_tmpc.conc_quality_id,
+                                                         cc_tmpc.valuation_point_id, --valuation_id
+                                                         'Refining Charges', --charge_type
+                                                         cc_tmpc.element_id,
+                                                         cc_tmpc.shipment_month,
+                                                         cc_tmpc.shipment_year,
+                                                         cc_tmpc.conc_base_price_unit_id_ppu,
+                                                         cc_tmpc.payment_due_date,
+                                                         pn_charge_amt,
+                                                         vc_exch_rate_string);
         if pn_charge_amt = 0 then
           insert into eel_eod_eom_exception_log
             (corporate_id,
@@ -5998,6 +6051,19 @@ create or replace package body pkg_phy_pre_check_process is
              sysdate,
              pc_user_id,
              pd_trade_date);
+        else
+        
+          update tmpc_temp_m2m_pre_check tmpc
+             set tmpc.m2m_refining_charge = pn_charge_amt,
+                 tmpc.m2m_rc_fw_exch_rate = vc_exch_rate_string
+           where tmpc.corporate_id = pc_corporate_id
+             and tmpc.conc_product_id = cc_tmpc.conc_product_id
+             and tmpc.conc_quality_id = cc_tmpc.conc_quality_id
+             and tmpc.mvp_id = cc_tmpc.valuation_point_id
+             and tmpc.element_id = cc_tmpc.element_id
+             and tmpc.shipment_month = cc_tmpc.shipment_month
+             and tmpc.shipment_year = cc_tmpc.shipment_year
+             and tmpc.payment_due_date = cc_tmpc.payment_due_date;
         end if;
       end loop;
     end;
