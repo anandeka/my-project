@@ -104,12 +104,13 @@ select t.corporate_id,
                    ash.assay_type
                 end) assay_type,
                 ash.assay_ref_no,
-                (case
+                /*(case
                   when ash.assay_type ='Final Assay' then
                    pqca.umpire_name
                   else
                    null
-                end) umpirename,
+                end)*/
+		pqca.umpire_name umpirename,
                 asm.net_weight wet_qty,
                 asm.dry_weight dry_qty,
                 asm.net_weight_unit,
