@@ -1,4 +1,3 @@
-
 DECLARE
    fetchquerytcchildfor_piconc     CLOB
       := 'INSERT INTO IS_CONC_TC_CHILD (
@@ -353,6 +352,7 @@ GROUP BY invs.internal_invoice_ref_no,
          inrc.element_id,
          inrc.payable_qty,
          qum_rm.qty_unit,
+         DGRD.INTERNAL_STOCK_REF_NO,
          qum_dgrd.qty_unit';
    fetchqueryrcchildfor_ficonc     CLOB
       := 'INSERT INTO IS_CONC_RC_CHILD(
@@ -458,6 +458,7 @@ GROUP BY invs.internal_invoice_ref_no,
          inrc.element_id,
          inrc.payable_qty,
          qum_rm.qty_unit,
+         DGRD.INTERNAL_STOCK_REF_NO,
          qum_dgrd.qty_unit';
    fetchqueryrcchildfor_dficonc    CLOB
       := 'INSERT INTO IS_CONC_RC_CHILD(
@@ -563,6 +564,7 @@ GROUP BY invs.internal_invoice_ref_no,
          inrc.element_id,
          inrc.payable_qty,
          qum_rm.qty_unit,
+         DGRD.INTERNAL_STOCK_REF_NO,
          qum_dgrd.qty_unit';
    fetchquerypenaltycfor_piconc    CLOB
       := 'INSERT INTO IS_CONC_PENALTY_CHILD(
@@ -657,6 +659,7 @@ GROUP BY invs.internal_invoice_ref_no,
          iid.invoiced_qty,
          qum.qty_unit,
          ash.ash_id,
+         DGRD.INTERNAL_STOCK_REF_NO,
          iepd.sub_lot_no';
    fetchquerypenaltycfor_ficonc    CLOB
       := 'INSERT INTO IS_CONC_PENALTY_CHILD(
@@ -751,6 +754,7 @@ GROUP BY invs.internal_invoice_ref_no,
          iid.invoiced_qty,
          qum.qty_unit,
          ash.ash_id,
+         DGRD.INTERNAL_STOCK_REF_NO,
          iepd.sub_lot_no';
    fetchquerypenaltycfor_dficonc   CLOB
       := 'INSERT INTO IS_CONC_PENALTY_CHILD(
@@ -845,6 +849,7 @@ GROUP BY invs.internal_invoice_ref_no,
          iid.invoiced_qty,
          qum.qty_unit,
          ash.ash_id,
+         DGRD.INTERNAL_STOCK_REF_NO,
          iepd.sub_lot_no';
 BEGIN
    UPDATE dgm_document_generation_master dgm
@@ -892,21 +897,21 @@ BEGIN
    UPDATE dgm_document_generation_master dgm
       SET dgm.fetch_query = fetchquerypenaltycfor_piconc
     WHERE dgm.doc_id = 'CREATE_PI'
-      AND dgm.dgm_id = 'DGM-PIC-C4'
+      AND dgm.dgm_id = 'DGM-PIC-C4 '
       AND dgm.sequence_order = 5
       AND dgm.is_concentrate = 'Y';
 
    UPDATE dgm_document_generation_master dgm
       SET dgm.fetch_query = fetchquerypenaltycfor_ficonc
     WHERE dgm.doc_id = 'CREATE_FI'
-      AND dgm.dgm_id = 'DGM-FIC-C4'
+      AND dgm.dgm_id = 'DGM-FIC-C4 '
       AND dgm.sequence_order = 5
       AND dgm.is_concentrate = 'Y';
 
    UPDATE dgm_document_generation_master dgm
       SET dgm.fetch_query = fetchquerypenaltycfor_dficonc
     WHERE dgm.doc_id = 'CREATE_DFI'
-      AND dgm.dgm_id = 'DGM-DFIC-C4'
+      AND dgm.dgm_id = 'DGM-DFIC-C4 '
       AND dgm.sequence_order = 5
       AND dgm.is_concentrate = 'Y';
 
