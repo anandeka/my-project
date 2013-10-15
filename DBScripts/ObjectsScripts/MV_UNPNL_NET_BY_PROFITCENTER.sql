@@ -47,21 +47,21 @@ select ctab.corporate_id,
                aa.profit_center_name,
                sum(decode(aa.process_id,
                           led.latest_process_id,
-                          aa.pnl_value_in_home_currency,
+                          aa.pnl_in_corp_currency,
                           0)) current_amount,
                sum(decode(aa.process_id,
                           led.previous_process_id,
-                          aa.pnl_value_in_home_currency,
+                          aa.pnl_in_corp_currency,
                           0)) previous_amount,
                sum(decode(aa.process_id,
                           led.latest_process_id,
-                          aa.pnl_value_in_home_currency,
+                          aa.pnl_in_corp_currency,
                           0)) - sum(decode(aa.process_id,
                                            led.previous_process_id,
-                                           aa.pnl_value_in_home_currency,
+                                           aa.pnl_in_corp_currency,
                                            0)) change,
-               aa.home_currency base_cur_code,
-               aa.home_cur_id base_cur_id
+               aa.corp_currency base_cur_code,
+               aa.corp_cur_id base_cur_id
           from cpd_currency_pnl_daily@eka_eoddb aa,
                mv_latest_eod_dates     led
          where aa.corporate_id = led.corporate_id
@@ -71,8 +71,8 @@ select ctab.corporate_id,
          group by aa.corporate_id,
                   aa.profit_center_id,
                   aa.profit_center_name,
-                  aa.home_currency,
-                  aa.home_cur_id
+                  aa.corp_currency,
+                  aa.corp_cur_id
         union all
         select aa.corporate_id,
                aa.profit_center_id,
