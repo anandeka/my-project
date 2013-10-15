@@ -1,0 +1,61 @@
+Patch No *              	:  EKA_METALS_PATCH_1751
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+ 
+Created on*        		:  15-Oct-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  82833
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  APP/Report
+
+Sub-Module  			 :  APP/Report
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 146777
+Author: suresh.gottipati
+Date: 5:35:08 PM, Tuesday, October 15, 2013
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_135.sql
+
+
+
+
+Revision: 146776
+Author: suresh.gottipati
+Date: 5:33:03 PM, Tuesday, October 15, 2013
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFeedConsumptionReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFeedConsumptionReport_Excel.rpt
+
+
+
+
+
