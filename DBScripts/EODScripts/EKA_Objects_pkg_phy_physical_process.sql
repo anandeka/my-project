@@ -539,8 +539,7 @@ create or replace package body pkg_phy_physical_process is
       pkg_phy_eod_reports.sp_calc_treatment_charge(pc_corporate_id,
                                                    pd_trade_date,
                                                    pc_process_id,
-                                                   pc_process,
-                                                   pc_dbd_id);
+                                                   pc_process);
       commit;
       vn_logno := vn_logno + 1;
       sp_eodeom_process_log(pc_corporate_id,
@@ -551,8 +550,7 @@ create or replace package body pkg_phy_physical_process is
       pkg_phy_eod_reports.sp_calc_refining_charge(pc_corporate_id,
                                                   pd_trade_date,
                                                   pc_process_id,
-                                                  pc_process,
-                                                  pc_dbd_id);
+                                                  pc_process);
       commit;
       vn_logno := vn_logno + 1;
       sp_eodeom_process_log(pc_corporate_id,
@@ -563,8 +561,7 @@ create or replace package body pkg_phy_physical_process is
       pkg_phy_eod_reports.sp_calc_penalty_charge(pc_corporate_id,
                                                  pd_trade_date,
                                                  pc_process_id,
-                                                 pc_process,
-                                                 pc_dbd_id);
+                                                 pc_process);
       commit;
       if pkg_process_status.sp_get(pc_corporate_id,
                                    pc_process,
@@ -3817,21 +3814,30 @@ commit;
     delete from pcpch_pc_payble_content_header where dbd_id = vc_dbd_id;
     delete from pqd_payable_quality_details where dbd_id = vc_dbd_id;
     delete from pcepc_pc_elem_payable_content where dbd_id = vc_dbd_id;
-    delete from pcth_pc_treatment_header where dbd_id = vc_dbd_id;
-    delete from ted_treatment_element_details where dbd_id = vc_dbd_id;
-    delete from tqd_treatment_quality_details where dbd_id = vc_dbd_id;
-    delete from pcetc_pc_elem_treatment_charge where dbd_id = vc_dbd_id;
+    delete from pcth_pc_treatment_header where process_id = pc_process_id;
+    delete from ted_treatment_element_details
+     where process_id = pc_process_id;
+    delete from tqd_treatment_quality_details
+     where process_id = pc_process_id;
+    delete from pcetc_pc_elem_treatment_charge
+     where process_id = pc_process_id;
     delete from pcar_pc_assaying_rules where dbd_id = vc_dbd_id;
     delete from pcaesl_assay_elem_split_limits where dbd_id = vc_dbd_id;
     delete from arqd_assay_quality_details where dbd_id = vc_dbd_id;
-    delete from pcaph_pc_attr_penalty_header where dbd_id = vc_dbd_id;
-    delete from pcap_pc_attribute_penalty where dbd_id = vc_dbd_id;
-    delete from pqd_penalty_quality_details where dbd_id = vc_dbd_id;
-    delete from pad_penalty_attribute_details where dbd_id = vc_dbd_id;
-    delete from pcrh_pc_refining_header where dbd_id = vc_dbd_id;
-    delete from rqd_refining_quality_details where dbd_id = vc_dbd_id;
-    delete from red_refining_element_details where dbd_id = vc_dbd_id;
-    delete from pcerc_pc_elem_refining_charge where dbd_id = vc_dbd_id;
+    delete from pcaph_pc_attr_penalty_header
+     where process_id = pc_process_id;
+    delete from pcap_pc_attribute_penalty where process_id = pc_process_id;
+    delete from pqd_penalty_quality_details
+     where process_id = pc_process_id;
+    delete from pad_penalty_attribute_details
+     where process_id = pc_process_id;
+    delete from pcrh_pc_refining_header where process_id = pc_process_id;
+    delete from rqd_refining_quality_details
+     where process_id = pc_process_id;
+    delete from red_refining_element_details
+     where process_id = pc_process_id;
+    delete from pcerc_pc_elem_refining_charge
+     where process_id = pc_process_id;
     delete from ceqs_contract_ele_qty_status where dbd_id = vc_dbd_id;
     delete from cipde_cipd_element_price where process_id = pc_process_id;
     delete from poue_phy_open_unreal_element
@@ -3877,7 +3883,11 @@ commit;
     delete from isr1_isr_inventory where process_id = pc_process_id;
     delete from isr2_isr_invoice where process_id = pc_process_id;
     delete from pcs_purchase_contract_status
-     where process_id = pc_process_id;
+    where process_id = pc_process_id;
+	delete from css_contract_status_summary
+    where process_id = pc_process_id;
+    delete from csfm_cont_status_free_metal
+    where process_id = pc_process_id;
     commit;
     delete from fcr_feed_consumption_report
      where process_id = pc_process_id;
@@ -3961,7 +3971,7 @@ commit;
      where process_id = pc_process_id;
     commit;
     delete from fcg_feed_consumption_gmr fcg
-     where process_id = pc_process_id;
+     where fcg.process_id = pc_process_id;
     delete from arg_arrival_report_gmr arg
      where arg.process_id = pc_process_id;
     -- If below tables Process ID might have marked for previoud DBD IDs
@@ -3993,11 +4003,12 @@ commit;
      where process_id = pc_process_id;
     delete from pca_physical_contract_action where dbd_id = vc_dbd_id;
     delete from cod_call_off_details where dbd_id = vc_dbd_id;
-    delete from gth_gmr_treatment_header where dbd_id = vc_dbd_id;
-    delete from grh_gmr_refining_header where dbd_id = vc_dbd_id;
-    delete from gph_gmr_penalty_header where dbd_id = vc_dbd_id;
+    delete from gth_gmr_treatment_header where process_id = pc_process_id;
+    delete from grh_gmr_refining_header where process_id = pc_process_id;
+    delete from gph_gmr_penalty_header where process_id = pc_process_id;
     commit;
-	delete from mbv_allocation_report where process_id = pc_process_id;
+    --- added suresh for MBV Report
+    delete from mbv_allocation_report where process_id = pc_process_id;
     delete from mbv_allocation_report_header
      where process_id = pc_process_id;
     delete from mbv_di_valuation_price where process_id = pc_process_id;
@@ -4015,14 +4026,19 @@ commit;
      where process_id = pc_process_id;
     delete from csfm_cont_status_free_metal
      where process_id = pc_process_id;
-	 delete from pfrhe_pfrh_extension 
-	 where process_id = pc_process_id;
-	 delete iids_iid_summary where process_id = pc_process_id;
-     delete iocd_ioc_details where process_id = pc_process_id;
-     delete from fxar_fx_allocation_report
-     where process_id = pc_process_id;
+    delete from pfrhe_pfrh_extension where process_id = pc_process_id;
+    delete from fxar_fx_allocation_report where process_id = pc_process_id;
     commit;
-
+    delete iids_iid_summary where process_id = pc_process_id;
+    delete iocd_ioc_details where process_id = pc_process_id;
+    delete tgc_temp_gmr_charges where process_id = pc_process_id;
+    delete aro_ar_original_report where process_id = pc_process_id;
+    delete areor_ar_ele_original_report where process_id = pc_process_id;
+    delete for_feed_original_report where process_id = pc_process_id;
+    delete feor_feed_ele_original_report where process_id = pc_process_id;
+    commit;
+  
+    --end Suresh 
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           pc_dbd_id,
@@ -4069,5 +4085,5 @@ commit;
     sp_gather_stats('rgmr_realized_gmr');
   end;
 
-end;
+end pkg_phy_physical_process;
 /

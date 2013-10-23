@@ -3813,7 +3813,11 @@ create or replace package body pkg_phy_physical_process is
     delete from isr1_isr_inventory where process_id = pc_process_id;
     delete from isr2_isr_invoice where process_id = pc_process_id;
     delete from pcs_purchase_contract_status
-     where process_id = pc_process_id;
+    where process_id = pc_process_id;
+	delete from css_contract_status_summary
+    where process_id = pc_process_id;
+    delete from csfm_cont_status_free_metal
+    where process_id = pc_process_id;
     commit;
     delete from fcr_feed_consumption_report
      where process_id = pc_process_id;
@@ -3852,15 +3856,39 @@ create or replace package body pkg_phy_physical_process is
     delete from ord_overall_realized_pnl_daily
      where process_id = pc_process_id;
     delete from tpd_trade_pnl_daily where process_id = pc_process_id;
-    delete from gepd_gmr_element_pledge_detail gepd
-     where dbd_id = vc_dbd_id;
-    delete from page_price_alloc_gmr_exchange
+    delete from gepd_gmr_element_pledge_detail where dbd_id = vc_dbd_id;
+    delete from eod_eom_fixation_journal where process_id = pc_process_id;
+    delete from pofh_history where process_id = pc_process_id;
+    delete from eod_eom_derivative_journal
+     where process_id = pc_process_id;
+    delete from eod_eom_booking_journal where process_id = pc_process_id;
+    delete from eod_eom_phy_contract_journal
+     where process_id = pc_process_id;
+    delete from prp_physical_risk_position
+     where process_id = pc_process_id;
+    commit;
+    delete from eod_eom_phy_booking_journal
      where process_id = pc_process_id;
     delete from getc_gmr_element_tc_charges
      where process_id = pc_process_id;
+    commit;
+    delete from gerc_gmr_element_rc_charges
+     where process_id = pc_process_id;
     delete from gepc_gmr_element_pc_charges
      where process_id = pc_process_id;
-    delete from gerc_gmr_element_rc_charges
+    commit;
+    delete from cmp_contract_market_price where process_id = pc_process_id;
+    delete from gmp_gmr_market_price where process_id = pc_process_id;
+    delete from bdp_bi_dertivative_pnl where process_id = pc_process_id;    
+    commit;
+    delete from page_price_alloc_gmr_exchange
+     where process_id = pc_process_id;
+    delete from tpr_traders_position_report
+     where process_id = pc_process_id;
+    commit;
+    delete from ped_penalty_element_details
+     where process_id = pc_process_id;
+    delete from ped_penalty_element_details
      where process_id = pc_process_id;
     delete from ciscs_cisc_summary where process_id = pc_process_id;
     delete from gpq_gmr_payable_qty where process_id = pc_process_id;
