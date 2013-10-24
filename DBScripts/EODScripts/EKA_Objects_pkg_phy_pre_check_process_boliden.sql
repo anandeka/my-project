@@ -8540,7 +8540,7 @@ create or replace package body pkg_phy_pre_check_process is
     --
     -- b) Free Metal Active Price Fixations
     -- 
-    insert into eel_eod_eom_exception_log
+    /*insert into eel_eod_eom_exception_log
       (corporate_id,
        submodule_name,
        exception_code,
@@ -8576,6 +8576,7 @@ create or replace package body pkg_phy_pre_check_process is
          and fmuh.is_active = 'Y'
          and fmed.is_active = 'Y'
          and fmpfh.is_active = 'Y'
+		 and fmpfd.is_active = 'Y'
          and fmpfam.internal_action_ref_no = axs.internal_action_ref_no
          and axs.corporate_id = pc_corporate_id
          and axs.eff_date > vd_prev_eom_date
@@ -8583,7 +8584,7 @@ create or replace package body pkg_phy_pre_check_process is
          and axs.process = 'EOM'
          and nvl(fmpfd.user_price, 0) = 0
          group by fmuh.corporate_id,axs.action_ref_no;
-    commit;
+    commit;*/
     insert into eel_eod_eom_exception_log
       (corporate_id,
        submodule_name,
