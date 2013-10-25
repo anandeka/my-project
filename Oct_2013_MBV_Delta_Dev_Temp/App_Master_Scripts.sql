@@ -62,4 +62,15 @@ Insert into RML_REPORT_MASTER_LIST
  Values
    ('400', '31', 'DerivativeRealizedPnLReport.rpt', 'Derivative Realized PnL Report', NULL, 
     NULL, NULL, 'populateFilter', 'EOM', 'Y');
+
+update REF_REPORTEXPORTFORMAT ref set REF.REPORT_FILE_NAME='OpenDerivativeValuationReportExcel.rpt' where REF.REPORT_ID='369';
+
+update REF_REPORTEXPORTFORMAT ref set REF.REPORT_FILE_NAME='PricedOrderedStockValuation_Excel.rpt' where REF.REPORT_ID='372';
+
+update REF_REPORTEXPORTFORMAT ref set REF.REPORT_FILE_NAME='HedgeAllocationReportExcel.rpt' where REF.REPORT_ID='371';
+Insert into REF_REPORTEXPORTFORMAT
+   (REPORT_ID, EXPORT_FORMAT, REPORT_FILE_NAME)
+ Values
+   ('400', 'EXCEL', 'DerivativeRealizedPnLReport_Excel.rpt');
+
 COMMIT;
