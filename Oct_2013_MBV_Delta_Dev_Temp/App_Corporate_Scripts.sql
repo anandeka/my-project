@@ -23,8 +23,25 @@ update rml_report_master_list rml
        rml.report_display_name = 'Priced Ordered Stock Valuation Report'
  where rml.report_id = 372;
 
- update amc_app_menu_configuration amc
-   set amc.menu_display_name = 'Weighted Averages Physical Pricings Report'
- where amc.menu_id = 'RPT-D374';
  
+  update amc_app_menu_configuration amc
+    set amc.menu_display_name = 'Open Derivative Valuation Report',
+        amc.link_called       = '/EkaReport/CommonFilter.do?method=populateFilter&docType=EOM&ReportID=369&ReportName=OpenDerivativeValuationReport.rpt&ExportFormat=HTML&isEodReport=Y'
+  where amc.menu_id = 'RPT-D369';
+ 
+ update rml_report_master_list rml
+    set rml.report_file_name    = 'OpenDerivativeValuationReport.rpt',
+        rml.report_display_name = 'Open Derivative Valuation Report'
+  where rml.report_id = '369';
+
+ update amc_app_menu_configuration amc
+   set amc.menu_display_name = 'Weighted Averages Physical Pricings Report',
+   amc.link_called       = '/EkaReport/CommonFilter.do?method=populateFilter&docType=EOM&ReportID=374&ReportName=WeightedAveragesPhysicalPricingsReport.rpt&ExportFormat=HTML&isEodReport=Y'
+ where amc.menu_id = 'RPT-D374';
+
+update rml_report_master_list rml
+   set rml.report_file_name    = 'WeightedAveragesPhysicalPricingsReport.rpt',
+       rml.report_display_name = 'Weighted Averages Physical Pricings Report'
+ where rml.report_id = '374';
+
  commit;
