@@ -24,7 +24,7 @@ update rml_report_master_list rml
  where rml.report_id = 372;
 
  update amc_app_menu_configuration amc
-   set amc.menu_display_name = 'Weighted averages Physical Pricings Report'
+   set amc.menu_display_name = 'Weighted Averages Physical Pricings Report'
  where amc.menu_id = 'RPT-D374';
  
  commit;
