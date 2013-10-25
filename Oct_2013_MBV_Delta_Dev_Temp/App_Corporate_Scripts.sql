@@ -44,4 +44,8 @@ update rml_report_master_list rml
        rml.report_display_name = 'Weighted Averages Physical Pricings Report'
  where rml.report_id = '374';
 
+UPDATE REF_REPORTEXPORTFORMAT REF
+SET REF.REPORT_FILE_NAME ='WeightedAveragesPhysicalPricingsReport_Excel.rpt'
+WHERE REPORT_ID = '374';
+
  commit;
