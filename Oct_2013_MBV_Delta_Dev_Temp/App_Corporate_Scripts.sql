@@ -22,4 +22,9 @@ update rml_report_master_list rml
    set rml.report_file_name    = 'PricedOrderedStockValuation.rpt',
        rml.report_display_name = 'Priced Ordered Stock Valuation Report'
  where rml.report_id = 372;
-commit;
+
+ update amc_app_menu_configuration amc
+   set amc.menu_display_name = 'Weighted averages Physical Pricings Report'
+ where amc.menu_id = 'RPT-D374';
+ 
+ commit;
