@@ -264,8 +264,7 @@ DECLARE
       AND gmr.qty_unit_id = qum_gmr.qty_unit_id
       AND gmr.internal_gmr_ref_no = ?';
    fetchquerysddfor_whreceipt       CLOB
-      := '
-INSERT INTO sdd_d
+      := 'INSERT INTO sdd_d
             (attention, buyer, contract_date, contract_item_no, contract_qty,
              contract_qty_unit, contract_ref_no, cp_ref_no,
              destination_location, discharge_country, discharge_port, eta_end,
