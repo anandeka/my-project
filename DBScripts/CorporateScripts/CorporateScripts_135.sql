@@ -17,27 +17,27 @@ Insert into RFC_REPORT_FILTER_CONFIG
 Insert into RPC_RF_PARAMETER_CONFIG
    (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
  Values
-   ('BLD', '256', 'RFC256PHY09', 'RFP1045', 'feedingPointList');
+   (cc.corporate_id, '256', 'RFC256PHY09', 'RFP1045', 'feedingPointList');
 Insert into RPC_RF_PARAMETER_CONFIG
    (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
  Values
-   ('BLD', '256', 'RFC256PHY09', 'RFP1046', 'FeedingPoint');
+   (cc.corporate_id, '256', 'RFC256PHY09', 'RFP1046', 'FeedingPoint');
 Insert into RPC_RF_PARAMETER_CONFIG
    (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
  Values
-   ('BLD', '256', 'RFC256PHY09', 'RFP1047', 'No');
+   (cc.corporate_id, '256', 'RFC256PHY09', 'RFP1047', 'No');
 Insert into RPC_RF_PARAMETER_CONFIG
    (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
  Values
-   ('BLD', '256', 'RFC256PHY09', 'RFP1048', 'Filter');
+   (cc.corporate_id, '256', 'RFC256PHY09', 'RFP1048', 'Filter');
 Insert into RPC_RF_PARAMETER_CONFIG
    (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
  Values
-   ('BLD', '256', 'RFC256PHY09', 'RFP1049', 'reportForm');
+   (cc.corporate_id, '256', 'RFC256PHY09', 'RFP1049', 'reportForm');
 Insert into RPC_RF_PARAMETER_CONFIG
    (CORPORATE_ID, REPORT_ID, LABEL_ID, PARAMETER_ID, REPORT_PARAMETER_NAME)
  Values
-   ('BLD', '256', 'RFC256PHY09', 'RFP1050', '1');
+   (cc.corporate_id, '256', 'RFC256PHY09', 'RFP1050', '1');
 end loop;
 commit;
 end;
