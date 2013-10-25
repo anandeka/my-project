@@ -2245,7 +2245,8 @@ commit;
    vn_value_diff_in_base_ccy  number(25, 5);
    vn_temp_qty_factor         number;
    vn_temp_currency_factor    number;
-   vn_pnl_atribution_due_to_price number(25, 5);
+   vn_pnl_atribution_due_to_price number(25,5);
+   vn_pnl_month_end_val_price     number(25,5); 
  begin 
  --
  -- For Realized PNL report, we need to push data into TEMP_INSTRUMENT_CASH_PRICE
@@ -2468,16 +2469,24 @@ select t.instrument_id,
        vn_temp_currency_factor := 1;
      end if;
      If mbv_ddr_rows.trade_type ='Sell' then
-       vn_pnl_atribution_due_to_price :=(((mbv_ddr_rows.trade_date_cash_price -  mbv_ddr_rows.month_end_price) /
+       vn_pnl_atribution_due_to_price :=(((mbv_ddr_rows.trade_date_cash_price -  mbv_ddr_rows.der_month_end_price) /
                                  nvl(mbv_ddr_rows.mep_price_weight, 1)) *
                                  vn_temp_currency_factor) *
                                  (vn_temp_qty_factor);
+       vn_pnl_month_end_val_price:= (((mbv_ddr_rows.trade_price -  mbv_ddr_rows.month_end_price) /
+                                 nvl(mbv_ddr_rows.mep_price_weight, 1)) *
+                                 vn_temp_currency_factor) *
+                                 (vn_temp_qty_factor);                         
                                  
          else
-        vn_pnl_atribution_due_to_price := ((( mbv_ddr_rows.month_end_price - mbv_ddr_rows.trade_date_cash_price) /
+        vn_pnl_atribution_due_to_price := ((( mbv_ddr_rows.der_month_end_price - mbv_ddr_rows.trade_date_cash_price) /
                                  nvl(mbv_ddr_rows.mep_price_weight, 1)) *
                                  vn_temp_currency_factor) *
                                  (vn_temp_qty_factor);
+        vn_pnl_month_end_val_price:= (((mbv_ddr_rows.month_end_price -  mbv_ddr_rows.trade_price) /
+                                 nvl(mbv_ddr_rows.mep_price_weight, 1)) *
+                                 vn_temp_currency_factor) *
+                                 (vn_temp_qty_factor);                                 
      end if;
        vc_error_msg := 'Unrealized Gain/Loss Attribution due to price ';
    
@@ -2523,7 +2532,7 @@ select t.instrument_id,
         trade_value_in_trade_ccy,
         market_value_in_trade_ccy,
         pnl_in_trade_ccy,
-        pnl_in_base_ccy,
+        pnl_in_base_ccy,---
         fx_trade_to_base_ccy,
         month_end_price,
         month_end_price_unit,
@@ -2576,7 +2585,7 @@ select t.instrument_id,
         mbv_ddr_rows.trade_value_in_trade_ccy,
         mbv_ddr_rows.market_value_in_trade_ccy,
         mbv_ddr_rows.pnl_in_trade_cur,
-        mbv_ddr_rows.pnl_in_base_cur,
+        vn_pnl_month_end_val_price,---
         mbv_ddr_rows.trade_cur_to_base_exch_rate,
         mbv_ddr_rows.month_end_price,
         mbv_ddr_rows.month_end_price_unit,
