@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE  "GENERATECONTRACTOUTPUTDOC" (
+CREATE OR REPLACE PROCEDURE "GENERATECONTRACTOUTPUTDOC" (
    p_contractno    VARCHAR2,
    p_docrefno      VARCHAR2,
    p_activity_id   VARCHAR2
@@ -923,8 +923,6 @@ BEGIN
                    'N', 'FULL', 'N'
                   );
                   
-       IF(istollingcontract = 'Y')
-        THEN
         display_order := display_order + 1;
 
         INSERT INTO cod_contract_output_detail
@@ -972,10 +970,7 @@ BEGIN
                    NULL, 'N', 'N',
                    'N', 'FULL', 'N'
                   );
-                          
-       END IF;
-                   
-
+                
       display_order := display_order + 1;
 
       INSERT INTO cod_contract_output_detail
