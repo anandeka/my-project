@@ -3813,7 +3813,7 @@ create or replace package body pkg_phy_physical_process is
     delete from isr1_isr_inventory where process_id = pc_process_id;
     delete from isr2_isr_invoice where process_id = pc_process_id;
     delete from pcs_purchase_contract_status
-    where process_id = pc_process_id;
+     where process_id = pc_process_id;
 	delete from css_contract_status_summary
     where process_id = pc_process_id;
     delete from csfm_cont_status_free_metal
@@ -3965,8 +3965,11 @@ create or replace package body pkg_phy_physical_process is
     delete areor_ar_ele_original_report where process_id = pc_process_id;
     delete for_feed_original_report where process_id = pc_process_id;
     delete feor_feed_ele_original_report where process_id = pc_process_id;
+    delete from gds_gmr_delta_status where process_id = pc_process_id;
+    delete from grhul_gmr_refining_header_ul where dbd_id = vc_dbd_id;
+    delete from gthul_gmr_treatment_header_ul where dbd_id = vc_dbd_id;
+    delete from gphul_gmr_penalty_header_ul where dbd_id = vc_dbd_id;
     commit;
-  
     --end Suresh 
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
