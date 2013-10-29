@@ -29,11 +29,18 @@ create or replace package pkg_phy_cog_price is
                                          pc_process_id   varchar2,
                                          pc_user_id      varchar2,
                                          pc_process      varchar2);
+  procedure sp_conc_gmr_di_price(pc_corporate_id varchar2,
+                                 pd_trade_date   date,
+                                 pc_process_id   varchar2,
+                                 pc_user_id      varchar2,
+                                 pc_process      varchar2);
+
   procedure sp_calc_instrument_price(pc_corporate_id varchar2,
                                      pd_trade_date   date,
                                      pc_process_id   varchar2,
                                      pc_process      varchar2,
                                      pc_user_id      varchar2);
+
 end;
 /
 create or replace package body pkg_phy_cog_price is
@@ -1767,7 +1774,7 @@ create or replace package body pkg_phy_cog_price is
         for cur_called_off_rows in cur_called_off(cur_pcdi_rows.pcdi_id,
                                                   cur_pcdi_rows.element_id)
         loop
-         -- vc_is_final_priced      := 'N'; -- Reset Everytime, To handle combo case
+          -- vc_is_final_priced      := 'N'; -- Reset Everytime, To handle combo case
           vc_price_basis          := cur_called_off_rows.price_basis;
           vc_pay_in_price_unit_id := cur_called_off_rows.pay_in_price_unit_id;
           vc_pay_in_cur_id        := cur_called_off_rows.pay_in_cur_id;
@@ -1781,18 +1788,19 @@ create or replace package body pkg_phy_cog_price is
           
             if cur_called_off_rows.final_price <> 0 and
                cur_called_off_rows.finalize_date <= pd_trade_date then
-              vn_total_final_priced:=vn_total_final_priced+(vn_qty_to_be_priced / 100);
-              vn_total_contract_value    := vn_total_contract_value +
-                                            vn_total_quantity *
-                                            (vn_qty_to_be_priced / 100) *
-                                            cur_called_off_rows.final_price;
-              vc_price_unit_id           := cur_called_off_rows.final_price_unit_id;
-              vc_fixed_price_unit_id     := cur_called_off_rows.final_price_unit_id;
-              vn_total_fixed_qty         := vn_total_fixed_qty +
-                                            (vn_total_quantity *
-                                            (vn_qty_to_be_priced / 100));
-                                            
-            /*  vc_is_final_priced         := 'Y';
+              vn_total_final_priced   := vn_total_final_priced +
+                                         (vn_qty_to_be_priced / 100);
+              vn_total_contract_value := vn_total_contract_value +
+                                         vn_total_quantity *
+                                         (vn_qty_to_be_priced / 100) *
+                                         cur_called_off_rows.final_price;
+              vc_price_unit_id        := cur_called_off_rows.final_price_unit_id;
+              vc_fixed_price_unit_id  := cur_called_off_rows.final_price_unit_id;
+              vn_total_fixed_qty      := vn_total_fixed_qty +
+                                         (vn_total_quantity *
+                                         (vn_qty_to_be_priced / 100));
+            
+              /*  vc_is_final_priced         := 'Y';
               */
               vn_price_in_pay_in_cur     := vn_price_in_pay_in_cur +
                                             (cur_called_off_rows.final_price_in_pay_in_cur *
@@ -1935,7 +1943,7 @@ create or replace package body pkg_phy_cog_price is
         for cur_not_called_off_rows in cur_not_called_off(cur_pcdi_rows.pcdi_id,
                                                           cur_pcdi_rows.element_id)
         loop
-        --  vc_is_final_priced      := 'N';
+          --  vc_is_final_priced      := 'N';
           vc_price_basis          := cur_not_called_off_rows.price_basis;
           vc_pay_in_price_unit_id := cur_not_called_off_rows.pay_in_price_unit_id;
           vc_pay_in_cur_id        := cur_not_called_off_rows.pay_in_cur_id;
@@ -2032,12 +2040,12 @@ create or replace package body pkg_phy_cog_price is
       end;
       vc_error_message := ' Line 676 ';
       ---   if combo price  and all the portions are final priced  
-      if vn_total_final_priced=1 then 
-      vc_is_final_priced:='Y';
+      if vn_total_final_priced = 1 then
+        vc_is_final_priced := 'Y';
       else
-      vc_is_final_priced:='N';
+        vc_is_final_priced := 'N';
       end if;
-      
+    
       if vc_is_final_priced = 'N' then
         vn_price_in_pay_in_cur := null;
         vn_avg_fx_rate         := 1;
@@ -2477,16 +2485,18 @@ create or replace package body pkg_phy_cog_price is
       loop
         vn_total_qty_to_be_priced := vn_total_qty_to_be_priced +
                                      cur_gmr_ele_rows.qty_to_be_priced;
-      --  vc_is_final_priced        := 'N'; -- Reset Everytime, To handle combo case
-        vc_pay_in_price_unit_id   := cur_gmr_ele_rows.pay_in_price_unit_id;
-        vc_pay_in_cur_id          := cur_gmr_ele_rows.pay_in_cur_id;
-        vc_pay_in_cur_code        := cur_gmr_ele_rows.pay_in_cur_code;
-        vc_pay_in_qty_unit_id     := cur_gmr_ele_rows.pay_in_price_unit_wt_unit_id;
-        vc_pay_in_qty_unit        := cur_gmr_ele_rows.pay_in_price_unit_weight_unit;
-        vn_pay_in_weight          := cur_gmr_ele_rows.pay_in_price_unit_weight;
+        --  vc_is_final_priced        := 'N'; -- Reset Everytime, To handle combo case
+        vc_pay_in_price_unit_id := cur_gmr_ele_rows.pay_in_price_unit_id;
+        vc_pay_in_cur_id        := cur_gmr_ele_rows.pay_in_cur_id;
+        vc_pay_in_cur_code      := cur_gmr_ele_rows.pay_in_cur_code;
+        vc_pay_in_qty_unit_id   := cur_gmr_ele_rows.pay_in_price_unit_wt_unit_id;
+        vc_pay_in_qty_unit      := cur_gmr_ele_rows.pay_in_price_unit_weight_unit;
+        vn_pay_in_weight        := cur_gmr_ele_rows.pay_in_price_unit_weight;
+        vn_qty_to_be_priced     := cur_gmr_ele_rows.qty_to_be_priced;
         if cur_gmr_ele_rows.final_price <> 0 and
            cur_gmr_ele_rows.finalize_date <= pd_trade_date then
-          vn_total_final_priced   := vn_total_final_priced+(vn_qty_to_be_priced / 100); 
+          vn_total_final_priced   := vn_total_final_priced +
+                                     (vn_qty_to_be_priced / 100);
           vn_total_quantity       := cur_gmr_rows.payable_qty;
           vn_qty_to_be_priced     := cur_gmr_ele_rows.qty_to_be_priced;
           vn_total_contract_value := vn_total_contract_value +
@@ -2498,7 +2508,7 @@ create or replace package body pkg_phy_cog_price is
                                      (vn_total_quantity *
                                      (vn_qty_to_be_priced / 100));
         
-         /* vc_is_final_priced         := 'Y';*/
+          /* vc_is_final_priced         := 'Y';*/
           vn_price_in_pay_in_cur     := vn_price_in_pay_in_cur +
                                         (cur_gmr_ele_rows.final_price_in_pay_in_cur *
                                         (vn_qty_to_be_priced / 100));
@@ -2652,13 +2662,13 @@ create or replace package body pkg_phy_cog_price is
       if vn_average_price is null then
         vn_average_price := 0;
       end if;
-       ---   if combo price  and all the portions are final priced 
+      ---   if combo price  and all the portions are final priced 
       if vn_total_final_priced = 1 * vn_total_qty_to_be_priced / 100 then
-      vc_is_final_priced:='Y';
+        vc_is_final_priced := 'Y';
       else
-      vc_is_final_priced:='N';
+        vc_is_final_priced := 'N';
       end if;
-      
+    
       if vn_average_price <> 0 and vc_price_unit_id is not null then
         if vn_total_qty_to_be_priced = 100 then
           --Combo or Non Combo 100% is price from Event Based Pricing
@@ -2749,7 +2759,8 @@ create or replace package body pkg_phy_cog_price is
            pay_in_price_unit_weight,
            contract_price_in_pay_in,
            fx_price_to_pay,
-           pcdi_id)
+           pcdi_id,
+           price_allocation_method)
         values
           (pc_process_id,
            pc_corporate_id,
@@ -2777,7 +2788,8 @@ create or replace package body pkg_phy_cog_price is
            vn_pay_in_weight,
            vn_price_in_pay_in_cur,
            vn_avg_fx_rate,
-           cur_gmr_rows.pcdi_id);
+           cur_gmr_rows.pcdi_id,
+           'Event Based');
       end if;
     end loop;
     commit;
@@ -3402,28 +3414,30 @@ create or replace package body pkg_phy_cog_price is
       loop
         vn_total_qty_to_be_priced := vn_total_qty_to_be_priced +
                                      cur_gmr_ele_rows.qty_to_be_priced;
-       -- vc_is_final_priced        := 'N'; -- Reset Everytime, To handle combo case
-        vc_pay_in_price_unit_id   := cur_gmr_ele_rows.pay_in_price_unit_id;
-        vc_pay_in_cur_id          := cur_gmr_ele_rows.pay_in_cur_id;
-        vc_pay_in_cur_code        := cur_gmr_ele_rows.pay_in_cur_code;
-        vc_price_basis            := cur_gmr_ele_rows.price_basis;
-        vc_pay_in_qty_unit_id     := cur_gmr_ele_rows.pay_in_price_unit_wt_unit_id;
-        vc_pay_in_qty_unit        := cur_gmr_ele_rows.pay_in_price_unit_weight_unit;
-        vn_pay_in_weight          := cur_gmr_ele_rows.pay_in_price_unit_weight;
+        -- vc_is_final_priced        := 'N'; -- Reset Everytime, To handle combo case
+        vc_pay_in_price_unit_id := cur_gmr_ele_rows.pay_in_price_unit_id;
+        vc_pay_in_cur_id        := cur_gmr_ele_rows.pay_in_cur_id;
+        vc_pay_in_cur_code      := cur_gmr_ele_rows.pay_in_cur_code;
+        vc_price_basis          := cur_gmr_ele_rows.price_basis;
+        vc_pay_in_qty_unit_id   := cur_gmr_ele_rows.pay_in_price_unit_wt_unit_id;
+        vc_pay_in_qty_unit      := cur_gmr_ele_rows.pay_in_price_unit_weight_unit;
+        vn_pay_in_weight        := cur_gmr_ele_rows.pay_in_price_unit_weight;
+        vn_qty_to_be_priced     := cur_gmr_ele_rows.qty_to_be_priced;
         if cur_gmr_ele_rows.final_price <> 0 and
            cur_gmr_ele_rows.finalize_date <= pd_trade_date then
-          vn_total_final_priced      := vn_total_final_priced+(vn_qty_to_be_priced / 100);
-          vn_total_quantity          := cur_gmr_rows.payable_qty;
-          vn_qty_to_be_priced        := cur_gmr_ele_rows.qty_to_be_priced;
-          vn_total_contract_value    := vn_total_contract_value +
-                                        vn_total_quantity *
-                                        (vn_qty_to_be_priced / 100) *
-                                        cur_gmr_ele_rows.final_price;
-          vc_price_unit_id           := cur_gmr_ele_rows.final_price_unit_id;
-          vn_total_fixed_qty         := vn_total_fixed_qty +
-                                        (vn_total_quantity *
-                                        (vn_qty_to_be_priced / 100));
-         -- vc_is_final_priced         := 'Y';
+          vn_total_final_priced   := vn_total_final_priced +
+                                     (vn_qty_to_be_priced / 100);
+          vn_total_quantity       := cur_gmr_rows.payable_qty;
+          vn_qty_to_be_priced     := cur_gmr_ele_rows.qty_to_be_priced;
+          vn_total_contract_value := vn_total_contract_value +
+                                     vn_total_quantity *
+                                     (vn_qty_to_be_priced / 100) *
+                                     cur_gmr_ele_rows.final_price;
+          vc_price_unit_id        := cur_gmr_ele_rows.final_price_unit_id;
+          vn_total_fixed_qty      := vn_total_fixed_qty +
+                                     (vn_total_quantity *
+                                     (vn_qty_to_be_priced / 100));
+          -- vc_is_final_priced         := 'Y';
           vn_price_in_pay_in_cur     := vn_price_in_pay_in_cur +
                                         (cur_gmr_ele_rows.final_price_in_pay_in_cur *
                                         (vn_qty_to_be_priced / 100));
@@ -3586,9 +3600,9 @@ create or replace package body pkg_phy_cog_price is
       if vn_total_final_priced = 1 * vn_total_qty_to_be_priced / 100 then
         vc_is_final_priced := 'Y';
       else
-      vc_is_final_priced:='N';
+        vc_is_final_priced := 'N';
       end if;
-      
+    
       if vn_average_price <> 0 and vc_price_unit_id is not null then
         if vn_total_qty_to_be_priced = 100 then
           --Combo or Non Combo 100% is price from Price Allocation
@@ -3679,7 +3693,8 @@ create or replace package body pkg_phy_cog_price is
            pay_in_price_unit_weight,
            contract_price_in_pay_in,
            fx_price_to_pay,
-           pcdi_id)
+           pcdi_id,
+           price_allocation_method)
         values
           (pc_process_id,
            pc_corporate_id,
@@ -3707,7 +3722,8 @@ create or replace package body pkg_phy_cog_price is
            vn_pay_in_weight,
            vn_price_in_pay_in_cur,
            vn_avg_fx_rate,
-           cur_gmr_rows.pcdi_id);
+           cur_gmr_rows.pcdi_id,
+           'Price Allocation');
       end if;
     end loop;
     commit;
@@ -3755,6 +3771,12 @@ create or replace package body pkg_phy_cog_price is
      where cgcp.process_id = pc_process_id
        and cgcp.is_final_priced = 'N';
     commit;
+  
+    sp_conc_gmr_di_price(pc_corporate_id,
+                         pd_trade_date,
+                         pc_process_id,
+                         pc_user_id,
+                         pc_process);
     sp_gather_stats('cgcp_conc_gmr_cog_price');
   exception
     when others then
@@ -3906,34 +3928,35 @@ create or replace package body pkg_phy_cog_price is
       vn_pay_in_weight             := null;
       vn_avg_fx_rate               := 0;
       vn_total_qty_for_avg_price   := 0;
-      vn_total_qty_to_be_priced    := 0;      
+      vn_total_qty_to_be_priced    := 0;
       vn_total_final_priced        := 0;
       for cur_gmr_ele_rows in cur_gmr_ele(cur_gmr_rows.internal_gmr_ref_no)
       loop
         vn_total_qty_to_be_priced := vn_total_qty_to_be_priced +
                                      cur_gmr_ele_rows.qty_to_be_priced;
         /*vc_is_final_priced        := 'N'; -- Reset Everytime, To handle combo case*/
-        vc_pay_in_price_unit_id   := cur_gmr_ele_rows.pay_in_price_unit_id;
-        vc_pay_in_cur_id          := cur_gmr_ele_rows.pay_in_cur_id;
-        vc_pay_in_cur_code        := cur_gmr_ele_rows.pay_in_cur_code;
-        vc_price_basis            := cur_gmr_ele_rows.price_basis;
-        vc_pay_in_qty_unit_id     := cur_gmr_ele_rows.pay_in_price_unit_wt_unit_id;
-        vc_pay_in_qty_unit        := cur_gmr_ele_rows.pay_in_price_unit_weight_unit;
-        vn_pay_in_weight          := cur_gmr_ele_rows.pay_in_price_unit_weight;
+        vc_pay_in_price_unit_id := cur_gmr_ele_rows.pay_in_price_unit_id;
+        vc_pay_in_cur_id        := cur_gmr_ele_rows.pay_in_cur_id;
+        vc_pay_in_cur_code      := cur_gmr_ele_rows.pay_in_cur_code;
+        vc_price_basis          := cur_gmr_ele_rows.price_basis;
+        vc_pay_in_qty_unit_id   := cur_gmr_ele_rows.pay_in_price_unit_wt_unit_id;
+        vc_pay_in_qty_unit      := cur_gmr_ele_rows.pay_in_price_unit_weight_unit;
+        vn_pay_in_weight        := cur_gmr_ele_rows.pay_in_price_unit_weight;
         if cur_gmr_ele_rows.final_price <> 0 and
            cur_gmr_ele_rows.finalize_date <= pd_trade_date then
-          vn_total_final_priced      := vn_total_final_priced+(vn_qty_to_be_priced / 100); 
-          vn_total_quantity          := cur_gmr_rows.gmr_qty;
-          vn_qty_to_be_priced        := cur_gmr_ele_rows.qty_to_be_priced;
-          vn_total_contract_value    := vn_total_contract_value +
-                                        vn_total_quantity *
-                                        (vn_qty_to_be_priced / 100) *
-                                        cur_gmr_ele_rows.final_price;
-          vc_price_unit_id           := cur_gmr_ele_rows.final_price_unit_id;
-          vn_total_fixed_qty         := vn_total_fixed_qty +
-                                        (vn_total_quantity *
-                                        (vn_qty_to_be_priced / 100));
-         /* vc_is_final_priced         := 'Y';*/
+          vn_total_final_priced   := vn_total_final_priced +
+                                     (vn_qty_to_be_priced / 100);
+          vn_total_quantity       := cur_gmr_rows.gmr_qty;
+          vn_qty_to_be_priced     := cur_gmr_ele_rows.qty_to_be_priced;
+          vn_total_contract_value := vn_total_contract_value +
+                                     vn_total_quantity *
+                                     (vn_qty_to_be_priced / 100) *
+                                     cur_gmr_ele_rows.final_price;
+          vc_price_unit_id        := cur_gmr_ele_rows.final_price_unit_id;
+          vn_total_fixed_qty      := vn_total_fixed_qty +
+                                     (vn_total_quantity *
+                                     (vn_qty_to_be_priced / 100));
+          /* vc_is_final_priced         := 'Y';*/
           vn_price_in_pay_in_cur     := vn_price_in_pay_in_cur +
                                         (cur_gmr_ele_rows.final_price_in_pay_in_cur *
                                         (vn_qty_to_be_priced / 100));
@@ -4089,11 +4112,11 @@ create or replace package body pkg_phy_cog_price is
       end if;
       ---   if combo price  and all the portions are final priced  
       if vn_total_final_priced = 1 * vn_total_qty_to_be_priced / 100 then
-      vc_is_final_priced:='Y';
+        vc_is_final_priced := 'Y';
       else
         vc_is_final_priced := 'N';
       end if;
-      
+    
       if vn_average_price <> 0 and vc_price_unit_id is not null then
         if vn_total_qty_to_be_priced = 100 then
           --Combo or Non Combo 100% is price from Event Based Pricing
@@ -4280,6 +4303,158 @@ create or replace package body pkg_phy_cog_price is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
       commit;
+  end;
+  procedure sp_conc_gmr_di_price(pc_corporate_id varchar2,
+                                 pd_trade_date   date,
+                                 pc_process_id   varchar2,
+                                 pc_user_id      varchar2,
+                                 pc_process      varchar2) is
+    vn_log_counter number := 501;
+  begin
+    --
+    -- First populate the GMRs with only DI Level change
+    --
+    delete from tdige_temp_di_gmr_element t
+     where t.corporate_id = pc_corporate_id;
+    commit;
+    vn_log_counter := vn_log_counter + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_log_counter,
+                          'Delete TDIGE_TEMP_DI_GMR_ELEMENT Over');
+    insert into tdige_temp_di_gmr_element
+      (corporate_id, internal_gmr_ref_no, element_id)
+      select spq.corporate_id,
+             spq.internal_gmr_ref_no,
+             spq.element_id
+        from spq_stock_payable_qty spq
+       where spq.is_active = 'Y'
+         and spq.is_stock_split = 'N'
+         and spq.process_id = pc_process_id
+         and not exists
+       (select *
+                from cgcp_conc_gmr_cog_price cgcp
+               where cgcp.internal_gmr_ref_no = spq.internal_gmr_ref_no
+                 and cgcp.element_id = spq.element_id
+                 and cgcp.process_id = pc_process_id)
+       group by spq.corporate_id,
+                spq.internal_gmr_ref_no,
+                spq.element_id;
+    commit;
+    vn_log_counter := vn_log_counter + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_log_counter,
+                          'Insert TDIGE_TEMP_DI_GMR_ELEMENT Over');
+  
+    --
+    -- Update PCDI_ID from GRD table
+    --      
+    for cur_pcdi_id in (select grd.internal_gmr_ref_no,
+                               max(grd.pcdi_id) pcdi_id
+                          from grd_goods_record_detail grd
+                         where grd.process_id = pc_process_id
+                           and grd.is_deleted = 'N'
+                           and grd.status = 'Active'
+                           and grd.tolling_stock_type in ('None Tolling')
+                         group by grd.internal_gmr_ref_no)
+    loop
+    
+      update tdige_temp_di_gmr_element t
+         set t.pcdi_id = cur_pcdi_id.pcdi_id
+       where t.internal_gmr_ref_no = cur_pcdi_id.internal_gmr_ref_no
+         and t.corporate_id = pc_corporate_id;
+    
+    end loop;
+    commit;
+    vn_log_counter := vn_log_counter + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_log_counter,
+                          'Update PCDI_ID in TDIGE Over');
+  
+    --
+    -- Populate CGCP table for DI based GMR and Element Combination
+    --
+    insert into cgcp_conc_gmr_cog_price
+      (process_id,
+       corporate_id,
+       internal_gmr_ref_no,
+       gmr_ref_no,
+       element_id,
+       payable_qty,
+       payable_qty_unit_id,
+       contract_price,
+       price_unit_id,
+       price_unit_cur_id,
+       price_unit_cur_code,
+       price_unit_weight,
+       price_unit_weight_unit_id,
+       price_unit_weight_unit,
+       fixed_qty,
+       unfixed_qty,
+       price_basis,
+       is_final_priced,
+       pay_in_price_unit_id,
+       pay_in_cur_id,
+       pay_in_cur_code,
+       pay_in_price_unit_weight,
+       pay_in_price_unit_wt_unit_id,
+       pay_in_price_unit_weight_unit,
+       contract_price_in_pay_in,
+       pcdi_id,
+       fx_price_to_pay,
+       price_allocation_method)
+      select cccp.process_id,
+             cccp.corporate_id,
+             t.internal_gmr_ref_no,
+             gmr.gmr_ref_no gmr_ref_no,
+             cccp.element_id,
+             cccp.payable_qty,
+             cccp.payable_qty_unit_id,
+             cccp.contract_price,
+             cccp.price_unit_id,
+             cccp.price_unit_cur_id,
+             cccp.price_unit_cur_code,
+             cccp.price_unit_weight,
+             cccp.price_unit_weight_unit_id,
+             cccp.price_unit_weight_unit,
+             cccp.fixed_qty,
+             cccp.unfixed_qty,
+             cccp.price_basis,
+             cccp.is_final_priced,
+             cccp.pay_in_price_unit_id,
+             cccp.pay_in_cur_id,
+             cccp.pay_in_cur_code,
+             cccp.pay_in_price_unit_weight,
+             cccp.pay_in_price_unit_wt_unit_id,
+             cccp.pay_in_price_unit_weight_unit,
+             cccp.contract_price_in_pay_in,
+             cccp.pcdi_id,
+             cccp.fx_price_to_pay,
+             'DI Based'
+        from cccp_conc_contract_cog_price cccp,
+             tdige_temp_di_gmr_element    t,
+             process_gmr                  gmr
+       where cccp.process_id = pc_process_id
+         and cccp.pcdi_id = t.pcdi_id
+         and cccp.element_id = t.element_id
+         and t.corporate_id = pc_corporate_id
+         and t.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+         and gmr.process_id = pc_process_id;
+  
+    commit;
+    commit;
+    vn_log_counter := vn_log_counter + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_log_counter,
+                          'Insert DI Based GMR to CGCP Over');
+  
   end;
   procedure sp_calc_instrument_price(pc_corporate_id varchar2,
                                      pd_trade_date   date,

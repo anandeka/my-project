@@ -439,7 +439,8 @@ insert into pfrd_price_fix_report_detail
      and ppu_base.cur_id = akc.base_cur_id
      and ppu_base.weight_unit_id = pdm_aml.base_quantity_unit
      and axs.process = 'EOM'
-     and pocd.price_type <> 'Fixed';
+     and pocd.price_type <> 'Fixed'
+     and pcm.contract_status <> 'Cancelled';
      commit;
      
   --
@@ -600,7 +601,8 @@ insert into pfrd_price_fix_report_detail
      and ppu_base.cur_id = akc.base_cur_id
      and ppu_base.weight_unit_id = pdm_aml.base_quantity_unit
      and axs.process = 'EOM'
-     and pocd.price_type <> 'Fixed';
+     and pocd.price_type <> 'Fixed'
+     and pcm.contract_status <> 'Cancelled';
      commit;     
     --
     -- New PFC for this Month for Base Metal Active Records
@@ -759,7 +761,8 @@ insert into pfrd_price_fix_report_detail
      and ppu_base.cur_id = akc.base_cur_id
      and ppu_base.weight_unit_id = pdm.base_quantity_unit
      and axs.process = 'EOM'
-     and pocd.price_type <> 'Fixed';
+     and pocd.price_type <> 'Fixed'
+     and pcm.contract_status <> 'Cancelled';
 
     commit;
     
@@ -922,7 +925,8 @@ insert into pfrd_price_fix_report_detail
      and ppu_base.cur_id = akc.base_cur_id
      and ppu_base.weight_unit_id = pdm.base_quantity_unit
      and axs.process = 'EOM'
-     and pocd.price_type <> 'Fixed';
+     and pocd.price_type <> 'Fixed'
+     and pcm.contract_status <> 'Cancelled';
 
     commit;  
     
@@ -1067,6 +1071,7 @@ insert into pfrd_price_fix_report_detail
      and axs.eff_date > vd_prev_eom_date
      and axs.eff_date <= pd_trade_date
      and axs.process = 'EOM'
+     and nvl(fmpfd.user_price, 0) <> 0 
      and ucm_price.from_qty_unit_id = pdm.base_quantity_unit
      and ucm_price.to_qty_unit_id = ppu.weight_unit_id
      and ucm_price.is_active = 'Y'
@@ -1074,6 +1079,332 @@ insert into pfrd_price_fix_report_detail
      and ppu_base.cur_id = akc.base_cur_id
      and ppu_base.weight_unit_id = pdm.base_quantity_unit;
    commit;
+   vc_error_msg := 'Add Fixed Concentrates';
+    
+   --
+   -- 10th Oct 2013 Adding Fixed Contracts
+   --
+   -- Price type =  Fixed, all Tolling and Concentrates
+   --
+insert into pfrd_price_fix_report_detail
+  (process_id,
+   eod_trade_date,
+   section_name,
+   purchase_sales,
+   corporate_id,
+   corporate_name,
+   product_id,
+   product_name,
+   instrument_id,
+   instrument_name,
+   cp_id,
+   cp_name,
+   pcdi_id,
+   internal_contract_ref_no,
+   delivery_item_no,
+   contract_ref_no_del_item_no,
+   price_fixed_date,
+   is_new_pfc,
+   internal_action_ref_no,
+   pf_ref_no,
+   fixed_qty,
+   fixed_qty_unit_id,
+   price,
+   price_unit_id,
+   price_unit_cur_id,
+   price_unit_cur_code,
+   price_unit_weight_unit_id,
+   price_unit_weight_unit,
+   price_unit_weight,
+   price_unit_name,
+   fx_price_to_base_cur,
+   price_in_base_cur,
+   consumed_qty,
+   fixation_value,
+   fixed_unit_base_qty_factor,
+   pfd_id,
+   element_id,
+   contract_type,
+   base_qty_unit_id,
+   base_qty_unit,
+   base_price_unit_id,
+   base_price_unit_name,
+   prod_base_to_price_wt_factor,
+   is_active)
+  select pc_process_id,
+         pd_trade_date,
+         'New PFC for this Month' section_name,
+         decode(pcm.purchase_sales, 'P', 'Purchase', 'Sales') purchase_sales,
+         pcm.corporate_id,
+         akc.corporate_name,
+         pdm_aml.product_id,
+         pdm_aml.product_desc,
+         null instrument_id,
+         null instrument_name,
+         pcm.cp_id,
+         pcm.cp_name,
+         pcdi.pcdi_id,
+         pcm.internal_contract_ref_no,
+         pcdi.delivery_item_no,
+         pcm.contract_ref_no || '(' || pcdi.delivery_item_no || ')' contract_ref_no_del_item_no,
+         pcm.issue_date as price_fixation_date,
+         'Y' is_new_pfc,
+         null internal_action_ref_no,
+         null pf_ref_no,
+         dipq.payable_qty * ucm.multiplication_factor priced_qty,
+         dipq.qty_unit_id,
+         pcbpd.price_value,
+         pcbpd.price_unit_id,
+         cm.cur_id,
+         cm.cur_code,
+         qum.qty_unit_id,
+         qum.qty_unit,
+         ppu.weight,
+         ppu.price_unit_name,
+         1 fx_to_base,
+         pcbpd.price_value * ucm_price.multiplication_factor price_in_base,
+         0 consumed_qty,
+         (case
+           when pcm.purchase_sales = 'P' then
+            1
+           else
+            (-1)
+         end) * dipq.payable_qty * pcbpd.price_value *
+         ucm.multiplication_factor * ucm_price.multiplication_factor /
+         nvl(ppu.weight, 1) fixation_value,
+         ucm.multiplication_factor,
+         null pfd_id, -- see how this is used
+         aml.attribute_id,
+         pcm.contract_type,
+         qum_qty.qty_unit_id,
+         qum_qty.qty_unit,
+         ppu_base.product_price_unit_id,
+         ppu_base.price_unit_name,
+         ucm_price.multiplication_factor,
+         'Y' is_active
+    from pcm_physical_contract_main     pcm,
+         pcdi_pc_delivery_item          pcdi,
+         dipq_delivery_item_payable_qty dipq,
+         poch_price_opt_call_off_header poch,
+         pocd_price_option_calloff_dtls pocd,
+         aml_attribute_master_list      aml,
+         pdm_productmaster              pdm_aml,
+         ak_corporate                   akc,
+         ucm_unit_conversion_master     ucm,
+         pcbpd_pc_base_price_detail     pcbpd,
+         pffxd_phy_formula_fx_details   pffxd,
+         pcbph_pc_base_price_header     pcbph,
+         v_ppu_pum                      ppu,
+         cm_currency_master             cm,
+         qum_quantity_unit_master       qum,
+         ucm_unit_conversion_master     ucm_price,
+         qum_quantity_unit_master       qum_qty,
+         v_ppu_pum                      ppu_base
+   where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+     and dipq.pcdi_id = pcdi.pcdi_id
+     and pcdi.pcdi_id = poch.pcdi_id
+     and poch.poch_id = pocd.poch_id
+     and pocd.price_type = 'Fixed'
+     and poch.element_id = dipq.element_id
+     and dipq.element_id = aml.attribute_id
+     and dipq.process_id = pc_process_id
+     and dipq.is_active = 'Y'
+     and pcm.corporate_id = pc_corporate_id
+     and pcm.is_active = 'Y'
+     and pcdi.is_active = 'Y'
+     and poch.is_active = 'Y'
+     and pocd.is_active = 'Y'
+     and aml.is_active = 'Y'
+     and pcm.process_id = pc_process_id
+     and pcdi.process_id = pc_process_id
+     and pcm.is_pass_through = 'N'
+     and pcm.corporate_id = akc.corporate_id
+     and aml.underlying_product_id = pdm_aml.product_id
+     and ucm.from_qty_unit_id = dipq.qty_unit_id
+     and ucm.to_qty_unit_id = pdm_aml.base_quantity_unit
+     and ucm.is_active = 'Y'
+     and pocd.pcbpd_id = pcbpd.pcbpd_id
+     and pcbpd.pcbph_id = pcbph.pcbph_id
+     and pffxd.pffxd_id = pcbpd.pffxd_id
+     and pcm.issue_date > vd_prev_eom_date
+     and pcm.issue_date <= pd_trade_date
+     and pffxd.process_id = pc_process_id
+     and pcbpd.process_id = pc_process_id
+     and pcbph.process_id = pc_process_id
+     and ppu.product_price_unit_id = pcbpd.price_unit_id
+     and ppu.cur_id = cm.cur_id
+     and ppu.weight_unit_id = qum.qty_unit_id
+     and ucm_price.from_qty_unit_id = pdm_aml.base_quantity_unit
+     and ucm_price.to_qty_unit_id = ppu.weight_unit_id
+     and ucm_price.is_active = 'Y'
+     and pdm_aml.base_quantity_unit = qum_qty.qty_unit_id
+     and ppu_base.product_id = pdm_aml.product_id
+     and ppu_base.cur_id = akc.base_cur_id
+     and ppu_base.weight_unit_id = pdm_aml.base_quantity_unit
+     and pcm.contract_status <> 'Cancelled';
+     
+   --
+   -- Price type =  Fixed Base Metal
+   --
+insert into pfrd_price_fix_report_detail
+  (process_id,
+   eod_trade_date,
+   section_name,
+   purchase_sales,
+   corporate_id,
+   corporate_name,
+   product_id,
+   product_name,
+   instrument_id,
+   instrument_name,
+   cp_id,
+   cp_name,
+   pcdi_id,
+   internal_contract_ref_no,
+   delivery_item_no,
+   contract_ref_no_del_item_no,
+   price_fixed_date,
+   is_new_pfc,
+   internal_action_ref_no,
+   pf_ref_no,
+   fixed_qty,
+   fixed_qty_unit_id,
+   price,
+   price_unit_id,
+   price_unit_cur_id,
+   price_unit_cur_code,
+   price_unit_weight_unit_id,
+   price_unit_weight_unit,
+   price_unit_weight,
+   price_unit_name,
+   fx_price_to_base_cur,
+   price_in_base_cur,
+   consumed_qty,
+   fixation_value,
+   fixed_unit_base_qty_factor,
+   pfd_id,
+   element_id,
+   contract_type,
+   base_qty_unit_id,
+   base_qty_unit,
+   base_price_unit_id,
+   base_price_unit_name,
+   prod_base_to_price_wt_factor,
+   is_active)   
+     select pc_process_id,
+       pd_trade_date,
+       'New PFC for this Month' section_name,
+       decode(pcm.purchase_sales, 'P', 'Purchase', 'Sales') purchase_sales,
+       pcm.corporate_id,
+       akc.corporate_name,
+       pdm_aml.product_id,
+       pdm_aml.product_desc,
+       null instrument_id,
+       null instrument_name,
+       pcm.cp_id,
+       pcm.cp_name,
+       pcdi.pcdi_id,
+       pcm.internal_contract_ref_no,
+       pcdi.delivery_item_no,
+       pcm.contract_ref_no || '(' || pcdi.delivery_item_no || ')' contract_ref_no_del_item_no,
+       pcm.issue_date as price_fixation_date,
+       'Y' is_new_pfc,
+       null internal_action_ref_no,
+       null pf_ref_no,
+       diqs.price_fixed_qty * ucm.multiplication_factor priced_qty,
+       diqs.item_qty_unit_id,
+       pcbpd.price_value,
+       pcbpd.price_unit_id,
+       cm.cur_id,
+       cm.cur_code,
+       qum.qty_unit_id,
+       qum.qty_unit,
+       ppu.weight,
+       ppu.price_unit_name,
+       1 fx_to_base,
+       pcbpd.price_value * ucm_price.multiplication_factor price_in_base,
+       0 consumed_qty,
+       (case
+         when pcm.purchase_sales = 'P' then
+          1
+         else
+          (-1)
+       end) * diqs.price_fixed_qty * pcbpd.price_value *
+       ucm.multiplication_factor * ucm_price.multiplication_factor /
+       nvl(ppu.weight, 1) fixation_value,
+       ucm.multiplication_factor,
+       null pfd_id, -- see how this is used
+       null attribute_id,
+       pcm.contract_type,
+       qum_qty.qty_unit_id,
+       qum_qty.qty_unit,
+       ppu_base.product_price_unit_id,
+       ppu_base.price_unit_name,
+       ucm_price.multiplication_factor,
+       'Y' is_active
+  from pcm_physical_contract_main     pcm,
+       pcdi_pc_delivery_item          pcdi,
+       diqs_delivery_item_qty_status  diqs,
+       poch_price_opt_call_off_header poch,
+       pocd_price_option_calloff_dtls pocd,
+       ak_corporate                   akc,
+       pcpd_pc_product_definition     pcpd,
+       pdm_productmaster              pdm_aml,
+       ucm_unit_conversion_master     ucm,
+       pcbpd_pc_base_price_detail     pcbpd,
+       pffxd_phy_formula_fx_details   pffxd,
+       pcbph_pc_base_price_header     pcbph,
+       v_ppu_pum                      ppu,
+       cm_currency_master             cm,
+       qum_quantity_unit_master       qum,
+       ucm_unit_conversion_master     ucm_price,
+       qum_quantity_unit_master       qum_qty,
+       v_ppu_pum                      ppu_base
+
+ where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+   and pcdi.internal_contract_ref_no = pcpd.internal_contract_ref_no
+   and diqs.pcdi_id = pcdi.pcdi_id
+   and pcdi.pcdi_id = poch.pcdi_id
+   and poch.poch_id = pocd.poch_id
+   and pocd.price_type = 'Fixed'
+   and pcm.contract_type = 'BASEMETAL'
+   and diqs.process_id = pc_process_id
+   and diqs.is_active = 'Y'
+   and pcm.corporate_id = pc_corporate_id
+   and pcm.is_active = 'Y'
+   and pcdi.is_active = 'Y'
+   and pcpd.is_active = 'Y'
+   and poch.is_active = 'Y'
+   and pocd.is_active = 'Y'
+   and pcm.process_id = pc_process_id
+   and pcdi.process_id = pc_process_id
+   and pcpd.process_id = pc_process_id
+   and pcm.is_pass_through = 'N'
+   and pcm.corporate_id = akc.corporate_id
+   and pcpd.product_id = pdm_aml.product_id
+   and ucm.from_qty_unit_id = diqs.item_qty_unit_id
+   and ucm.to_qty_unit_id = pdm_aml.base_quantity_unit
+   and ucm.is_active = 'Y'
+   and pocd.pcbpd_id = pcbpd.pcbpd_id
+   and pcbpd.pcbph_id = pcbph.pcbph_id
+   and pffxd.pffxd_id = pcbpd.pffxd_id
+   and pcm.issue_date > vd_prev_eom_date
+   and pcm.issue_date <= pd_trade_date
+   and pffxd.process_id = pc_process_id
+   and pcbpd.process_id = pc_process_id
+   and pcbph.process_id = pc_process_id
+   and ppu.product_price_unit_id = pcbpd.price_unit_id
+   and ppu.cur_id = cm.cur_id
+   and ppu.weight_unit_id = qum.qty_unit_id
+   and ucm_price.from_qty_unit_id = pdm_aml.base_quantity_unit
+   and ucm_price.to_qty_unit_id = ppu.weight_unit_id
+   and ucm_price.is_active = 'Y'
+   and pdm_aml.base_quantity_unit = qum_qty.qty_unit_id
+   and ppu_base.product_id = pdm_aml.product_id
+   and ppu_base.cur_id = akc.base_cur_id
+   and ppu_base.weight_unit_id = pdm_aml.base_quantity_unit
+   and pcm.contract_status <> 'Cancelled';
+
    --
    -- FX Rate from Payable to Base, Price in Base and Fixation Value
    --
@@ -1815,6 +2146,8 @@ commit;
    vn_eel_error_count number := 1;
    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
    vc_error_msg       varchar2(100);
+   vn_fixed_price     number;
+   vc_fixed_price_unit_id varchar2(15);
    cursor mbv_ddr is
      select dpd.process_id,
             dpd.eod_trade_date,
@@ -1831,7 +2164,7 @@ commit;
             dpd.external_ref_no,
             dpd.trade_date,
             dpd.trade_type,
-            dpd.open_quantity,
+            decode(dpd.pnl_type,'Unrealized',dpd.open_quantity,dpd.total_quantity) pnl_qty,
             dpd.quantity_unit,
             dpd.quantity_unit_id,
             dpd.trade_price,
@@ -1863,18 +2196,36 @@ commit;
             dpd.trade_price_weight_unit_id,
             dpd.sett_price_cur_id,
             dpd.sett_price_weight,
-            dpd.sett_price_weight_unit_id
+            dpd.sett_price_weight_unit_id,
+            temp.price trade_date_cash_price,
+            icp.der_month_end_price,
+            dpd.pnl_type,
+            dpd.base_cur_code ||'/' || dpd.base_qty_unit base_price_unit_name ,
+            ucm.multiplication_factor trade_to_prod_base_qty_factor
        from dpd_derivative_pnl_daily  dpd,
             tip_temp_instrument_price tip,
-            pum_price_unit_master     pum
+            pum_price_unit_master     pum,
+            temp_instrument_cash_price temp,
+            icp_instrument_cash_price icp,
+            pdm_productmaster pdm,
+            ucm_unit_conversion_master ucm
       where dpd.process_id = pc_process_id
         and dpd.corporate_id = pc_corporate_id
         and dpd.instrument_id = tip.instrument_id
         and dpd.corporate_id = tip.corporate_id
         and tip.price_unit_id = pum.price_unit_id
         and dpd.instrument_type in ('Future')
-        and dpd.pnl_type = 'Unrealized'
-        and tip.corporate_id = pc_corporate_id;
+        and dpd.pnl_type in('Unrealized','Realized')
+        and tip.corporate_id = pc_corporate_id
+        and temp.corporate_id = pc_corporate_id
+        and temp.instrument_id = dpd.instrument_id
+        and temp.price_date = dpd.trade_date
+        and temp.is_fixed_price ='N'
+        and icp.corporate_id = pc_corporate_id
+        and icp.instrument_id = dpd.instrument_id
+        and dpd.derivative_prodct_id = pdm.product_id
+        and ucm.from_qty_unit_id =dpd.quantity_unit_id
+        and ucm.to_qty_unit_id = pdm.base_quantity_unit;
    vn_mep_value_in_base_cur    number(25, 5);
    vn_sett_value_in_base_cur   number(25, 5);
    vn_fx_rate_mep_to_base_ccy  number(30, 10);
@@ -1894,9 +2245,108 @@ commit;
    vn_value_diff_in_base_ccy  number(25, 5);
    vn_temp_qty_factor         number;
    vn_temp_currency_factor    number;
- begin
-   vc_error_msg := 'Start';
-   for mbv_ddr_rows in mbv_ddr
+   vn_pnl_atribution_due_to_price number(25,5);
+   vn_pnl_month_end_val_price     number(25,5); 
+ begin 
+ --
+ -- For Realized PNL report, we need to push data into TEMP_INSTRUMENT_CASH_PRICE
+ --
+  vc_error_msg := 'Start';
+  
+ insert into temp_instrument_cash_price
+  (corporate_id,
+   instrument_id,
+   price_date,
+   price,
+   price_unit_id,
+   section_name,
+   fixed_price_date,
+   is_fixed_price)
+select dpd.corporate_id,
+       dpd.instrument_id,
+       dpd.trade_date,
+       null price,
+       null price_unit_id,
+       'Derivatives' section_name,
+       dpd.trade_date fixed_price_date,
+       'N' is_fixed_price
+  from dpd_derivative_pnl_daily dpd
+ where dpd.process_id = pc_process_id
+   and dpd.pnl_type = 'Realized'
+   and not exists
+   (select * from temp_instrument_cash_price t
+   where t.corporate_id = pc_corporate_id
+   and t.instrument_id = dpd.instrument_id
+   and dpd.trade_date = t.price_date)
+group by dpd.corporate_id,
+         dpd.trade_date,
+       dpd.instrument_id,
+       dpd.trade_date;
+commit;
+       
+       vc_error_msg := 'TEMP_INSTRUMENT_CASH_PRICE insert over';
+   
+--
+-- Update the Price for the just inserted records
+--  
+for cc in (
+select t.instrument_id,
+       t.price_date,
+       icp.der_price_source_id price_source_id,
+       icp.der_price_point_id price_point_id,
+       icp.der_price_unit_id price_unit_id,
+       icp.available_price_id,
+       t.section_name
+  from temp_instrument_cash_price t,
+       icp_instrument_cash_price  icp
+ where t.corporate_id = pc_corporate_id
+   and icp.corporate_id = pc_corporate_id
+   and icp.instrument_id = t.instrument_id
+   and t.price is null
+   and t.section_name = 'Derivatives'
+) loop
+    begin
+      select dqd.price,
+             dqd.price_unit_id
+        into vn_fixed_price,
+             vc_fixed_price_unit_id
+        from dq_temp               dq,
+             dqd_temp              dqd,
+             drm_derivative_master drm
+       where dq.process_id = pc_process_id
+         and dqd.process_id = pc_process_id
+         and dq.dq_id = dqd.dq_id
+         and dq.trade_date = cc.price_date
+         and dqd.dr_id = drm.dr_id
+         and drm.instrument_id = cc.instrument_id
+         and drm.price_point_id = cc.price_point_id
+         and dqd.available_price_id = cc.available_price_id
+         and dqd.price_unit_id = cc.price_unit_id
+         and dq.price_source_id = cc.price_source_id
+         and nvl(dqd.price, 0) <> 0
+         and dq.is_deleted = 'N'
+         and dqd.is_deleted = 'N'
+         and drm.is_deleted = 'N'
+         and rownum < 2;
+    exception
+      when others then
+        null;
+      
+    end;
+    update temp_instrument_cash_price temp
+       set temp.price         = vn_fixed_price,
+           temp.price_unit_id = vc_fixed_price_unit_id
+     where temp.price_date = cc.price_date
+       and temp.fixed_price_date = cc.price_date
+       and temp.instrument_id = cc.instrument_id
+       and temp.section_name = cc.section_name
+       and temp.corporate_id = pc_corporate_id
+       and temp.is_fixed_price = 'N';
+ end loop;
+ commit; 
+       vc_error_msg := 'TEMP_INSTRUMENT_CASH_PRICE Price Update over';
+          
+ for mbv_ddr_rows in mbv_ddr
    loop
      vn_value_diff_in_trade_ccy := 0;
      vn_value_diff_in_base_ccy  := 0;
@@ -1937,11 +2387,11 @@ commit;
        select pkg_general.f_get_converted_quantity(mbv_ddr_rows.derivative_prodct_id,
                                                    mbv_ddr_rows.quantity_unit_id,
                                                    mbv_ddr_rows.mep_price_weight_unit_id,
-                                                   mbv_ddr_rows.open_quantity)
+                                                   mbv_ddr_rows.pnl_qty)
          into vn_temp_qty_factor
          from dual;
      else
-       vn_temp_qty_factor := mbv_ddr_rows.open_quantity;
+       vn_temp_qty_factor := mbv_ddr_rows.pnl_qty;
      end if;
      vc_error_msg := 'Conversion 4';
      if mbv_ddr_rows.mep_price_cur_id <> mbv_ddr_rows.base_cur_id then
@@ -1966,11 +2416,11 @@ commit;
        select pkg_general.f_get_converted_quantity(mbv_ddr_rows.derivative_prodct_id,
                                                    mbv_ddr_rows.quantity_unit_id,
                                                    mbv_ddr_rows.sett_price_weight_unit_id,
-                                                   mbv_ddr_rows.open_quantity)
+                                                   mbv_ddr_rows.pnl_qty)
          into vn_temp_qty_factor
          from dual;
      else
-       vn_temp_qty_factor := mbv_ddr_rows.open_quantity;
+       vn_temp_qty_factor := mbv_ddr_rows.pnl_qty;
      end if;
      vc_error_msg := 'Conversion 6';
      if mbv_ddr_rows.sett_price_cur_id <> mbv_ddr_rows.base_cur_id then
@@ -1990,6 +2440,57 @@ commit;
                                   nvl(mbv_ddr_rows.sett_price_weight, 1)) *
                                   vn_temp_currency_factor) *
                                   (vn_temp_qty_factor);
+     --
+     -- Unrealized Gain/Loss Attribution due to price 
+     -- If Sell, Trade Date Cash Price - Month End Cash Price * Qty in Base
+     -- If Buy Month End Cash Price -  Trade Date Cash Price  * Qty in Base  
+     --                       
+     if mbv_ddr_rows.quantity_unit_id <>
+        mbv_ddr_rows.mep_price_weight_unit_id then
+       select pkg_general.f_get_converted_quantity(mbv_ddr_rows.derivative_prodct_id,
+                                                   mbv_ddr_rows.quantity_unit_id,
+                                                   mbv_ddr_rows.mep_price_weight_unit_id,
+                                                   mbv_ddr_rows.pnl_qty)
+         into vn_temp_qty_factor
+         from dual;
+     else
+       vn_temp_qty_factor := mbv_ddr_rows.pnl_qty;
+     end if;
+     vc_error_msg := 'Conversion 14';
+     if mbv_ddr_rows.mep_price_cur_id <> mbv_ddr_rows.base_cur_id then
+       select pkg_general.f_get_converted_currency_amt(pc_corporate_id,
+                                                       mbv_ddr_rows.mep_price_cur_id,
+                                                       mbv_ddr_rows.base_cur_id,
+                                                       pd_trade_date,
+                                                       1)
+         into vn_temp_currency_factor
+         from dual;
+     else
+       vn_temp_currency_factor := 1;
+     end if;
+     If mbv_ddr_rows.trade_type ='Sell' then
+       vn_pnl_atribution_due_to_price :=(((mbv_ddr_rows.trade_date_cash_price -  mbv_ddr_rows.der_month_end_price) /
+                                 nvl(mbv_ddr_rows.mep_price_weight, 1)) *
+                                 vn_temp_currency_factor) *
+                                 (vn_temp_qty_factor);
+       vn_pnl_month_end_val_price:= (((mbv_ddr_rows.trade_price -  mbv_ddr_rows.month_end_price) /
+                                 nvl(mbv_ddr_rows.mep_price_weight, 1)) *
+                                 vn_temp_currency_factor) *
+                                 (vn_temp_qty_factor);                         
+                                 
+         else
+        vn_pnl_atribution_due_to_price := ((( mbv_ddr_rows.der_month_end_price - mbv_ddr_rows.trade_date_cash_price) /
+                                 nvl(mbv_ddr_rows.mep_price_weight, 1)) *
+                                 vn_temp_currency_factor) *
+                                 (vn_temp_qty_factor);
+        vn_pnl_month_end_val_price:= (((mbv_ddr_rows.month_end_price -  mbv_ddr_rows.trade_price) /
+                                 nvl(mbv_ddr_rows.mep_price_weight, 1)) *
+                                 vn_temp_currency_factor) *
+                                 (vn_temp_qty_factor);                                 
+     end if;
+       vc_error_msg := 'Unrealized Gain/Loss Attribution due to price ';
+   
+     
      /*
      for sales trades value diff = Mep price amt- market price amt
      for buy trades value diff =  market price amt - Mep price amt
@@ -2031,7 +2532,7 @@ commit;
         trade_value_in_trade_ccy,
         market_value_in_trade_ccy,
         pnl_in_trade_ccy,
-        pnl_in_base_ccy,
+        pnl_in_base_ccy,---
         fx_trade_to_base_ccy,
         month_end_price,
         month_end_price_unit,
@@ -2048,7 +2549,13 @@ commit;
         sett_value_in_base_ccy,
         value_diff_in_base_ccy,
         fx_mep_ccy_to_base_ccy,
-        fx_sett_ccy_to_base_ccy)
+        fx_sett_ccy_to_base_ccy,
+        trade_date_cash_price,
+        month_end_cash_price,
+        pnl_type,
+        pnl_attribution_due_to_price,
+        base_price_unit_name,
+        trade_to_prod_base_qty_factor)
      values
        (pc_process_id,
         mbv_ddr_rows.eod_trade_date,
@@ -2065,7 +2572,7 @@ commit;
         mbv_ddr_rows.external_ref_no,
         mbv_ddr_rows.trade_date,
         mbv_ddr_rows.trade_type,
-        mbv_ddr_rows.open_quantity,
+        mbv_ddr_rows.pnl_qty,
         mbv_ddr_rows.quantity_unit,
         mbv_ddr_rows.quantity_unit_id,
         mbv_ddr_rows.trade_price,
@@ -2078,7 +2585,7 @@ commit;
         mbv_ddr_rows.trade_value_in_trade_ccy,
         mbv_ddr_rows.market_value_in_trade_ccy,
         mbv_ddr_rows.pnl_in_trade_cur,
-        mbv_ddr_rows.pnl_in_base_cur,
+        vn_pnl_month_end_val_price,---
         mbv_ddr_rows.trade_cur_to_base_exch_rate,
         mbv_ddr_rows.month_end_price,
         mbv_ddr_rows.month_end_price_unit,
@@ -2095,10 +2602,31 @@ commit;
         vn_sett_value_in_base_cur,
         vn_value_diff_in_base_ccy,
         vn_fx_rate_mep_to_base_ccy,
-        vn_fx_rate_sett_to_base_ccy);
+        vn_fx_rate_sett_to_base_ccy,
+        mbv_ddr_rows.trade_date_cash_price,
+        mbv_ddr_rows.der_month_end_price,
+        mbv_ddr_rows.pnl_type,
+        vn_pnl_atribution_due_to_price,
+        mbv_ddr_rows.base_price_unit_name,
+        mbv_ddr_rows.trade_to_prod_base_qty_factor); 
      vc_error_msg := 'After Insert';
    end loop;
    commit;
+update mbv_derivative_diff_report mbvd
+   set mbvd.trade_price_in_base_cur     = mbvd.trade_price *
+                                          mbvd.trade_to_prod_base_qty_factor * mbvd.fx_trade_to_base_ccy,
+       mbvd.trade_date_cp_in_base_cur   = mbvd.trade_date_cash_price *
+                                          mbvd.trade_to_prod_base_qty_factor * fx_mep_ccy_to_base_ccy ,
+       mbvd.month_end_price_in_base_cur = mbvd.month_end_price *
+                                          mbvd.trade_to_prod_base_qty_factor * mbvd.fx_mep_ccy_to_base_ccy,
+       mbvd.month_end_cp_in_base_cur    = mbvd.month_end_cash_price *
+                                          mbvd.trade_to_prod_base_qty_factor* mbvd.fx_mep_ccy_to_base_ccy,
+       mbvd.valuation_price_in_base_cur   = mbvd.Valuation_Price *
+                                          mbvd.trade_to_prod_base_qty_factor* mbvd.fx_mep_ccy_to_base_ccy
+
+ where mbvd.process_id = pc_process_id;
+
+  commit; 
    vc_error_msg := 'End';
  exception
    when others then
@@ -2655,7 +3183,21 @@ begin
   -- Update Unrealized Physical Section P And L Values
   --
   -- Priced Inventory P and L
+  -- Priced Not Arrived PNL
   --
+  -- Janna Date : 29 Jul 2013
+  --
+  -- As per discussion with Prachir
+  -- Removed the Updation of Unrealized Physical Priced Not Arrived for Boliden
+  -- For Purchase side, this value is based on Priced Arrived Qty * (M2M Price - WAP Price)
+  -- Also Physcial Position and Diff Report restricted to Sales Contract
+  -- From Product Perspective it is not correct
+  -- When we are working on product we need to do the following
+  -- 1) Physcial Position and Diff Report, remove sales filter
+  -- 2) Remove the updation of unr_phy_priced_na_pnl column below (cursor cur_pi_pnl)
+  -- 3) Get the value for unr_phy_priced_na_pnl from mbv_phy_postion_diff_report table like Sales (cursor cur_mbvp)
+  --
+  
   for cur_pi_pnl in (select *
                        from mbv_metal_balance_valuation mbv
                       where mbv.process_id = pc_process_id)
@@ -2676,23 +3218,19 @@ begin
     update mbv_metal_balance_valuation mbv
        set mbv.unr_phy_priced_inv_pnl = (mbv.month_end_price -
                                         phy_unr_price_inv_price) *
-                                        mbv.priced_inv_qty * vn_price_factor
+                                        mbv.priced_inv_qty * vn_price_factor,
+           mbv.unr_phy_priced_na_pnl = (mbv.month_end_price -
+                                        mbv.phy_unr_price_na_inv_price) *
+                                        mbv.priced_not_arrived_qty * vn_price_factor                           
      where mbv.process_id = pc_process_id
        and mbv.product_id = cur_pi_pnl.product_id;
   end loop;
   commit;
   --
-  -- Priced and Not Arrived PNL = Total Unrealized PNL from Physical Position Report for Purchase
   -- Priced and Not Delivered PNL = Total Unrealized PNL from Physical Position Report for Sales
   --
+  
   for cur_mbvp in (select mbvp.product_id,
-                          nvl(sum(case
-                                    when mbvp.purchase_sales = 'P' then
-                                     mbvp.unrealized_pnl_in_base_cur
-                                    else
-                                     0
-                                  end),
-                              0) unr_phy_priced_na_pnl,
                           nvl(sum(case
                                     when mbvp.purchase_sales = 'S' then
                                      mbvp.unrealized_pnl_in_base_cur
@@ -2705,8 +3243,7 @@ begin
                     group by mbvp.product_id)
   loop
     update mbv_metal_balance_valuation mbv
-       set mbv.unr_phy_priced_na_pnl = cur_mbvp.unr_phy_priced_na_pnl,
-           mbv.unr_phy_priced_nd_pnl = cur_mbvp.unr_phy_priced_nd_pnl
+       set mbv.unr_phy_priced_nd_pnl = cur_mbvp.unr_phy_priced_nd_pnl
      where mbv.process_id = pc_process_id
        and mbv.product_id = cur_mbvp.product_id;
   end loop;
@@ -2735,8 +3272,85 @@ begin
        and mbv.product_id = cur_md_debt.product_id;
   end loop;
   commit;
-  vc_error_msg := 'End of sp_calc_mbv_report';
+ --
+  -- Update Allocation Value Hedge Effectiveness For This Month
+  --      
+for cur_hf_month  in(
+  select product_id,
+         case
+           when physical_value = 0 then
+            0
+           else
+            (1 - (physical_value + der_value) / physical_value) * 100
+         end hf_month
+    from (select mbva.product_id,
+                 sum(case
+                       when mbva.section_name = 'Physicals' then
+                        (mbva.purchase_qty - mbva.sales_qty) *
+                        mbva.price_in_base_ccy
+                       else
+                        0
+                     end) physical_value,
+                     -- Negative symbol for Derivative because, Purchase is Stored as + and Sales as -ve
+                     -- But for this calcualtion, it has to be opposite
+                     -- This will also match what is shown in Allocation Report 
+                 sum(case
+                       when mbva.section_name = 'Derivatives' then
+                      -1 *  ( mbva.purchase_qty - mbva.sales_qty) *
+                        mbva.price_in_base_ccy
+                       else
+                        0
+                     end) der_value
+            from mbv_allocation_report mbva
+           where mbva.process_id = pc_process_id
+           group by mbva.product_id)) loop
+         update mbv_metal_balance_valuation mbv
+       set mbv.hedge_effectiveness_month = cur_hf_month.hf_month
+     where mbv.process_id = pc_process_id
+       and mbv.product_id = cur_hf_month.product_id; 
+         end loop;
+         commit;
+  vc_error_msg := 'In Process Adjustment and Returned Material Till Date';
 
+--
+-- Update In Process Adjustment and Returned Material Till Date
+--
+for cur_mbv in
+(select prrqs.product_id,
+       nvl(sum(case
+         when prrqs.activity_action_id = 'IN_PROCESS_ADJUSTMENT' then
+          qty * ucm.multiplication_factor
+         else
+          0
+       end),0) in_process_adjustment,
+       nvl(sum(case
+         when prrqs.activity_action_id = 'CREATE_RETURN_MATERIAL' then
+          qty * ucm.multiplication_factor
+         else
+          0
+       end),0) returned_metal_debt_till_date
+  from prrqs_prr_qty_status       prrqs,
+       pdm_productmaster          pdm,
+       ucm_unit_conversion_master ucm,
+       axs_action_summary         axs
+ where prrqs.product_id = pdm.product_id
+   and prrqs.activity_action_id in
+       ('IN_PROCESS_ADJUSTMENT', 'CREATE_RETURN_MATERIAL')
+   and prrqs.is_active = 'Y'
+   and axs.internal_action_ref_no = prrqs.internal_action_ref_no
+   and ucm.from_qty_unit_id = prrqs.qty_unit_id
+   and ucm.to_qty_unit_id = pdm.base_quantity_unit
+   and axs.process =pc_process
+   and axs.eff_date <= pd_trade_date
+ group by prrqs.product_id) loop
+ Update mbv_metal_balance_valuation mbv
+ set mbv.returned_material_till_date = cur_mbv.returned_metal_debt_till_date,
+ mbv.in_process_adjustment_qty = cur_mbv.in_process_adjustment
+ where mbv.process_id = pc_process_id
+ and mbv.product_id = cur_mbv.product_id;
+ end loop;
+ commit;
+  vc_error_msg := 'End of sp_calc_mbv_report';
 exception
   when others then
     vobj_error_log.extend;
@@ -2860,6 +3474,7 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
        and pcm.is_active = 'Y'
        and pcdi.is_active = 'Y'
        and pcm.contract_type = 'CONCENTRATES'
+       and pcm.purchase_sales ='S'
        and dipq.element_id = aml.attribute_id
        and aml.is_active = 'Y'
        and aml.underlying_product_id = pdm.product_id
@@ -2977,6 +3592,7 @@ procedure sp_phy_postion_diff_report(pc_corporate_id varchar2,
        and pcm.is_active = 'Y'
        and pcdi.is_active = 'Y'
        and pcm.contract_type = 'BASEMETAL'
+       and pcm.purchase_sales ='S'
        and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
        and pcpd.process_id = pc_process_id
        and pcpd.is_active = 'Y'
@@ -3396,629 +4012,17 @@ begin
     when no_data_found then
       vd_prev_eom_date := to_date('01-Jan-2000', 'dd-Mon-yyyy');
   end;
-  vc_error_msg := 'Start of Physicals';
-  --
-  -- For Physicals
-  -- Concentrates Active Records
-  --
-  insert into mbv_allocation_report
-    (process_id,
-     eod_trade_date,
-     corporate_id,
-     corporate_name,
-     section_name,
-     product_id,
-     product_desc,
-     instrument_id,
-     instrument_name,
-     cp_id,
-     cp_name,
-     internal_contract_ref_no,
-     delivery_item_no,
-     gmr_ref_no,
-     internal_gmr_ref_no,
-     price_fixed_date,
-     pf_ref_no,
-     purchase_qty,
-     sales_qty,
-     qty_unit_id,
-     qty_unit,
-     price,
-     price_unit_id,
-     price_unit_cur_id,
-     price_unit_cur_code,
-     price_unit_weight_unit_id,
-     price_unit_weight_unit,
-     price_unit_weight,
-     price_unit_name,
-     fx_rate_price_to_base,
-     price_in_base_ccy,
-     amount,
-     base_cur_id,
-     base_cur_name,
-     pcdi_id,
-     is_active)
-    select pc_process_id,
-           pd_trade_date,
-           pc_corporate_id,
-           akc.corporate_name,
-           'Physicals',
-           pdm_aml.product_id,
-           pdm_aml.product_desc,
-           vped.instrument_id,
-           vped.instrument_name,
-           pcm.cp_id,
-           pcm.cp_name,
-           pcm.contract_ref_no || '(' || pcdi.delivery_item_no || ')' contract_ref_no_del_item_no,
-           pcdi.delivery_item_no,
-           gmr.gmr_ref_no,
-           gmr.internal_gmr_ref_no,
-           pfd.hedge_correction_date price_fixation_date,
-           axs.action_ref_no as pf_ref_no,
-           (case
-             when pcm.purchase_sales = 'P' then
-              pfd.qty_fixed * ucm.multiplication_factor
-             else
-              0
-           end) purchase_qty,
-           (case
-             when pcm.purchase_sales = 'S' then
-              pfd.qty_fixed * ucm.multiplication_factor
-             else
-              0
-           end) sales_qty,
-           pdm_aml.base_quantity_unit,
-           qum_qty.qty_unit,
-           pfd.user_price,
-           pfd.price_unit_id,
-           ppu.cur_id,
-           cm.cur_code,
-           ppu.weight_unit_id,
-           qum.qty_unit,
-           ppu.weight,
-           ppu.price_unit_name,
-           1 fx_to_base,
-           pfd.user_price price_in_base,
-           (case
-             when pcm.purchase_sales = 'P' then
-              1
-             else
-              (-1)
-           end) * pfd.qty_fixed * pfd.user_price *
-           ucm.multiplication_factor * ucm_price.multiplication_factor amount,
-           akc.base_cur_id,
-           akc.base_currency_name,
-           pcdi.pcdi_id,
-           pfd.is_active
-      from pcm_physical_contract_main pcm,
-           pcdi_pc_delivery_item pcdi,
-           poch_price_opt_call_off_header poch,
-           pocd_price_option_calloff_dtls pocd,
-           pofh_price_opt_fixation_header pofh,
-           pfd_price_fixation_details pfd,
-           (select gmr.internal_gmr_ref_no,
-                   gmr.gmr_ref_no
-              from gmr_goods_movement_record gmr
-             where gmr.process_id = pc_process_id
-               and gmr.is_deleted = 'N') gmr,
-           pfam_price_fix_action_mapping pfam,
-           axs_action_summary axs,
-           aml_attribute_master_list aml,
-           pdm_productmaster pdm_aml,
-           v_pcdi_exchange_detail vped,
-           v_ppu_pum ppu,
-           cm_currency_master cm,
-           qum_quantity_unit_master qum,
-           ak_corporate akc,
-           ucm_unit_conversion_master ucm,
-           qum_quantity_unit_master qum_qty,
-           ucm_unit_conversion_master ucm_price
-     where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-       and pcdi.pcdi_id = poch.pcdi_id
-       and poch.poch_id = pocd.poch_id
-       and pocd.pocd_id = pofh.pocd_id
-       and pofh.pofh_id = pfd.pofh_id
-       and pofh.internal_gmr_ref_no = gmr.internal_gmr_ref_no(+)
-       and pfd.pfd_id = pfam.pfd_id
-       and pfam.internal_action_ref_no = axs.internal_action_ref_no(+)
-       and poch.element_id = aml.attribute_id
-       and vped.pcdi_id = pcdi.pcdi_id
-       and vped.element_id = aml.attribute_id(+)
-       and aml.underlying_product_id = pdm_aml.product_id
-       and pfd.price_unit_id = ppu.product_price_unit_id
-       and ppu.cur_id = cm.cur_id
-       and ppu.weight_unit_id = qum.qty_unit_id
-       and akc.corporate_id = pcm.corporate_id
-       and ucm.from_qty_unit_id = pocd.qty_to_be_fixed_unit_id
-       and ucm.to_qty_unit_id = pdm_aml.base_quantity_unit
-       and pdm_aml.base_quantity_unit = qum_qty.qty_unit_id
-       and pcm.process_id = pc_process_id
-       and pcdi.process_id = pc_process_id
-       and pcm.is_active = 'Y'
-       and poch.is_active = 'Y'
-       and pocd.is_active = 'Y'
-       and pofh.is_active = 'Y'
-       and pcdi.is_active = 'Y'
-       and pfam.is_active = 'Y'
-       and pfd.is_active = 'Y'
-       and pcm.contract_type = 'CONCENTRATES'
-       and pfd.hedge_correction_date > vd_prev_eom_date
-       and pfd.hedge_correction_date <= pd_trade_date
-       and pcm.is_pass_through = 'N'
-       and axs.process = 'EOM'
-       and pocd.price_type <> 'Fixed'
-       and ucm_price.from_qty_unit_id = pdm_aml.base_quantity_unit
-       and ucm_price.to_qty_unit_id = ppu.weight_unit_id;
-  commit;
-  --
-  -- Concentrates Cancelled records
-  -- 
-  vc_error_msg := 'Start of Concentrates Cancelled records';
-  insert into mbv_allocation_report
-    (process_id,
-     eod_trade_date,
-     corporate_id,
-     corporate_name,
-     section_name,
-     product_id,
-     product_desc,
-     instrument_id,
-     instrument_name,
-     cp_id,
-     cp_name,
-     internal_contract_ref_no,
-     delivery_item_no,
-     gmr_ref_no,
-     internal_gmr_ref_no,
-     price_fixed_date,
-     pf_ref_no,
-     purchase_qty,
-     sales_qty,
-     qty_unit_id,
-     qty_unit,
-     price,
-     price_unit_id,
-     price_unit_cur_id,
-     price_unit_cur_code,
-     price_unit_weight_unit_id,
-     price_unit_weight_unit,
-     price_unit_weight,
-     price_unit_name,
-     fx_rate_price_to_base,
-     price_in_base_ccy,
-     amount,
-     base_cur_id,
-     base_cur_name,
-     pcdi_id,
-     is_active)
-    select pc_process_id,
-           pd_trade_date,
-           pc_corporate_id,
-           akc.corporate_name,
-           'Physicals',
-           pdm_aml.product_id,
-           pdm_aml.product_desc,
-           vped.instrument_id,
-           vped.instrument_name,
-           pcm.cp_id,
-           pcm.cp_name,
-           pcm.contract_ref_no || '(' || pcdi.delivery_item_no || ')' contract_ref_no_del_item_no,
-           pcdi.delivery_item_no,
-           gmr.gmr_ref_no,
-           gmr.internal_gmr_ref_no,
-           pfd.hedge_correction_date price_fixation_date,
-           axs.action_ref_no as pf_ref_no,
-           (case
-             when pcm.purchase_sales = 'P' then
-              pfd.qty_fixed * ucm.multiplication_factor
-             else
-              0
-           end) purchase_qty,
-           (case
-             when pcm.purchase_sales = 'S' then
-              pfd.qty_fixed * ucm.multiplication_factor
-             else
-              0
-           end) sales_qty,
-           pdm_aml.base_quantity_unit,
-           qum_qty.qty_unit,
-           pfd.user_price,
-           pfd.price_unit_id,
-           ppu.cur_id,
-           cm.cur_code,
-           ppu.weight_unit_id,
-           qum.qty_unit,
-           ppu.weight,
-           ppu.price_unit_name,
-           1 fx_to_base,
-           pfd.user_price price_in_base,
-           (case
-             when pcm.purchase_sales = 'P' then
-              1
-             else
-              (-1)
-           end) * pfd.qty_fixed * pfd.user_price *
-           ucm.multiplication_factor * ucm_price.multiplication_factor amount,
-           akc.base_cur_id,
-           akc.base_currency_name,
-           pcdi.pcdi_id,
-           pfd.is_active
-      from pcm_physical_contract_main pcm,
-           pcdi_pc_delivery_item pcdi,
-           poch_price_opt_call_off_header poch,
-           pocd_price_option_calloff_dtls pocd,
-           pofh_price_opt_fixation_header pofh,
-           pfd_price_fixation_details pfd,
-           (select gmr.internal_gmr_ref_no,
-                   gmr.gmr_ref_no
-              from gmr_goods_movement_record gmr
-             where gmr.process_id = pc_process_id
-               and gmr.is_deleted = 'N') gmr,
-           pfam_price_fix_action_mapping pfam,
-           axs_action_summary axs,
-           aml_attribute_master_list aml,
-           pdm_productmaster pdm_aml,
-           v_pcdi_exchange_detail vped,
-           v_ppu_pum ppu,
-           cm_currency_master cm,
-           qum_quantity_unit_master qum,
-           ak_corporate akc,
-           ucm_unit_conversion_master ucm,
-           qum_quantity_unit_master qum_qty,
-           ucm_unit_conversion_master ucm_price
-     where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-       and pcdi.pcdi_id = poch.pcdi_id
-       and poch.poch_id = pocd.poch_id
-       and pocd.pocd_id = pofh.pocd_id
-       and pofh.pofh_id = pfd.pofh_id
-       and pofh.internal_gmr_ref_no = gmr.internal_gmr_ref_no(+)
-       and pfd.pfd_id = pfam.pfd_id
-       and pfam.internal_action_ref_no = axs.internal_action_ref_no(+)
-       and poch.element_id = aml.attribute_id
-       and vped.pcdi_id = pcdi.pcdi_id
-       and vped.element_id = aml.attribute_id(+)
-       and aml.underlying_product_id = pdm_aml.product_id
-       and pfd.price_unit_id = ppu.product_price_unit_id
-       and ppu.cur_id = cm.cur_id
-       and ppu.weight_unit_id = qum.qty_unit_id
-       and akc.corporate_id = pcm.corporate_id
-       and ucm.from_qty_unit_id = pocd.qty_to_be_fixed_unit_id
-       and ucm.to_qty_unit_id = pdm_aml.base_quantity_unit
-       and pdm_aml.base_quantity_unit = qum_qty.qty_unit_id
-       and pcm.process_id = pc_process_id
-       and pcdi.process_id = pc_process_id
-       and pcm.is_active = 'Y'
-       and poch.is_active = 'Y'
-       and pocd.is_active = 'Y'
-       and pofh.is_active = 'Y'
-       and pcdi.is_active = 'Y'
-       and pfam.is_active = 'Y'
-       and pfd.is_active = 'N'
-       and pfd.cancel_action_ref_no is not null
-       and nvl(pfd.user_price, 0) <> 0
-       and pcm.contract_type = 'CONCENTRATES'
-       and pfd.hedge_correction_date > vd_prev_eom_date
-       and pfd.hedge_correction_date <= pd_trade_date
-       and pcm.is_pass_through = 'N'
-       and axs.process = 'EOM'
-       and pocd.price_type <> 'Fixed'
-       and ucm_price.from_qty_unit_id = pdm_aml.base_quantity_unit
-       and ucm_price.to_qty_unit_id = ppu.weight_unit_id;
-  --
-  -- Base Metal Active records
-  --    
-  vc_error_msg := 'Start of Base Metal Active records';
-
-  insert into mbv_allocation_report
-    (process_id,
-     eod_trade_date,
-     corporate_id,
-     corporate_name,
-     section_name,
-     product_id,
-     product_desc,
-     instrument_id,
-     instrument_name,
-     cp_id,
-     cp_name,
-     internal_contract_ref_no,
-     delivery_item_no,
-     gmr_ref_no,
-     internal_gmr_ref_no,
-     price_fixed_date,
-     pf_ref_no,
-     purchase_qty,
-     sales_qty,
-     qty_unit_id,
-     qty_unit,
-     price,
-     price_unit_id,
-     price_unit_cur_id,
-     price_unit_cur_code,
-     price_unit_weight_unit_id,
-     price_unit_weight_unit,
-     price_unit_weight,
-     price_unit_name,
-     fx_rate_price_to_base,
-     price_in_base_ccy,
-     amount,
-     base_cur_id,
-     base_cur_name,
-     pcdi_id,
-     is_active)
   
-    select pc_process_id,
-           pd_trade_date,
-           pc_corporate_id,
-           akc.corporate_name,
-           'Physicals',
-           pdm.product_id,
-           pdm.product_desc,
-           vped.instrument_id,
-           vped.instrument_name,
-           pcm.cp_id,
-           pcm.cp_name,
-           pcm.contract_ref_no || '(' || pcdi.delivery_item_no || ')' contract_ref_no_del_item_no,
-           pcdi.delivery_item_no,
-           gmr.gmr_ref_no,
-           gmr.internal_gmr_ref_no,
-           pfd.hedge_correction_date price_fixation_date,
-           axs.action_ref_no as pf_ref_no,
-           (case
-             when pcm.purchase_sales = 'P' then
-              pfd.qty_fixed * ucm.multiplication_factor
-             else
-              0
-           end) purchase_qty,
-           (case
-             when pcm.purchase_sales = 'S' then
-              pfd.qty_fixed * ucm.multiplication_factor
-             else
-              0
-           end) sales_qty,
-           pdm.base_quantity_unit,
-           qum_qty.qty_unit,
-           pfd.user_price,
-           pfd.price_unit_id,
-           ppu.cur_id,
-           cm.cur_code,
-           ppu.weight_unit_id,
-           qum.qty_unit,
-           ppu.weight,
-           ppu.price_unit_name,
-           1 fx_to_base,
-           pfd.user_price price_in_base,
-           (case
-             when pcm.purchase_sales = 'P' then
-              1
-             else
-              (-1)
-           end) * pfd.qty_fixed * pfd.user_price *
-           ucm.multiplication_factor * ucm_price.multiplication_factor amount,
-           akc.base_cur_id,
-           akc.base_currency_name,
-           pcdi.pcdi_id,
-           pfd.is_active
-      from pcm_physical_contract_main pcm,
-           pcdi_pc_delivery_item pcdi,
-           poch_price_opt_call_off_header poch,
-           pocd_price_option_calloff_dtls pocd,
-           pofh_price_opt_fixation_header pofh,
-           pfd_price_fixation_details pfd,
-           (select gmr.internal_gmr_ref_no,
-                   gmr.gmr_ref_no
-              from gmr_goods_movement_record gmr
-             where gmr.process_id = pc_process_id
-               and gmr.is_deleted = 'N') gmr,
-           pfam_price_fix_action_mapping pfam,
-           axs_action_summary axs,
-           v_pcdi_exchange_detail vped,
-           pcpd_pc_product_definition pcpd,
-           pdm_productmaster pdm,
-           v_ppu_pum ppu,
-           cm_currency_master cm,
-           qum_quantity_unit_master qum,
-           ak_corporate akc,
-           ucm_unit_conversion_master ucm,
-           qum_quantity_unit_master qum_qty,
-           ucm_unit_conversion_master ucm_price
-     where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-       and pcdi.pcdi_id = poch.pcdi_id
-       and poch.poch_id = pocd.poch_id
-       and pocd.pocd_id = pofh.pocd_id
-       and pofh.pofh_id = pfd.pofh_id
-       and pofh.internal_gmr_ref_no = gmr.internal_gmr_ref_no(+)
-       and pfd.pfd_id = pfam.pfd_id
-       and pfam.internal_action_ref_no = axs.internal_action_ref_no(+)
-       and vped.pcdi_id = pcdi.pcdi_id
-       and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-       and pcpd.product_id = pdm.product_id
-       and pfd.price_unit_id = ppu.product_price_unit_id
-       and ppu.cur_id = cm.cur_id
-       and ppu.weight_unit_id = qum.qty_unit_id
-       and akc.corporate_id = pcm.corporate_id
-       and ucm.from_qty_unit_id = pocd.qty_to_be_fixed_unit_id
-       and ucm.to_qty_unit_id = pdm.base_quantity_unit
-       and pdm.base_quantity_unit = qum_qty.qty_unit_id
-       and pcm.process_id = pc_process_id
-       and pcdi.process_id = pc_process_id
-       and pcpd.process_id = pc_process_id
-       and pcm.is_active = 'Y'
-       and poch.is_active = 'Y'
-       and pocd.is_active = 'Y'
-       and pofh.is_active = 'Y'
-       and pcdi.is_active = 'Y'
-       and pfam.is_active = 'Y'
-       and pcpd.is_active = 'Y'
-       and pfd.is_active = 'Y'
-       and pcm.contract_type = 'BASEMETAL'
-       and pfd.hedge_correction_date > vd_prev_eom_date
-       and pfd.hedge_correction_date <= pd_trade_date
-       and axs.process = 'EOM'
-       and pocd.price_type <> 'Fixed'
-       and ucm_price.from_qty_unit_id = pdm.base_quantity_unit
-       and ucm_price.to_qty_unit_id = ppu.weight_unit_id;
-  commit;
-  --
-  -- Base Metal Cancelled records
-  --   
-  vc_error_msg := 'Start of Base Metal Cancelled records';
+vc_error_msg := 'Start of Derivatives';
 
-  insert into mbv_allocation_report
-    (process_id,
-     eod_trade_date,
-     corporate_id,
-     corporate_name,
-     section_name,
-     product_id,
-     product_desc,
-     instrument_id,
-     instrument_name,
-     cp_id,
-     cp_name,
-     internal_contract_ref_no,
-     delivery_item_no,
-     gmr_ref_no,
-     internal_gmr_ref_no,
-     price_fixed_date,
-     pf_ref_no,
-     purchase_qty,
-     sales_qty,
-     qty_unit_id,
-     qty_unit,
-     price,
-     price_unit_id,
-     price_unit_cur_id,
-     price_unit_cur_code,
-     price_unit_weight_unit_id,
-     price_unit_weight_unit,
-     price_unit_weight,
-     price_unit_name,
-     fx_rate_price_to_base,
-     price_in_base_ccy,
-     amount,
-     base_cur_id,
-     base_cur_name,
-     pcdi_id,
-     is_active)
-    select pc_process_id,
-           pd_trade_date,
-           pc_corporate_id,
-           akc.corporate_name,
-           'Physicals',
-           pdm.product_id,
-           pdm.product_desc,
-           vped.instrument_id,
-           vped.instrument_name,
-           pcm.cp_id,
-           pcm.cp_name,
-           pcm.contract_ref_no || '(' || pcdi.delivery_item_no || ')' contract_ref_no_del_item_no,
-           pcdi.delivery_item_no,
-           gmr.gmr_ref_no,
-           gmr.internal_gmr_ref_no,
-           pfd.hedge_correction_date price_fixation_date,
-           axs.action_ref_no as pf_ref_no,
-           (case
-             when pcm.purchase_sales = 'P' then
-              pfd.qty_fixed * ucm.multiplication_factor
-             else
-              0
-           end) purchase_qty,
-           (case
-             when pcm.purchase_sales = 'S' then
-              pfd.qty_fixed * ucm.multiplication_factor
-             else
-              0
-           end) sales_qty,
-           pdm.base_quantity_unit,
-           qum_qty.qty_unit,
-           pfd.user_price,
-           pfd.price_unit_id,
-           ppu.cur_id,
-           cm.cur_code,
-           ppu.weight_unit_id,
-           qum.qty_unit,
-           ppu.weight,
-           ppu.price_unit_name,
-           1 fx_to_base,
-           pfd.user_price price_in_base,
-           (case
-             when pcm.purchase_sales = 'P' then
-              1
-             else
-              (-1)
-           end) * pfd.qty_fixed * pfd.user_price *
-           ucm.multiplication_factor * ucm_price.multiplication_factor amount,
-           akc.base_cur_id,
-           akc.base_currency_name,
-           pcdi.pcdi_id,
-           pfd.is_active
-      from pcm_physical_contract_main pcm,
-           pcdi_pc_delivery_item pcdi,
-           poch_price_opt_call_off_header poch,
-           pocd_price_option_calloff_dtls pocd,
-           pofh_price_opt_fixation_header pofh,
-           pfd_price_fixation_details pfd,
-           (select gmr.internal_gmr_ref_no,
-                   gmr.gmr_ref_no
-              from gmr_goods_movement_record gmr
-             where gmr.process_id = pc_process_id
-               and gmr.is_deleted = 'N') gmr,
-           pfam_price_fix_action_mapping pfam,
-           axs_action_summary axs,
-           v_pcdi_exchange_detail vped,
-           pcpd_pc_product_definition pcpd,
-           pdm_productmaster pdm,
-           v_ppu_pum ppu,
-           cm_currency_master cm,
-           qum_quantity_unit_master qum,
-           ak_corporate akc,
-           ucm_unit_conversion_master ucm,
-           qum_quantity_unit_master qum_qty,
-           ucm_unit_conversion_master ucm_price
-     where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
-       and pcdi.pcdi_id = poch.pcdi_id
-       and poch.poch_id = pocd.poch_id
-       and pocd.pocd_id = pofh.pocd_id
-       and pofh.pofh_id = pfd.pofh_id
-       and pofh.internal_gmr_ref_no = gmr.internal_gmr_ref_no(+)
-       and pfd.pfd_id = pfam.pfd_id
-       and pfam.internal_action_ref_no = axs.internal_action_ref_no(+)
-       and vped.pcdi_id = pcdi.pcdi_id
-       and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
-       and pcpd.product_id = pdm.product_id
-       and pfd.price_unit_id = ppu.product_price_unit_id
-       and ppu.cur_id = cm.cur_id
-       and ppu.weight_unit_id = qum.qty_unit_id
-       and akc.corporate_id = pcm.corporate_id
-       and ucm.from_qty_unit_id = pocd.qty_to_be_fixed_unit_id
-       and ucm.to_qty_unit_id = pdm.base_quantity_unit
-       and pdm.base_quantity_unit = qum_qty.qty_unit_id
-       and pcm.process_id = pc_process_id
-       and pcdi.process_id = pc_process_id
-       and pcpd.process_id = pc_process_id
-       and pcm.is_active = 'Y'
-       and poch.is_active = 'Y'
-       and pocd.is_active = 'Y'
-       and pofh.is_active = 'Y'
-       and pcdi.is_active = 'Y'
-       and pfam.is_active = 'Y'
-       and pcpd.is_active = 'Y'
-       and pfd.is_active = 'N'
-       and pfd.cancel_action_ref_no is not null
-       and nvl(pfd.user_price, 0) <> 0
-       and pcm.contract_type = 'BASEMETAL'
-       and pfd.hedge_correction_date > vd_prev_eom_date
-       and pfd.hedge_correction_date <= pd_trade_date
-       and axs.process = 'EOM'
-       and pocd.price_type <> 'Fixed'
-       and ucm_price.from_qty_unit_id = pdm.base_quantity_unit
-       and ucm_price.to_qty_unit_id = ppu.weight_unit_id;
-  vc_error_msg := 'Start of Derivatives';
+  delete from tar_temp_alloc_report tar
+  where tar.corporate_id = pc_corporate_id;
+  commit;
   --
   -- derivatives
-  --
-  insert into mbv_allocation_report
+  -- This data is directly inserted into table as there is No Hedge Corerction Concept here
+  
+  insert into tar_temp_alloc_report
     (process_id,
      eod_trade_date,
      corporate_id,
@@ -4050,7 +4054,12 @@ begin
      price_fixed_date,
      amount,
      base_cur_id,
-     base_cur_name)
+     base_cur_name,
+     is_hedge_correction,
+     ref_price,
+     ref_price_value_base_ccy,
+     ref_price_cur_id,
+     ref_price_unit_name)
     select dpd.process_id,
            dpd.eod_trade_date,
            dpd.corporate_id,
@@ -4100,21 +4109,1361 @@ begin
               dpd.trade_price * dpd.trade_cur_to_base_exch_rate
            end) trade_value_in_base,
            dpd.base_cur_id,
-           dpd.base_cur_code
-      from dpd_derivative_pnl_daily   dpd,
+           dpd.base_cur_code,
+           'N',
+           temp.price,
+            (case
+             when dpd.trade_type = 'Buy' then
+              dpd.total_quantity * ucm_price.multiplication_factor *
+              temp.price --excechange rate to be update later
+             else
+              (-1) * dpd.total_quantity * ucm_price.multiplication_factor *
+              temp.price --excechange rate to be update later
+           end) ref_value_in_base,
+           pum.cur_id ref_price_cur_id,
+           pum.price_unit_name
+       from dpd_derivative_pnl_daily   dpd,
            ucm_unit_conversion_master ucm,
-           ucm_unit_conversion_master ucm_price
+           ucm_unit_conversion_master ucm_price,
+           temp_instrument_cash_price  temp,
+           pum_price_unit_master       pum
      where dpd.pnl_type = 'New Trade'
        and ucm.from_qty_unit_id = dpd.trade_price_weight_unit_id
        and ucm.to_qty_unit_id = dpd.base_qty_unit_id
        and ucm_price.from_qty_unit_id = dpd.trade_price_weight_unit_id
        and ucm_price.to_qty_unit_id = dpd.quantity_unit_id
-       and dpd.process_id = pc_process_id;
+       and temp.price_unit_id=pum.price_unit_id
+       and dpd.process_id = pc_process_id
+       and temp.corporate_id=pc_corporate_id
+       and temp.instrument_id=dpd.instrument_id
+       and temp.price_date=dpd.trade_date
+       and temp.section_name<>'Physicals'
+       and temp.is_fixed_price ='N';
+  commit;  
+  
+  --
+  -- FX Rate from ref price to Base for derivatives
+  --
+  for cur_exch_rate in (select mbvad.ref_price_cur_id
+                          from tar_temp_alloc_report mbvad
+                         where mbvad.process_id = pc_process_id
+                           and mbvad.ref_price_cur_id <> vc_base_cur_id
+                           and mbvad.section_name = 'Derivatives'
+                         group by mbvad.ref_price_cur_id)
+  loop
+    
+      begin
+      select cet.exch_rate into vn_exch_rate from cet_corporate_exch_rate cet
+      where cet.corporate_id = pc_corporate_id
+      and cet.from_cur_id = cur_exch_rate.ref_price_cur_id
+      and cet.to_cur_id = vc_base_cur_id;
+      exception when others then null;
+      end;
+      
+    update tar_temp_alloc_report mbva
+       set mbva.Ref_price_Value_Base_CCY     = mbva.Ref_price_Value_Base_CCY *
+                                        vn_exch_rate
+     where mbva.process_id = pc_process_id
+       and mbva.ref_price_cur_id = cur_exch_rate.ref_price_cur_id
+       and mbva.section_name = 'Derivatives';
+  end loop;
   commit;
+   
+  vc_error_msg := 'Start of Physicals';
+
+  --
+  -- For Physicals
+  -- Physical Data isn first put into Temp table as we have to seggregate between Hedge Correction Flags
+  -- Concentrates Active Records
+  --
+  insert into tar_temp_alloc_report
+    (process_id,
+     eod_trade_date,
+     corporate_id,
+     corporate_name,
+     section_name,
+     product_id,
+     product_desc,
+     instrument_id,
+     instrument_name,
+     cp_id,
+     cp_name,
+     internal_contract_ref_no,
+     delivery_item_no,
+     gmr_ref_no,
+     internal_gmr_ref_no,
+     price_fixed_date,
+     pf_ref_no,
+     purchase_qty,
+     sales_qty,
+     qty_unit_id,
+     qty_unit,
+     price,
+     price_unit_id,
+     price_unit_cur_id,
+     price_unit_cur_code,
+     price_unit_weight_unit_id,
+     price_unit_weight_unit,
+     price_unit_weight,
+     price_unit_name,
+     fx_rate_price_to_base,
+     price_in_base_ccy,
+     amount,
+     base_cur_id,
+     base_cur_name,
+     pcdi_id,
+     is_active,
+     is_hedge_correction,
+     Ref_price,
+     Ref_price_Value_Base_CCY,
+     ref_price_cur_id,
+     ref_price_unit_name)
+    select pc_process_id,
+           pd_trade_date,
+           pc_corporate_id,
+           akc.corporate_name,
+           'Physicals',
+           pdm_aml.product_id,
+           pdm_aml.product_desc,
+           vped.instrument_id,
+           vped.instrument_name,
+           pcm.cp_id,
+           pcm.cp_name,
+           pcm.contract_ref_no || '(' || pcdi.delivery_item_no || ')' contract_ref_no_del_item_no,
+           pcdi.delivery_item_no,
+           gmr.gmr_ref_no,
+           gmr.internal_gmr_ref_no,
+           pfd.hedge_correction_date price_fixation_date,
+           axs.action_ref_no as pf_ref_no,
+           (case
+             when pcm.purchase_sales = 'P' then
+              pfd.qty_fixed * ucm.multiplication_factor
+             else
+              0
+           end) purchase_qty,
+           (case
+             when pcm.purchase_sales = 'S' then
+              pfd.qty_fixed * ucm.multiplication_factor
+             else
+              0
+           end) sales_qty,
+           pdm_aml.base_quantity_unit,
+           qum_qty.qty_unit,
+           pfd.user_price,
+           pfd.price_unit_id,
+           ppu.cur_id,
+           cm.cur_code,
+           ppu.weight_unit_id,
+           qum.qty_unit,
+           ppu.weight,
+           ppu.price_unit_name,
+           1 fx_to_base,
+           pfd.user_price price_in_base,
+           (case
+             when pcm.purchase_sales = 'P' then
+              1
+             else
+              (-1)
+           end) * pfd.qty_fixed * pfd.user_price *
+           ucm.multiplication_factor * ucm_price.multiplication_factor amount,
+           akc.base_cur_id,
+           akc.base_currency_name,
+           pcdi.pcdi_id,
+           pfd.is_active,
+           pfd.is_hedge_correction,
+           temp.price,
+           (case
+             when pcm.purchase_sales = 'P' then
+              1
+             else
+              (-1)
+           end) * pfd.qty_fixed * temp.price *
+           ucm.multiplication_factor * ucm_price.multiplication_factor Ref_price_Value_Base_CCY,
+           pum.cur_id ref_price_cur_id,
+           pum.price_unit_name           
+      from pcm_physical_contract_main pcm,
+           pcdi_pc_delivery_item pcdi,
+           poch_price_opt_call_off_header poch,
+           pocd_price_option_calloff_dtls pocd,
+           pofh_price_opt_fixation_header pofh,
+           pfd_price_fixation_details pfd,
+           (select gmr.internal_gmr_ref_no,
+                   gmr.gmr_ref_no
+              from gmr_goods_movement_record gmr
+             where gmr.process_id = pc_process_id
+               and gmr.is_deleted = 'N') gmr,
+           pfam_price_fix_action_mapping pfam,
+           axs_action_summary axs,
+           aml_attribute_master_list aml,
+           pdm_productmaster pdm_aml,
+           v_pcdi_exchange_detail vped,
+           v_ppu_pum ppu,
+           cm_currency_master cm,
+           qum_quantity_unit_master qum,
+           ak_corporate akc,
+           ucm_unit_conversion_master ucm,
+           qum_quantity_unit_master qum_qty,
+           ucm_unit_conversion_master ucm_price,
+           temp_instrument_cash_price temp,
+           pum_price_unit_master      pum
+     where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+       and pcdi.pcdi_id = poch.pcdi_id
+       and poch.poch_id = pocd.poch_id
+       and pocd.pocd_id = pofh.pocd_id
+       and pofh.pofh_id = pfd.pofh_id
+       and pofh.internal_gmr_ref_no = gmr.internal_gmr_ref_no(+)
+       and pfd.pfd_id = pfam.pfd_id
+       and pfam.internal_action_ref_no = axs.internal_action_ref_no(+)
+       and poch.element_id = aml.attribute_id
+       and vped.pcdi_id = pcdi.pcdi_id
+       and vped.element_id = aml.attribute_id(+)
+       and aml.underlying_product_id = pdm_aml.product_id
+       and pfd.price_unit_id = ppu.product_price_unit_id
+       and ppu.cur_id = cm.cur_id
+       and ppu.weight_unit_id = qum.qty_unit_id
+       and akc.corporate_id = pcm.corporate_id
+       and ucm.from_qty_unit_id = pocd.qty_to_be_fixed_unit_id
+       and ucm.to_qty_unit_id = pdm_aml.base_quantity_unit
+       and pdm_aml.base_quantity_unit = qum_qty.qty_unit_id
+       and pcm.process_id = pc_process_id
+       and pcdi.process_id = pc_process_id
+       and pcm.contract_status <> 'Cancelled'
+       and poch.is_active = 'Y'
+       and pocd.is_active = 'Y'
+       and pofh.is_active = 'Y'
+       and pcdi.is_active = 'Y'
+       and pfam.is_active = 'Y'
+       and pfd.is_active = 'Y'
+       and pcm.contract_type = 'CONCENTRATES'
+       and pfd.hedge_correction_date > vd_prev_eom_date
+       and pfd.hedge_correction_date <= pd_trade_date
+       and pcm.is_pass_through = 'N'
+       and axs.process = 'EOM'
+       and pocd.price_type <> 'Fixed'
+       and ucm_price.from_qty_unit_id = pdm_aml.base_quantity_unit
+       and ucm_price.to_qty_unit_id = ppu.weight_unit_id
+       and vped.instrument_id=temp.instrument_id
+       and pfd.hedge_correction_date=temp.price_date
+       and temp.corporate_id=pc_corporate_id
+       and temp.price_unit_id=pum.price_unit_id
+       and temp.section_name='Physicals'
+       and temp.is_fixed_price ='N';
+  commit;
+  --
+  -- Concentrates Cancelled records
+  -- 
+  vc_error_msg := 'Start of Concentrates Cancelled records';
+  insert into tar_temp_alloc_report
+    (process_id,
+     eod_trade_date,
+     corporate_id,
+     corporate_name,
+     section_name,
+     product_id,
+     product_desc,
+     instrument_id,
+     instrument_name,
+     cp_id,
+     cp_name,
+     internal_contract_ref_no,
+     delivery_item_no,
+     gmr_ref_no,
+     internal_gmr_ref_no,
+     price_fixed_date,
+     pf_ref_no,
+     purchase_qty,
+     sales_qty,
+     qty_unit_id,
+     qty_unit,
+     price,
+     price_unit_id,
+     price_unit_cur_id,
+     price_unit_cur_code,
+     price_unit_weight_unit_id,
+     price_unit_weight_unit,
+     price_unit_weight,
+     price_unit_name,
+     fx_rate_price_to_base,
+     price_in_base_ccy,
+     amount,
+     base_cur_id,
+     base_cur_name,
+     pcdi_id,
+     is_active,
+     is_hedge_correction,
+     Ref_price,
+     Ref_price_Value_Base_CCY,
+     ref_price_cur_id,
+     ref_price_unit_name)
+    select pc_process_id,
+           pd_trade_date,
+           pc_corporate_id,
+           akc.corporate_name,
+           'Physicals',
+           pdm_aml.product_id,
+           pdm_aml.product_desc,
+           vped.instrument_id,
+           vped.instrument_name,
+           pcm.cp_id,
+           pcm.cp_name,
+           pcm.contract_ref_no || '(' || pcdi.delivery_item_no || ')' contract_ref_no_del_item_no,
+           pcdi.delivery_item_no,
+           gmr.gmr_ref_no,
+           gmr.internal_gmr_ref_no,
+           pfd.hedge_correction_date price_fixation_date,
+           axs.action_ref_no as pf_ref_no,
+           (case
+             when pcm.purchase_sales = 'P' then
+              pfd.qty_fixed * ucm.multiplication_factor
+             else
+              0
+           end) purchase_qty,
+           (case
+             when pcm.purchase_sales = 'S' then
+              pfd.qty_fixed * ucm.multiplication_factor
+             else
+              0
+           end) sales_qty,
+           pdm_aml.base_quantity_unit,
+           qum_qty.qty_unit,
+           pfd.user_price,
+           pfd.price_unit_id,
+           ppu.cur_id,
+           cm.cur_code,
+           ppu.weight_unit_id,
+           qum.qty_unit,
+           ppu.weight,
+           ppu.price_unit_name,
+           1 fx_to_base,
+           pfd.user_price price_in_base,
+           (case
+             when pcm.purchase_sales = 'P' then
+              1
+             else
+              (-1)
+           end) * pfd.qty_fixed * pfd.user_price *
+           ucm.multiplication_factor * ucm_price.multiplication_factor amount,
+           akc.base_cur_id,
+           akc.base_currency_name,
+           pcdi.pcdi_id,
+           pfd.is_active,
+           pfd.is_hedge_correction,
+           temp.price,
+          (case
+             when pcm.purchase_sales = 'P' then
+              1
+             else
+              (-1)
+           end) * pfd.qty_fixed * temp.price *
+           ucm.multiplication_factor * ucm_price.multiplication_factor Ref_price_Value_Base_CCY,
+           pum.cur_id ref_price_cur_id,
+           pum.price_unit_name
+      from pcm_physical_contract_main pcm,
+           pcdi_pc_delivery_item pcdi,
+           poch_price_opt_call_off_header poch,
+           pocd_price_option_calloff_dtls pocd,
+           pofh_price_opt_fixation_header pofh,
+           pfd_price_fixation_details pfd,
+           (select gmr.internal_gmr_ref_no,
+                   gmr.gmr_ref_no
+              from gmr_goods_movement_record gmr
+             where gmr.process_id = pc_process_id
+               and gmr.is_deleted = 'N') gmr,
+           pfam_price_fix_action_mapping pfam,
+           axs_action_summary axs,
+           aml_attribute_master_list aml,
+           pdm_productmaster pdm_aml,
+           v_pcdi_exchange_detail vped,
+           v_ppu_pum ppu,
+           cm_currency_master cm,
+           qum_quantity_unit_master qum,
+           ak_corporate akc,
+           ucm_unit_conversion_master ucm,
+           qum_quantity_unit_master qum_qty,
+           ucm_unit_conversion_master ucm_price,
+           temp_instrument_cash_price temp,
+           pum_price_unit_master      pum
+     where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+       and pcdi.pcdi_id = poch.pcdi_id
+       and poch.poch_id = pocd.poch_id
+       and pocd.pocd_id = pofh.pocd_id
+       and pofh.pofh_id = pfd.pofh_id
+       and pofh.internal_gmr_ref_no = gmr.internal_gmr_ref_no(+)
+       and pfd.pfd_id = pfam.pfd_id
+       and pfam.internal_action_ref_no = axs.internal_action_ref_no(+)
+       and poch.element_id = aml.attribute_id
+       and vped.pcdi_id = pcdi.pcdi_id
+       and vped.element_id = aml.attribute_id(+)
+       and aml.underlying_product_id = pdm_aml.product_id
+       and pfd.price_unit_id = ppu.product_price_unit_id
+       and ppu.cur_id = cm.cur_id
+       and ppu.weight_unit_id = qum.qty_unit_id
+       and akc.corporate_id = pcm.corporate_id
+       and ucm.from_qty_unit_id = pocd.qty_to_be_fixed_unit_id
+       and ucm.to_qty_unit_id = pdm_aml.base_quantity_unit
+       and pdm_aml.base_quantity_unit = qum_qty.qty_unit_id
+       and pcm.process_id = pc_process_id
+       and pcdi.process_id = pc_process_id
+       and pcm.contract_status <> 'Cancelled'
+       and poch.is_active = 'Y'
+       and pocd.is_active = 'Y'
+       and pofh.is_active = 'Y'
+       and pcdi.is_active = 'Y'
+       and pfam.is_active = 'Y'
+       and pfd.is_active = 'N'
+       and pfd.cancel_action_ref_no is not null
+       and nvl(pfd.user_price, 0) <> 0
+       and pcm.contract_type = 'CONCENTRATES'
+       and pfd.hedge_correction_date > vd_prev_eom_date
+       and pfd.hedge_correction_date <= pd_trade_date
+       and pcm.is_pass_through = 'N'
+       and axs.process = 'EOM'
+       and pocd.price_type <> 'Fixed'
+       and ucm_price.from_qty_unit_id = pdm_aml.base_quantity_unit
+       and ucm_price.to_qty_unit_id = ppu.weight_unit_id
+       and vped.instrument_id=temp.instrument_id
+       and pfd.hedge_correction_date=temp.price_date
+       and temp.corporate_id=pc_corporate_id
+       and temp.price_unit_id=pum.price_unit_id
+       and temp.section_name='Physicals'
+       and temp.is_fixed_price ='N';
+  --
+  -- Base Metal Active records
+  --    
+  vc_error_msg := 'Start of Base Metal Active records';
+
+  insert into tar_temp_alloc_report
+    (process_id,
+     eod_trade_date,
+     corporate_id,
+     corporate_name,
+     section_name,
+     product_id,
+     product_desc,
+     instrument_id,
+     instrument_name,
+     cp_id,
+     cp_name,
+     internal_contract_ref_no,
+     delivery_item_no,
+     gmr_ref_no,
+     internal_gmr_ref_no,
+     price_fixed_date,
+     pf_ref_no,
+     purchase_qty,
+     sales_qty,
+     qty_unit_id,
+     qty_unit,
+     price,
+     price_unit_id,
+     price_unit_cur_id,
+     price_unit_cur_code,
+     price_unit_weight_unit_id,
+     price_unit_weight_unit,
+     price_unit_weight,
+     price_unit_name,
+     fx_rate_price_to_base,
+     price_in_base_ccy,
+     amount,
+     base_cur_id,
+     base_cur_name,
+     pcdi_id,
+     is_active,
+     is_hedge_correction,
+     Ref_price,
+     Ref_price_Value_Base_CCY,
+     ref_price_cur_id,
+     ref_price_unit_name)
+    select pc_process_id,
+           pd_trade_date,
+           pc_corporate_id,
+           akc.corporate_name,
+           'Physicals',
+           pdm.product_id,
+           pdm.product_desc,
+           vped.instrument_id,
+           vped.instrument_name,
+           pcm.cp_id,
+           pcm.cp_name,
+           pcm.contract_ref_no || '(' || pcdi.delivery_item_no || ')' contract_ref_no_del_item_no,
+           pcdi.delivery_item_no,
+           gmr.gmr_ref_no,
+           gmr.internal_gmr_ref_no,
+           pfd.hedge_correction_date price_fixation_date,
+           axs.action_ref_no as pf_ref_no,
+           (case
+             when pcm.purchase_sales = 'P' then
+              pfd.qty_fixed * ucm.multiplication_factor
+             else
+              0
+           end) purchase_qty,
+           (case
+             when pcm.purchase_sales = 'S' then
+              pfd.qty_fixed * ucm.multiplication_factor
+             else
+              0
+           end) sales_qty,
+           pdm.base_quantity_unit,
+           qum_qty.qty_unit,
+           pfd.user_price,
+           pfd.price_unit_id,
+           ppu.cur_id,
+           cm.cur_code,
+           ppu.weight_unit_id,
+           qum.qty_unit,
+           ppu.weight,
+           ppu.price_unit_name,
+           1 fx_to_base,
+           pfd.user_price price_in_base,
+           (case
+             when pcm.purchase_sales = 'P' then
+              1
+             else
+              (-1)
+           end) * pfd.qty_fixed * pfd.user_price *
+           ucm.multiplication_factor * ucm_price.multiplication_factor amount,
+           akc.base_cur_id,
+           akc.base_currency_name,
+           pcdi.pcdi_id,
+           pfd.is_active,
+           pfd.is_hedge_correction,
+           temp.price,
+          (case
+             when pcm.purchase_sales = 'P' then
+              1
+             else
+              (-1)
+           end) * pfd.qty_fixed * temp.price *
+           ucm.multiplication_factor * ucm_price.multiplication_factor  Ref_price_Value_Base_CCY,
+           pum.cur_id ref_price_cur_id,
+           pum.price_unit_name
+      from pcm_physical_contract_main pcm,
+           pcdi_pc_delivery_item pcdi,
+           poch_price_opt_call_off_header poch,
+           pocd_price_option_calloff_dtls pocd,
+           pofh_price_opt_fixation_header pofh,
+           pfd_price_fixation_details pfd,
+           (select gmr.internal_gmr_ref_no,
+                   gmr.gmr_ref_no
+              from gmr_goods_movement_record gmr
+             where gmr.process_id = pc_process_id
+               and gmr.is_deleted = 'N') gmr,
+           pfam_price_fix_action_mapping pfam,
+           axs_action_summary axs,
+           v_pcdi_exchange_detail vped,
+           pcpd_pc_product_definition pcpd,
+           pdm_productmaster pdm,
+           v_ppu_pum ppu,
+           cm_currency_master cm,
+           qum_quantity_unit_master qum,
+           ak_corporate akc,
+           ucm_unit_conversion_master ucm,
+           qum_quantity_unit_master qum_qty,
+           ucm_unit_conversion_master ucm_price,
+           temp_instrument_cash_price temp,
+           pum_price_unit_master      pum
+     where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+       and pcdi.pcdi_id = poch.pcdi_id
+       and poch.poch_id = pocd.poch_id
+       and pocd.pocd_id = pofh.pocd_id
+       and pofh.pofh_id = pfd.pofh_id
+       and pofh.internal_gmr_ref_no = gmr.internal_gmr_ref_no(+)
+       and pfd.pfd_id = pfam.pfd_id
+       and pfam.internal_action_ref_no = axs.internal_action_ref_no(+)
+       and vped.pcdi_id = pcdi.pcdi_id
+       and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+       and pcpd.product_id = pdm.product_id
+       and pfd.price_unit_id = ppu.product_price_unit_id
+       and ppu.cur_id = cm.cur_id
+       and ppu.weight_unit_id = qum.qty_unit_id
+       and akc.corporate_id = pcm.corporate_id
+       and ucm.from_qty_unit_id = pocd.qty_to_be_fixed_unit_id
+       and ucm.to_qty_unit_id = pdm.base_quantity_unit
+       and pdm.base_quantity_unit = qum_qty.qty_unit_id
+       and pcm.process_id = pc_process_id
+       and pcdi.process_id = pc_process_id
+       and pcpd.process_id = pc_process_id
+       and pcm.contract_status <> 'Cancelled'
+       and poch.is_active = 'Y'
+       and pocd.is_active = 'Y'
+       and pofh.is_active = 'Y'
+       and pcdi.is_active = 'Y'
+       and pfam.is_active = 'Y'
+       and pcpd.is_active = 'Y'
+       and pfd.is_active = 'Y'
+       and pcm.contract_type = 'BASEMETAL'
+       and pfd.hedge_correction_date > vd_prev_eom_date
+       and pfd.hedge_correction_date <= pd_trade_date
+       and axs.process = 'EOM'
+       and pocd.price_type <> 'Fixed'
+       and ucm_price.from_qty_unit_id = pdm.base_quantity_unit
+       and ucm_price.to_qty_unit_id = ppu.weight_unit_id
+        and vped.instrument_id=temp.instrument_id
+       and pfd.hedge_correction_date=temp.price_date
+       and temp.corporate_id=pc_corporate_id
+       and temp.price_unit_id=pum.price_unit_id
+       and temp.section_name='Physicals'
+       and temp.is_fixed_price ='N';
+
+  commit;
+  --
+  -- Base Metal Cancelled records
+  --   
+  vc_error_msg := 'Start of Base Metal Cancelled records';
+
+  insert into tar_temp_alloc_report
+    (process_id,
+     eod_trade_date,
+     corporate_id,
+     corporate_name,
+     section_name,
+     product_id,
+     product_desc,
+     instrument_id,
+     instrument_name,
+     cp_id,
+     cp_name,
+     internal_contract_ref_no,
+     delivery_item_no,
+     gmr_ref_no,
+     internal_gmr_ref_no,
+     price_fixed_date,
+     pf_ref_no,
+     purchase_qty,
+     sales_qty,
+     qty_unit_id,
+     qty_unit,
+     price,
+     price_unit_id,
+     price_unit_cur_id,
+     price_unit_cur_code,
+     price_unit_weight_unit_id,
+     price_unit_weight_unit,
+     price_unit_weight,
+     price_unit_name,
+     fx_rate_price_to_base,
+     price_in_base_ccy,
+     amount,
+     base_cur_id,
+     base_cur_name,
+     pcdi_id,
+     is_active,
+     is_hedge_correction,
+     Ref_price,
+     Ref_price_Value_Base_CCY,
+     ref_price_cur_id,
+     ref_price_unit_name)
+    select pc_process_id,
+           pd_trade_date,
+           pc_corporate_id,
+           akc.corporate_name,
+           'Physicals',
+           pdm.product_id,
+           pdm.product_desc,
+           vped.instrument_id,
+           vped.instrument_name,
+           pcm.cp_id,
+           pcm.cp_name,
+           pcm.contract_ref_no || '(' || pcdi.delivery_item_no || ')' contract_ref_no_del_item_no,
+           pcdi.delivery_item_no,
+           gmr.gmr_ref_no,
+           gmr.internal_gmr_ref_no,
+           pfd.hedge_correction_date price_fixation_date,
+           axs.action_ref_no as pf_ref_no,
+           (case
+             when pcm.purchase_sales = 'P' then
+              pfd.qty_fixed * ucm.multiplication_factor
+             else
+              0
+           end) purchase_qty,
+           (case
+             when pcm.purchase_sales = 'S' then
+              pfd.qty_fixed * ucm.multiplication_factor
+             else
+              0
+           end) sales_qty,
+           pdm.base_quantity_unit,
+           qum_qty.qty_unit,
+           pfd.user_price,
+           pfd.price_unit_id,
+           ppu.cur_id,
+           cm.cur_code,
+           ppu.weight_unit_id,
+           qum.qty_unit,
+           ppu.weight,
+           ppu.price_unit_name,
+           1 fx_to_base,
+           pfd.user_price price_in_base,
+           (case
+             when pcm.purchase_sales = 'P' then
+              1
+             else
+              (-1)
+           end) * pfd.qty_fixed * pfd.user_price *
+           ucm.multiplication_factor * ucm_price.multiplication_factor amount,
+           akc.base_cur_id,
+           akc.base_currency_name,
+           pcdi.pcdi_id,
+           pfd.is_active,
+           pfd.is_hedge_correction,
+           temp.price,
+          (case
+             when pcm.purchase_sales = 'P' then
+              1
+             else
+              (-1)
+           end) * pfd.qty_fixed * temp.price *
+           ucm.multiplication_factor * ucm_price.multiplication_factor Ref_price_Value_Base_CCY,
+           pum.cur_id ref_price_cur_id,
+           pum.price_unit_name
+      from pcm_physical_contract_main pcm,
+           pcdi_pc_delivery_item pcdi,
+           poch_price_opt_call_off_header poch,
+           pocd_price_option_calloff_dtls pocd,
+           pofh_price_opt_fixation_header pofh,
+           pfd_price_fixation_details pfd,
+           (select gmr.internal_gmr_ref_no,
+                   gmr.gmr_ref_no
+              from gmr_goods_movement_record gmr
+             where gmr.process_id = pc_process_id
+               and gmr.is_deleted = 'N') gmr,
+           pfam_price_fix_action_mapping pfam,
+           axs_action_summary axs,
+           v_pcdi_exchange_detail vped,
+           pcpd_pc_product_definition pcpd,
+           pdm_productmaster pdm,
+           v_ppu_pum ppu,
+           cm_currency_master cm,
+           qum_quantity_unit_master qum,
+           ak_corporate akc,
+           ucm_unit_conversion_master ucm,
+           qum_quantity_unit_master qum_qty,
+           ucm_unit_conversion_master ucm_price,
+           temp_instrument_cash_price temp,
+           pum_price_unit_master      pum
+     where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+       and pcdi.pcdi_id = poch.pcdi_id
+       and poch.poch_id = pocd.poch_id
+       and pocd.pocd_id = pofh.pocd_id
+       and pofh.pofh_id = pfd.pofh_id
+       and pofh.internal_gmr_ref_no = gmr.internal_gmr_ref_no(+)
+       and pfd.pfd_id = pfam.pfd_id
+       and pfam.internal_action_ref_no = axs.internal_action_ref_no(+)
+       and vped.pcdi_id = pcdi.pcdi_id
+       and pcm.internal_contract_ref_no = pcpd.internal_contract_ref_no
+       and pcpd.product_id = pdm.product_id
+       and pfd.price_unit_id = ppu.product_price_unit_id
+       and ppu.cur_id = cm.cur_id
+       and ppu.weight_unit_id = qum.qty_unit_id
+       and akc.corporate_id = pcm.corporate_id
+       and ucm.from_qty_unit_id = pocd.qty_to_be_fixed_unit_id
+       and ucm.to_qty_unit_id = pdm.base_quantity_unit
+       and pdm.base_quantity_unit = qum_qty.qty_unit_id
+       and pcm.process_id = pc_process_id
+       and pcdi.process_id = pc_process_id
+       and pcpd.process_id = pc_process_id
+       and pcm.contract_status <> 'Cancelled'
+       and poch.is_active = 'Y'
+       and pocd.is_active = 'Y'
+       and pofh.is_active = 'Y'
+       and pcdi.is_active = 'Y'
+       and pfam.is_active = 'Y'
+       and pcpd.is_active = 'Y'
+       and pfd.is_active = 'N'
+       and pfd.cancel_action_ref_no is not null
+       and nvl(pfd.user_price, 0) <> 0
+       and pcm.contract_type = 'BASEMETAL'
+       and pfd.hedge_correction_date > vd_prev_eom_date
+       and pfd.hedge_correction_date <= pd_trade_date
+       and axs.process = 'EOM'
+       and pocd.price_type <> 'Fixed'
+       and ucm_price.from_qty_unit_id = pdm.base_quantity_unit
+       and ucm_price.to_qty_unit_id = ppu.weight_unit_id 
+       and vped.instrument_id=temp.instrument_id
+       and pfd.hedge_correction_date=temp.price_date
+       and temp.corporate_id=pc_corporate_id
+       and temp.price_unit_id=pum.price_unit_id
+       and temp.section_name='Physicals'
+       and temp.is_fixed_price ='N';
+
+commit;
+--
+-- 10th Oct 2013 Adding Fixed Contracts
+-- Price type =  Fixed, all Tolling and Concentrates
+--
+vc_error_msg := 'Fixed Tolling and Concentrates';
+insert into tar_temp_alloc_report
+  (process_id,
+   eod_trade_date,
+   corporate_id,
+   corporate_name,
+   section_name,
+   product_id,
+   product_desc,
+   instrument_id,
+   instrument_name,
+   cp_id,
+   cp_name,
+   internal_contract_ref_no,
+   delivery_item_no,
+   gmr_ref_no,
+   internal_gmr_ref_no,
+   price_fixed_date,
+   pf_ref_no,
+   purchase_qty,
+   sales_qty,
+   qty_unit_id,
+   qty_unit,
+   price,
+   price_unit_id,
+   price_unit_cur_id,
+   price_unit_cur_code,
+   price_unit_weight_unit_id,
+   price_unit_weight_unit,
+   price_unit_weight,
+   price_unit_name,
+   fx_rate_price_to_base,
+   price_in_base_ccy,
+   amount,
+   base_cur_id,
+   base_cur_name,
+   pcdi_id,
+   is_active,
+   is_hedge_correction,
+   Ref_price,
+   Ref_price_Value_Base_CCY,
+   ref_price_cur_id,
+   is_fixed_price,
+   ref_price_unit_name)
+  select pc_process_id,
+         pd_trade_date,
+         pcm.corporate_id,
+         akc.corporate_name,
+         'Physicals',
+         pdm_aml.product_id,
+         pdm_aml.product_desc,
+         null instrument_id,
+         null instrument_name,
+         pcm.cp_id,
+         pcm.cp_name,
+         pcm.contract_ref_no || '(' || pcdi.delivery_item_no || ')',
+         pcdi.delivery_item_no,
+         null gmr_ref_no,
+         null internal_gmr_ref_no,
+         pcm.issue_date price_fixation_date,
+         null pf_ref_no,
+         (case
+           when pcm.purchase_sales = 'P' then
+            dipq.payable_qty * ucm.multiplication_factor
+           else
+            0
+         end) purchase_qty,
+         (case
+           when pcm.purchase_sales = 'S' then
+            dipq.payable_qty * ucm.multiplication_factor
+           else
+            0
+         end) sales_qty,
+         dipq.qty_unit_id,
+         qum.qty_unit,
+         
+         pcbpd.price_value,
+         pcbpd.price_unit_id,
+         cm.cur_id,
+         cm.cur_code,
+         qum.qty_unit_id,
+         qum.qty_unit,
+         ppu.weight,
+         ppu.price_unit_name,
+         1 fx_to_base,
+         pcbpd.price_value price_in_base,
+         (case
+           when pcm.purchase_sales = 'P' then
+            1
+           else
+            (-1)
+         end) * dipq.payable_qty * pcbpd.price_value *
+         ucm.multiplication_factor * ucm_price.multiplication_factor,
+         akc.base_cur_id,
+         akc.base_currency_name,
+         pcdi.pcdi_id,
+         'Y' is_active,
+         'N',
+         temp.price,
+          (case
+           when pcm.purchase_sales = 'P' then
+            1
+           else
+            (-1)
+         end) * dipq.payable_qty *  temp.price *
+         ucm.multiplication_factor * ucm_price.multiplication_factor  Ref_price_Value_Base_CCY,
+          pum.cur_id ref_price_cur_id,
+          'Y',
+          pum.price_unit_name
+    from pcm_physical_contract_main     pcm,
+         pcdi_pc_delivery_item          pcdi,
+         dipq_delivery_item_payable_qty dipq,
+         poch_price_opt_call_off_header poch,
+         pocd_price_option_calloff_dtls pocd,
+         aml_attribute_master_list      aml,
+         pdm_productmaster              pdm_aml,
+         ak_corporate                   akc,
+         ucm_unit_conversion_master     ucm,
+         pcbpd_pc_base_price_detail     pcbpd,
+         pffxd_phy_formula_fx_details   pffxd,
+         pcbph_pc_base_price_header     pcbph,
+         v_ppu_pum                      ppu,
+         cm_currency_master             cm,
+         qum_quantity_unit_master       qum,
+         ucm_unit_conversion_master     ucm_price,
+         qum_quantity_unit_master       qum_qty,
+         v_ppu_pum                      ppu_base,
+         v_product_instrument           pdm,
+         temp_instrument_cash_price     temp,
+         pum_price_unit_master          pum
+   where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+     and dipq.pcdi_id = pcdi.pcdi_id
+     and pcdi.pcdi_id = poch.pcdi_id
+     and poch.poch_id = pocd.poch_id
+     and pocd.price_type = 'Fixed'
+     and poch.element_id = dipq.element_id
+     and dipq.element_id = aml.attribute_id
+     and dipq.process_id = pc_process_id
+     and dipq.is_active = 'Y'
+     and pcm.corporate_id = pc_corporate_id
+     and pcm.contract_status <> 'Cancelled'
+     and pcdi.is_active = 'Y'
+     and poch.is_active = 'Y'
+     and pocd.is_active = 'Y'
+     and aml.is_active = 'Y'
+     and pcm.process_id = pc_process_id
+     and pcdi.process_id = pc_process_id
+     and pcm.is_pass_through = 'N'
+     and pcm.corporate_id = akc.corporate_id
+     and aml.underlying_product_id = pdm_aml.product_id
+     and ucm.from_qty_unit_id = dipq.qty_unit_id
+     and ucm.to_qty_unit_id = pdm_aml.base_quantity_unit
+     and ucm.is_active = 'Y'
+     and pocd.pcbpd_id = pcbpd.pcbpd_id
+     and pcbpd.pcbph_id = pcbph.pcbph_id
+     and pffxd.pffxd_id = pcbpd.pffxd_id
+     and pcm.issue_date > vd_prev_eom_date
+     and pcm.issue_date <= pd_trade_date
+     and pffxd.process_id = pc_process_id
+     and pcbpd.process_id = pc_process_id
+     and pcbph.process_id = pc_process_id
+     and ppu.product_price_unit_id = pcbpd.price_unit_id
+     and ppu.cur_id = cm.cur_id
+     and ppu.weight_unit_id = qum.qty_unit_id
+     and ucm_price.from_qty_unit_id = pdm_aml.base_quantity_unit
+     and ucm_price.to_qty_unit_id = ppu.weight_unit_id
+     and ucm_price.is_active = 'Y'
+     and pdm_aml.base_quantity_unit = qum_qty.qty_unit_id
+     and ppu_base.product_id = pdm_aml.product_id
+     and ppu_base.cur_id = akc.base_cur_id
+     and ppu_base.weight_unit_id = pdm_aml.base_quantity_unit
+     and pdm_aml.product_id=pdm.product_id
+     and pdm.instrument_id=temp.instrument_id
+     and pcm.issue_date=temp.price_date
+     and temp.corporate_id=pc_corporate_id
+     and temp.price_unit_id=pum.price_unit_id
+     and temp.section_name='Physicals'
+     and temp.is_fixed_price ='Y';
+commit;
+vc_error_msg := 'Fixed Tolling and Concentrates';
+insert into tar_temp_alloc_report
+  (process_id,
+   eod_trade_date,
+   corporate_id,
+   corporate_name,
+   section_name,
+   product_id,
+   product_desc,
+   instrument_id,
+   instrument_name,
+   cp_id,
+   cp_name,
+   internal_contract_ref_no,
+   delivery_item_no,
+   gmr_ref_no,
+   internal_gmr_ref_no,
+   price_fixed_date,
+   pf_ref_no,
+   purchase_qty,
+   sales_qty,
+   qty_unit_id,
+   qty_unit,
+   price,
+   price_unit_id,
+   price_unit_cur_id,
+   price_unit_cur_code,
+   price_unit_weight_unit_id,
+   price_unit_weight_unit,
+   price_unit_weight,
+   price_unit_name,
+   fx_rate_price_to_base,
+   price_in_base_ccy,
+   amount,
+   base_cur_id,
+   base_cur_name,
+   pcdi_id,
+   is_active,
+   is_hedge_correction,
+   ref_price,
+   ref_price_Value_Base_CCY,
+   ref_price_cur_id,
+   is_fixed_price,
+   ref_price_unit_name)
+  select pc_process_id,
+         pd_trade_date,
+         pcm.corporate_id,
+         akc.corporate_name,
+         'Physicals',
+         pdm_aml.product_id,
+         pdm_aml.product_desc,
+         null instrument_id,
+         null instrument_name,
+         pcm.cp_id,
+         pcm.cp_name,
+         pcm.contract_ref_no || '(' || pcdi.delivery_item_no || ')',
+         pcdi.delivery_item_no,
+         null gmr_ref_no,
+         null internal_gmr_ref_no,
+         pcm.issue_date price_fixation_date,
+         null pf_ref_no,
+         (case
+           when pcm.purchase_sales = 'P' then
+            dipq.price_fixed_qty * ucm.multiplication_factor
+           else
+            0
+         end) purchase_qty,
+         (case
+           when pcm.purchase_sales = 'S' then
+            dipq.price_fixed_qty * ucm.multiplication_factor
+           else
+            0
+         end) sales_qty,
+         dipq.item_qty_unit_id,
+         qum.qty_unit,
+         pcbpd.price_value,
+         pcbpd.price_unit_id,
+         cm.cur_id,
+         cm.cur_code,
+         qum.qty_unit_id,
+         qum.qty_unit,
+         ppu.weight,
+         ppu.price_unit_name,
+         1 fx_to_base,
+         pcbpd.price_value price_in_base,
+         (case
+           when pcm.purchase_sales = 'P' then
+            1
+           else
+            (-1)
+         end) * dipq.price_fixed_qty * pcbpd.price_value *
+         ucm.multiplication_factor * ucm_price.multiplication_factor,
+         akc.base_cur_id,
+         akc.base_currency_name,
+         pcdi.pcdi_id,
+         'Y' is_active,
+         'N',
+         temp.price,
+         (case
+           when pcm.purchase_sales = 'P' then
+            1
+           else
+            (-1)
+         end) * dipq.price_fixed_qty * temp.price *
+         ucm.multiplication_factor * ucm_price.multiplication_factor Ref_price_Value_Base_CCY,
+         pum.cur_id ref_price_cur_id,
+         'Y',
+         pum.price_unit_name
+    from pcm_physical_contract_main     pcm,
+         pcdi_pc_delivery_item          pcdi,
+         diqs_delivery_item_qty_status  dipq,
+         poch_price_opt_call_off_header poch,
+         pocd_price_option_calloff_dtls pocd,
+         pcpd_pc_product_definition     pcpd,
+         pdm_productmaster              pdm_aml,
+         ak_corporate                   akc,
+         ucm_unit_conversion_master     ucm,
+         pcbpd_pc_base_price_detail     pcbpd,
+         pffxd_phy_formula_fx_details   pffxd,
+         pcbph_pc_base_price_header     pcbph,
+         v_ppu_pum                      ppu,
+         cm_currency_master             cm,
+         qum_quantity_unit_master       qum,
+         ucm_unit_conversion_master     ucm_price,
+         qum_quantity_unit_master       qum_qty,
+         v_ppu_pum                      ppu_base,
+         v_product_instrument           pdm,
+         temp_instrument_cash_price     temp,
+         pum_price_unit_master          pum
+   where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+     and pcpd.internal_contract_ref_no = pcm.internal_contract_ref_no
+     and dipq.pcdi_id = pcdi.pcdi_id
+     and pcdi.pcdi_id = poch.pcdi_id
+     and poch.poch_id = pocd.poch_id
+     and pocd.price_type = 'Fixed'
+     and dipq.process_id = pc_process_id
+     and dipq.is_active = 'Y'
+     and pcm.corporate_id = pc_corporate_id
+     and pcm.contract_status <> 'Cancelled'
+     and pcdi.is_active = 'Y'
+     and poch.is_active = 'Y'
+     and pocd.is_active = 'Y'
+     and pcm.process_id = pc_process_id
+     and pcdi.process_id = pc_process_id
+     and pcm.is_pass_through = 'N'
+     and pcm.corporate_id = akc.corporate_id
+     and pcpd.product_id = pdm_aml.product_id
+     and pcpd.is_active = 'Y'
+     and ucm.from_qty_unit_id = dipq.item_qty_unit_id
+     and ucm.to_qty_unit_id = pdm_aml.base_quantity_unit
+     and ucm.is_active = 'Y'
+     and pocd.pcbpd_id = pcbpd.pcbpd_id
+     and pcbpd.pcbph_id = pcbph.pcbph_id
+     and pffxd.pffxd_id = pcbpd.pffxd_id
+     and pcm.issue_date > vd_prev_eom_date
+     and pcm.issue_date <= pd_trade_date
+     and pffxd.process_id = pc_process_id
+     and pcbpd.process_id = pc_process_id
+     and pcbph.process_id = pc_process_id
+     and ppu.product_price_unit_id = pcbpd.price_unit_id
+     and ppu.cur_id = cm.cur_id
+     and ppu.weight_unit_id = qum.qty_unit_id
+     and ucm_price.from_qty_unit_id = pdm_aml.base_quantity_unit
+     and ucm_price.to_qty_unit_id = ppu.weight_unit_id
+     and ucm_price.is_active = 'Y'
+     and pdm_aml.base_quantity_unit = qum_qty.qty_unit_id
+     and ppu_base.product_id = pdm_aml.product_id
+     and ppu_base.cur_id = akc.base_cur_id
+     and ppu_base.weight_unit_id = pdm_aml.base_quantity_unit
+     and pcm.contract_type = 'BASEMETAL'
+     and pdm_aml.product_id=pdm.product_id
+     and pdm.instrument_id=temp.instrument_id
+     and pcm.issue_date=temp.price_date
+     and temp.corporate_id=pc_corporate_id
+     and temp.price_unit_id=pum.price_unit_id
+     and temp.section_name='Physicals'
+     and temp.is_fixed_price ='Y';
+commit;
   --- 
   -- Free Metal
   --
   vc_error_msg := 'Free Metal';
+  insert into tar_temp_alloc_report
+    (process_id,
+     eod_trade_date,
+     corporate_id,
+     corporate_name,
+     section_name,
+     cp_id,
+     cp_name,
+     product_id,
+     product_desc,
+     instrument_id,
+     instrument_name,
+     internal_contract_ref_no,
+     delivery_item_no,
+     gmr_ref_no,
+     internal_gmr_ref_no,
+     pf_ref_no,
+     external_ref_no,
+     derivative_ref_no,
+     purchase_qty,
+     sales_qty,
+     qty_unit_id,
+     qty_unit,
+     price,
+     price_unit_id,
+     price_unit_cur_id,
+     price_unit_cur_code,
+     price_unit_weight_unit_id,
+     price_unit_weight_unit,
+     price_unit_weight,
+     price_unit_name,
+     prompt_month_year,
+     fx_rate_price_to_base,
+     price_in_base_ccy,
+     price_fixed_date,
+     amount,
+     base_cur_id,
+     base_cur_name,
+     pcdi_id,
+     is_active,
+     is_hedge_correction,
+     ref_price,
+     ref_price_value_base_ccy,
+     ref_price_cur_id,
+     ref_price_unit_name)
+    select pc_process_id process_id,
+           pd_trade_date eod_trade_date,
+           fmuh.corporate_id,
+           akc.corporate_name,
+           'Physicals' section_name,
+           phd.profileid cp_id,
+           phd.companyname cp_name,
+           pdm.product_id,
+           pdm.product_desc,
+           null instrument_id,
+           null instrument_name,
+           null internal_contract_ref_no,
+           null delivery_item_no,
+           null gmr_ref_no,
+           null internal_gmr_ref_no,
+           axs.action_ref_no pf_ref_no,
+           null external_ref_no,
+           null derivative_ref_no,
+           fmpfd.qty_fixed * ucm.multiplication_factor purchase_qty,
+           0 sales_qty,
+           fmed.qty_unit_id,
+           qum.qty_unit,
+           fmpfd.user_price price,
+           fmed.price_unit_id,
+           cm.cur_id,
+           cm.cur_code,
+           qum.qty_unit_id,
+           qum.qty_unit,
+           ppu.weight,
+           ppu.price_unit_name,
+           null prompt_month_year,
+           1 fx_rate_price_to_base,
+           fmpfd.user_price price_in_base_ccy,
+           axs.eff_date price_fixed_date,
+           fmpfd.user_price * fmpfd.qty_fixed * ucm.multiplication_factor *
+           ucm_price.multiplication_factor amount,
+           akc.base_cur_id,
+           akc.base_currency_name,
+           null as pcdi_id,
+           fmpfd.is_active,
+           fmpfd.is_hedge_correction,
+           temp.price,
+           temp.price * fmpfd.qty_fixed * ucm.multiplication_factor *
+           ucm_price.multiplication_factor ref_price_value_base_ccy,
+           pum.cur_id ref_price_cur_id,
+           pum.price_unit_name    
+      from fmuh_free_metal_utility_header fmuh,
+           fmed_free_metal_elemt_details fmed,
+           fmpfh_price_fixation_header fmpfh,
+           fmpfd_price_fixation_details fmpfd,
+           fmpfam_price_action_mapping fmpfam,
+           ak_corporate akc,
+           qum_quantity_unit_master qum,
+           phd_profileheaderdetails phd,
+           aml_attribute_master_list aml,
+           pdm_productmaster pdm,
+           axs_action_summary axs,
+           v_ppu_pum ppu,
+           cm_currency_master cm,
+           qum_quantity_unit_master qum_ppu,
+           ucm_unit_conversion_master ucm,
+           ucm_unit_conversion_master ucm_price,
+           (select fmeifd.fmed_id,
+                   fmeifd.instrument_id
+              from fmeifd_index_formula_details fmeifd
+             group by fmeifd.fmed_id,
+                      fmeifd.instrument_id) fmeifd,
+           temp_instrument_cash_price temp,
+           pum_price_unit_master pum
+     where fmuh.fmuh_id = fmed.fmuh_id
+       and fmed.fmed_id = fmpfh.fmed_id
+       and fmed.element_id = fmpfh.element_id
+       and fmpfh.fmpfh_id = fmpfd.fmpfh_id
+       and fmpfd.fmpfd_id = fmpfam.fmpfd_id
+       and fmuh.is_active = 'Y'
+       and fmed.is_active = 'Y'
+       and fmpfh.is_active = 'Y'
+       and fmpfam.is_active = 'Y'
+       and fmuh.corporate_id = akc.corporate_id
+       and fmed.qty_unit_id = qum.qty_unit_id
+       and phd.profileid = fmuh.smelter_id
+       and fmed.element_id = aml.attribute_id
+       and aml.underlying_product_id = pdm.product_id
+       and fmpfam.internal_action_ref_no = axs.internal_action_ref_no
+       and axs.corporate_id = pc_corporate_id
+       and axs.eff_date > vd_prev_eom_date
+       and axs.eff_date <= pd_trade_date
+       and nvl(fmpfd.user_price, 0) <> 0 
+       and fmpfd.price_unit_id = ppu.product_price_unit_id
+       and ppu.cur_id = cm.cur_id
+       and ppu.weight_unit_id = qum_ppu.qty_unit_id
+       and ucm.from_qty_unit_id = fmed.qty_unit_id
+       and ucm.to_qty_unit_id = pdm.base_quantity_unit
+       and ucm.is_active = 'Y'
+       and aml.is_deleted = 'N'
+       and pdm.is_deleted = 'N'
+       and phd.is_deleted = 'N'
+       and axs.process = 'EOM'
+       and ucm_price.from_qty_unit_id = pdm.base_quantity_unit
+       and ucm_price.to_qty_unit_id = ppu.weight_unit_id
+       and fmed.fmed_id = fmeifd.fmed_id
+       and fmeifd.instrument_id = temp.instrument_id
+       and axs.eff_date = temp.price_date
+       and temp.corporate_id = pc_corporate_id
+       and temp.price_unit_id = pum.price_unit_id
+       and temp.section_name = 'Physicals'
+       and temp.is_fixed_price ='N';
+
+  commit;
+  --
+  -- FX Rate from Payable to Base, Price in Base and Fixation Value for Sections Exclude Derivatives
+  --
+  for cur_exch_rate in (select mbvad.price_unit_cur_id
+                          from tar_temp_alloc_report mbvad
+                         where mbvad.process_id = pc_process_id
+                           and mbvad.price_unit_cur_id <> vc_base_cur_id
+                           and mbvad.section_name <> 'Derivatives'
+                         group by mbvad.price_unit_cur_id)
+  loop
+    
+      begin
+      select cet.exch_rate into vn_exch_rate from cet_corporate_exch_rate cet
+      where cet.corporate_id = pc_corporate_id
+      and cet.from_cur_id = cur_exch_rate.price_unit_cur_id
+      and cet.to_cur_id = vc_base_cur_id;
+      exception when others then null;
+      end;
+      
+    update tar_temp_alloc_report mbva
+       set mbva.fx_rate_price_to_base = vn_exch_rate,
+           mbva.price_in_base_ccy     = mbva.price_in_base_ccy *
+                                        vn_exch_rate,
+           mbva.amount                = mbva.amount * vn_exch_rate
+     where mbva.process_id = pc_process_id
+       and mbva.price_unit_cur_id = cur_exch_rate.price_unit_cur_id
+       and mbva.section_name <> 'Derivatives';
+  end loop;
+  commit;
+  
+  --
+  -- FX Rate from ref price  to Base
+  --
+  for cur_exch_rate in (select mbvad. ref_price_cur_id
+                          from tar_temp_alloc_report mbvad
+                         where mbvad.process_id = pc_process_id
+                           and mbvad.ref_price_cur_id <> vc_base_cur_id
+                           and mbvad.section_name <> 'Derivatives'
+                         group by mbvad.ref_price_cur_id)
+  loop
+    
+        begin
+      select cet.exch_rate into vn_exch_rate from cet_corporate_exch_rate cet
+      where cet.corporate_id = pc_corporate_id
+      and cet.from_cur_id = cur_exch_rate.ref_price_cur_id
+      and cet.to_cur_id = vc_base_cur_id;
+      exception when others then null;
+      end;
+      
+    update tar_temp_alloc_report mbva
+       set mbva. Ref_price_Value_Base_CCY  = mbva. Ref_price_Value_Base_CCY* vn_exch_rate
+     where mbva.process_id = pc_process_id
+       and mbva.ref_price_cur_id = cur_exch_rate.ref_price_cur_id
+       and mbva.section_name <> 'Derivatives';
+  end loop;
+  commit;
+  vc_error_msg :='Insert Detail Hedge Correction = N';
+  
   insert into mbv_allocation_report
     (process_id,
      eod_trade_date,
@@ -4154,119 +5503,183 @@ begin
      base_cur_id,
      base_cur_name,
      pcdi_id,
-     is_active)
-    select pc_process_id process_id,
-           pd_trade_date eod_trade_date,
-           fmuh.corporate_id,
-           akc.corporate_name,
-           'Physicals' section_name,
-           phd.profileid cp_id,
-           phd.companyname cp_name,
-           pdm.product_id,
-           pdm.product_desc,
-           null instrument_id,
-           null instrument_name,
-           null internal_contract_ref_no,
-           null delivery_item_no,
-           null gmr_ref_no,
-           null internal_gmr_ref_no,
-           axs.action_ref_no pf_ref_no,
-           null external_ref_no,
-           null derivative_ref_no,
-           fmpfd.qty_fixed * ucm.multiplication_factor purchase_qty,
-           0 sales_qty,
-           fmed.qty_unit_id,
-           qum.qty_unit,
-           fmpfd.user_price price,
-           fmed.price_unit_id,
-           cm.cur_id,
-           cm.cur_code,
-           qum.qty_unit_id,
-           qum.qty_unit,
-           ppu.weight,
-           ppu.price_unit_name,
-           null prompt_month_year,
-           1 fx_rate_price_to_base,
-           fmpfd.user_price price_in_base_ccy,
-           axs.eff_date price_fixed_date,
-           fmpfd.user_price * fmpfd.qty_fixed * ucm.multiplication_factor * ucm_price.multiplication_factor  amount,
-           akc.base_cur_id,
-           akc.base_currency_name,
-           null as pcdi_id,
-           fmpfd.is_active
-      from fmuh_free_metal_utility_header fmuh,
-           fmed_free_metal_elemt_details  fmed,
-           fmpfh_price_fixation_header    fmpfh,
-           fmpfd_price_fixation_details   fmpfd,
-           fmpfam_price_action_mapping    fmpfam,
-           ak_corporate                   akc,
-           qum_quantity_unit_master       qum,
-           phd_profileheaderdetails       phd,
-           aml_attribute_master_list      aml,
-           pdm_productmaster              pdm,
-           axs_action_summary             axs,
-           v_ppu_pum                      ppu,
-           cm_currency_master             cm,
-           qum_quantity_unit_master       qum_ppu,
-           ucm_unit_conversion_master     ucm,
-           ucm_unit_conversion_master     ucm_price
-     where fmuh.fmuh_id = fmed.fmuh_id
-       and fmed.fmed_id = fmpfh.fmed_id
-       and fmed.element_id = fmpfh.element_id
-       and fmpfh.fmpfh_id = fmpfd.fmpfh_id
-       and fmpfd.fmpfd_id = fmpfam.fmpfd_id
-       and fmuh.is_active = 'Y'
-       and fmed.is_active = 'Y'
-       and fmpfh.is_active = 'Y'
-       and fmpfam.is_active = 'Y'
-       and fmuh.corporate_id = akc.corporate_id
-       and fmed.qty_unit_id = qum.qty_unit_id
-       and phd.profileid = fmuh.smelter_id
-       and fmed.element_id = aml.attribute_id
-       and aml.underlying_product_id = pdm.product_id
-       and fmpfam.internal_action_ref_no = axs.internal_action_ref_no
-       and axs.corporate_id = pc_corporate_id
-       and axs.eff_date > vd_prev_eom_date
-       and axs.eff_date <= pd_trade_date
-       and fmpfd.price_unit_id = ppu.product_price_unit_id
-       and ppu.cur_id = cm.cur_id
-       and ppu.weight_unit_id = qum_ppu.qty_unit_id
-       and ucm.from_qty_unit_id = fmed.qty_unit_id
-       and ucm.to_qty_unit_id = pdm.base_quantity_unit
-       and ucm.is_active = 'Y'
-       and aml.is_deleted = 'N'
-       and pdm.is_deleted = 'N'
-       and phd.is_deleted = 'N'
-       and axs.process = 'EOM'
-       and ucm_price.from_qty_unit_id = pdm.base_quantity_unit
-       and ucm_price.to_qty_unit_id = ppu.weight_unit_id;
-  commit;
-  --
-  -- FX Rate from Payable to Base, Price in Base and Fixation Value for Sections Exclude Derivatives
-  --
-  for cur_exch_rate in (select mbvad.price_unit_cur_id
-                          from mbv_allocation_report mbvad
-                         where mbvad.process_id = pc_process_id
-                           and mbvad.price_unit_cur_id <> vc_base_cur_id
-                           and mbvad.section_name <> 'Derivatives'
-                         group by mbvad.price_unit_cur_id)
-  loop
-    select pkg_general.f_get_converted_currency_amt(pc_corporate_id,
-                                                    cur_exch_rate.price_unit_cur_id,
-                                                    vc_base_cur_id,
-                                                    pd_trade_date,
-                                                    1)
-      into vn_exch_rate
-      from dual;
-    update mbv_allocation_report mbva
-       set mbva.fx_rate_price_to_base = vn_exch_rate,
-           mbva.price_in_base_ccy     = mbva.price_in_base_ccy *
-                                        vn_exch_rate,
-           mbva.amount                = mbva.amount * vn_exch_rate
-     where mbva.process_id = pc_process_id
-       and mbva.price_unit_cur_id = cur_exch_rate.price_unit_cur_id
-       and mbva.section_name <> 'Derivatives';
-  end loop;
+     is_active,
+     is_hedge_correction,
+     ref_price,
+     ref_price_value_base_ccy,
+     ref_price_cur_id,
+     contract_pricing_type,
+     ref_price_unit_name)
+  select 
+  process_id,
+     eod_trade_date,
+     corporate_id,
+     corporate_name,
+     section_name,
+     cp_id,
+     cp_name,
+     product_id,
+     product_desc,
+     instrument_id,
+     instrument_name,
+     internal_contract_ref_no,
+     delivery_item_no,
+     gmr_ref_no,
+     internal_gmr_ref_no,
+     pf_ref_no,
+     external_ref_no,
+     derivative_ref_no,
+     purchase_qty,
+     sales_qty,
+     qty_unit_id,
+     qty_unit,
+     price,
+     price_unit_id,
+     price_unit_cur_id,
+     price_unit_cur_code,
+     price_unit_weight_unit_id,
+     price_unit_weight_unit,
+     price_unit_weight,
+     price_unit_name,
+     prompt_month_year,
+     fx_rate_price_to_base,
+     price_in_base_ccy,
+     price_fixed_date,
+     amount,
+     base_cur_id,
+     base_cur_name,
+     pcdi_id,
+     is_active,
+     is_hedge_correction,
+     ref_price,
+     ref_price_value_base_ccy,
+     ref_price_cur_id,
+     decode(is_fixed_price,'Y','OTO','Exchange'),
+     ref_price_unit_name
+     from tar_temp_alloc_report tar
+     where tar.corporate_id = pc_corporate_id
+     and tar.is_hedge_correction ='N';
+     commit;
+  vc_error_msg :='Insert Detail Hedge Correction = Y';
+
+insert into mbv_allocation_report
+  (process_id,
+   eod_trade_date,
+   corporate_id,
+   corporate_name,
+   section_name,
+   cp_id,
+   cp_name,
+   product_id,
+   product_desc,
+   instrument_id,
+   instrument_name,
+   internal_contract_ref_no,
+   delivery_item_no,
+   gmr_ref_no,
+   internal_gmr_ref_no,
+   pf_ref_no,
+   external_ref_no,
+   derivative_ref_no,
+   purchase_qty,
+   sales_qty,
+   qty_unit_id,
+   qty_unit,
+   price,
+   price_unit_id,
+   price_unit_cur_id,
+   price_unit_cur_code,
+   price_unit_weight_unit_id,
+   price_unit_weight_unit,
+   price_unit_weight,
+   price_unit_name,
+   prompt_month_year,
+   fx_rate_price_to_base,
+   price_in_base_ccy,
+   price_fixed_date,
+   amount,
+   base_cur_id,
+   base_cur_name,
+   pcdi_id,
+   is_active,
+   is_hedge_correction,
+   ref_price,
+     ref_price_value_base_ccy,
+     ref_price_cur_id,
+   contract_pricing_type,
+   ref_price_unit_name)
+  select process_id,
+         eod_trade_date,
+         corporate_id,
+         corporate_name,
+         section_name,
+         null, --cp_id,
+         null, --cp_name,
+         tar.product_id,
+         tar.product_desc,
+         null, --instrument_id,
+         null, --instrument_name,
+         null, --internal_contract_ref_no,
+         null, --delivery_item_no,
+         null, --gmr_ref_no,
+         null, --internal_gmr_ref_no,
+         null, --pf_ref_no,
+         null, --external_ref_no,
+         null, --derivative_ref_no,
+         sum(purchase_qty),
+         sum(sales_qty),
+         tar.qty_unit_id,
+         tar.qty_unit,
+         null, -- price ,
+         null, --price_unit_id,
+         null, --price_unit_cur_id,
+         null, --price_unit_cur_code,
+         null, --price_unit_weight_unit_id,
+         qum.qty_unit, --price_unit_weight_unit,
+         null, -- price_unit_weight,
+         null, -- price_unit_name,
+         null, -- prompt_month_year,
+         null, -- fx_rate_price_to_base,
+         case when (sum(tar.purchase_qty + tar.sales_qty)) = 0 then 0 
+         else
+         sum(amount) / sum(tar.purchase_qty + tar.sales_qty)
+         end  price_in_base_ccy,
+         tar.price_fixed_date,
+         sum(amount),
+         tar.base_cur_id,
+         tar.base_cur_name,
+         null, -- pcdi_id,
+         null, --is_active,
+         'Y',
+         ref_price,
+     ref_price_value_base_ccy,
+     ref_price_cur_id,
+         'Exchange',
+         ref_price_unit_name
+    from tar_temp_alloc_report tar,
+         pdm_productmaster     pdm,
+         qum_quantity_unit_master qum
+   where tar.corporate_id = pc_corporate_id
+     and tar.product_id=pdm.product_id
+     and pdm.base_quantity_unit=qum.qty_unit_id     
+     and tar.is_hedge_correction = 'Y'
+     group by process_id,
+           corporate_id,
+           eod_trade_date,
+         corporate_name,
+         section_name,
+         tar.product_id,
+         tar.product_desc,
+         tar.qty_unit_id,
+         tar.qty_unit,
+         price_fixed_date,
+         tar.base_cur_id,
+         tar.base_cur_name,
+         ref_price,
+     ref_price_value_base_ccy,
+     ref_price_cur_id,
+     ref_price_unit_name,
+     qum.qty_unit;
   commit;
   --
   -- Logic for Contango Due To Quantity 
@@ -4325,7 +5738,7 @@ begin
                          else
                           0
                        end) contango_due_to_qty_and_price
-              from mbv_allocation_report mbv
+              from tar_temp_alloc_report mbv
              where mbv.eod_trade_date <= pd_trade_date
                and mbv.corporate_id = pc_corporate_id
              group by mbv.corporate_id,
@@ -4342,7 +5755,7 @@ begin
                    0 opening_balance,
                    0 actual_hedged_qty,
                    0 contango_due_to_qty_and_price
-              from mbv_allocation_report mbvd
+              from tar_temp_alloc_report mbvd
              where mbvd.process_id = pc_process_id)
      group by process_id,
               eod_trade_date,

@@ -2533,7 +2533,7 @@ create or replace package body pkg_phy_eod_reports is
              and cgcp.element_id = cur_pur_accural_temp_rows.element_id;
         exception
           when others then
-            begin
+            /*begin
               select cccp.contract_price,
                      cccp.price_unit_id,
                      cccp.price_unit_weight_unit_id,
@@ -2563,7 +2563,7 @@ create or replace package body pkg_phy_eod_reports is
                  and cccp.process_id = pc_process_id
                  and cccp.element_id = cur_pur_accural_temp_rows.element_id;
             exception
-              when others then
+              when others then*/
                 vn_gmr_price                 := null;
                 vc_gmr_price_unit_id         := null;
                 vc_price_unit_weight_unit_id := null;
@@ -2576,7 +2576,7 @@ create or replace package body pkg_phy_eod_reports is
                 vc_pay_price_unit_wt_unit_id := null;
                 vc_pay_in_price_unit_id      := null;
                 vc_pay_price_unit_wt_unit    := null;
-            end;
+         --   end;
         end;
         update patd_pa_temp_data t
            set t.gmr_price                     = vn_gmr_price,
@@ -3799,7 +3799,7 @@ create or replace package body pkg_phy_eod_reports is
              pcpch.internal_contract_ref_no(+)
          and temp.element_id = pcpch.element_id(+)
          and pcm.process_id = pc_process_id
-         and pcm.is_active = 'Y'
+         and pcm.is_active = 'Y'        
        group by temp.corporate_id,
                 pc_process_id,
                 temp.product_id,
@@ -4409,6 +4409,7 @@ for cur_update in (select aml.attribute_id,
        and pa.base_qty_unit_id = cur_update.base_qty_unit_id;
   end loop; 
  commit;                           
+
 
 sp_phy_purchase_accural_bm(pc_corporate_id ,
                                        pd_trade_date   ,
@@ -6945,7 +6946,16 @@ begin
      is_new_shipment,        
      is_new_landing,
      purchase_sales )
-    select pc_process_id process_id,
+     with temp_gmr as
+  (select /*+ MATERIALIZE */ *
+  from process_gmr gmr
+ where gmr.process_id = pc_process_id
+   and gmr.corporate_id = pc_corporate_id
+   and gmr.gmr_type = 'CONCENTRATES'
+   and gmr.loading_country_id <> gmr.discharge_country_id
+   and gmr.latest_internal_invoice_ref_no is null
+   and (gmr.is_new_shipment = 'Y' or gmr.is_new_landing = 'Y'))
+   select pc_process_id process_id,
            'Concentrate Normal GMR',
            pc_corporate_id,
            spq.element_id,
@@ -7013,7 +7023,7 @@ begin
            'Purchase'
       from pcdi_pc_delivery_item          pcdi,
            pci_physical_contract_item     pci,
-           process_gmr      gmr,
+           temp_gmr      gmr,
            process_grd        grd,
            pcpd_pc_product_definition     pcpd,
            process_spq          spq,
@@ -7050,17 +7060,15 @@ begin
        and spq.element_id = cccp.element_id
        and cccp.price_unit_id = ppu.product_price_unit_id
        and grd.quality_id = qat_ppm.quality_id
-       -- GMRS should not be event based nor Price Allocation
-       and not exists
-       (select * from cgcp_conc_gmr_cog_price cgcp
-       where cgcp.process_id = pc_process_id
-       and cgcp.internal_gmr_ref_no = grd.internal_gmr_ref_no
-       and cgcp.element_id = spq.element_id)
-       and gmr.loading_country_id <> gmr.discharge_country_id
        and ucm.from_qty_unit_id = spq.qty_unit_id
        and ucm.to_qty_unit_id = ppu.weight_unit_id
-       and gmr.latest_internal_invoice_ref_no is null
-       and (gmr.is_new_shipment ='Y' or gmr.is_new_landing ='Y');
+     -- GMRS should not be event based nor Price Allocation
+       and not exists
+       (select cgcp.internal_gmr_ref_no from cgcp_conc_gmr_cog_price cgcp
+       where cgcp.process_id = pc_process_id
+       and cgcp.internal_gmr_ref_no = grd.internal_gmr_ref_no
+       and cgcp.element_id = spq.element_id
+       and cgcp.price_allocation_method in ('Price Allocation','Event Based'));
 
   commit;
   gvn_log_counter := gvn_log_counter + 1;
@@ -7249,7 +7257,8 @@ begin
        (select * from cgcp_conc_gmr_cog_price cgcp
        where cgcp.process_id = pc_process_id
        and cgcp.internal_gmr_ref_no = dgrd.internal_gmr_ref_no
-       and cgcp.element_id = spq.element_id)
+       and cgcp.element_id = spq.element_id
+       and cgcp.price_allocation_method in ('Price Allocation','Event Based'))
        and gmr.loading_country_id <> gmr.discharge_country_id
        and ucm.from_qty_unit_id = spq.qty_unit_id
        and ucm.to_qty_unit_id = ppu.weight_unit_id
@@ -7353,10 +7362,10 @@ begin
            grd.qty qty,
            grd.dry_qty qty,
            grd.qty_unit_id,
-           cccp.contract_price,
-           cccp.price_unit_id,
-           cccp.price_unit_cur_id,
-           cccp.price_unit_cur_code,
+           cgcp.contract_price,
+           cgcp.price_unit_id,
+           cgcp.price_unit_cur_id,
+           cgcp.price_unit_cur_code,
            gmr.bl_date shipment_date,
            gmr.bl_date invoice_date,
            gmr.loading_country_id,
@@ -7407,7 +7416,7 @@ begin
            process_grd    grd,
            pcpd_pc_product_definition pcpd,
            process_spq      spq,
-           cgcp_conc_gmr_cog_price    cccp,
+           cgcp_conc_gmr_cog_price    cgcp,
            v_qat_ppm                  qat_ppm,
            v_ppu_pum                  ppu,
            ucm_unit_conversion_master ucm
@@ -7435,16 +7444,17 @@ begin
        and pcdi.is_active = 'Y'
        and pci.is_active = 'Y'
        and pcpd.is_active = 'Y'
-       and cccp.process_id = pc_process_id
-       and cccp.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-       and spq.element_id = cccp.element_id
-       and cccp.price_unit_id = ppu.product_price_unit_id
+       and cgcp.process_id = pc_process_id
+       and cgcp.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+       and spq.element_id = cgcp.element_id
+       and cgcp.price_unit_id = ppu.product_price_unit_id
        and grd.quality_id = qat_ppm.quality_id(+)
        and gmr.loading_country_id <> gmr.discharge_country_id
        and ucm.from_qty_unit_id = spq.qty_unit_id
        and ucm.to_qty_unit_id = ppu.weight_unit_id
        and gmr.latest_internal_invoice_ref_no is null
-       and (gmr.is_new_shipment ='Y' or gmr.is_new_landing ='Y');
+       and (gmr.is_new_shipment ='Y' or gmr.is_new_landing ='Y')
+       and cgcp.price_allocation_method in ('Price Allocation','Event Based');
 
   commit;
   gvn_log_counter := gvn_log_counter + 1;
@@ -7543,10 +7553,10 @@ begin
            dgrd.net_weight qty,
            dgrd.dry_qty qty,
            dgrd.net_weight_unit_id qty_unit_id,
-           cccp.contract_price,
-           cccp.price_unit_id,
-           cccp.price_unit_cur_id,
-           cccp.price_unit_cur_code,
+           cgcp.contract_price,
+           cgcp.price_unit_id,
+           cgcp.price_unit_cur_id,
+           cgcp.price_unit_cur_code,
            gmr.bl_date shipment_date,
            gmr.bl_date invoice_date,
            gmr.loading_country_id,
@@ -7597,7 +7607,7 @@ begin
            dgrd_delivered_grd         dgrd,
            pcpd_pc_product_definition pcpd,
            process_spq      spq,
-           cgcp_conc_gmr_cog_price    cccp,
+           cgcp_conc_gmr_cog_price    cgcp,
            v_qat_ppm                  qat_ppm,
            v_ppu_pum                  ppu,
            ucm_unit_conversion_master ucm
@@ -7624,16 +7634,17 @@ begin
        and pcdi.is_active = 'Y'
        and pci.is_active = 'Y'
        and pcpd.is_active = 'Y'
-       and cccp.process_id = pc_process_id
-       and cccp.internal_gmr_ref_no = gmr.internal_gmr_ref_no
-       and spq.element_id = cccp.element_id
-       and cccp.price_unit_id = ppu.product_price_unit_id
+       and cgcp.process_id = pc_process_id
+       and cgcp.internal_gmr_ref_no = gmr.internal_gmr_ref_no
+       and spq.element_id = cgcp.element_id
+       and cgcp.price_unit_id = ppu.product_price_unit_id
        and dgrd.quality_id = qat_ppm.quality_id(+)
        and gmr.loading_country_id <> gmr.discharge_country_id
        and ucm.from_qty_unit_id = spq.qty_unit_id
        and ucm.to_qty_unit_id = ppu.weight_unit_id
        and gmr.latest_internal_invoice_ref_no is null
-       and (gmr.is_new_shipment ='Y' or gmr.is_new_landing ='Y');
+       and (gmr.is_new_shipment ='Y' or gmr.is_new_landing ='Y')
+       and cgcp.price_allocation_method in ('Price Allocation','Event Based');
 
   commit;
   gvn_log_counter := gvn_log_counter + 1;
@@ -9506,7 +9517,7 @@ select pc_corporate_id,
             pcdi.pcdi_id;
             commit;        
             
- /*insert into tcs2_temp_cs_priced
+ insert into tcs2_temp_cs_priced
   (corporate_id,
    internal_contract_ref_no,
    element_id,
@@ -9553,7 +9564,7 @@ select pc_corporate_id,
             pcm.contract_type,
             pcdi.delivery_item_no,
             pcdi.pcdi_id,
-            aml.underlying_product_id;*/
+            aml.underlying_product_id;
 commit;
   gvn_log_counter := gvn_log_counter + 1;
 sp_eodeom_process_log(pc_corporate_id,
@@ -9561,7 +9572,7 @@ sp_eodeom_process_log(pc_corporate_id,
                           pc_process_id,
                           gvn_log_counter,
                           'Main Table tcs2_temp_cs_priced over 2');              
- /*insert into tcs2_temp_cs_priced
+ insert into tcs2_temp_cs_priced
   (corporate_id,
    internal_contract_ref_no,
    element_id,
@@ -9601,7 +9612,7 @@ sp_eodeom_process_log(pc_corporate_id,
    group by pcm.internal_contract_ref_no,
             pcm.contract_type,
             pcdi.delivery_item_no,
-            pcdi.pcdi_id;*/
+            pcdi.pcdi_id;
 commit;
  gvn_log_counter := gvn_log_counter + 1;
 sp_eodeom_process_log(pc_corporate_id,
@@ -15127,6 +15138,7 @@ begin
    and gmr.corporate_id = pc_corporate_id
    and grd.corporate_id = pc_corporate_id;
   commit;
+  sp_gather_stats('ped_penalty_element_details');
   vn_log_counter := vn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
                         pd_trade_date,
@@ -15683,7 +15695,10 @@ vn_log_counter := vn_log_counter + 1;
                         pc_process_id,
                         vn_log_counter,
                         'Merge of process_gmr data to GMR'); 
-update gmr_goods_movement_record gmr
+sp_gather_stats('gmr_goods_movement_record');
+sp_gather_stats('process_gmr');                    
+                        
+/*update gmr_goods_movement_record gmr
    set (gmr.is_new_mtd, gmr.is_new_ytd, gmr.is_new_mtd_ar, gmr.is_new_ytd_ar, gmr.is_assay_updated_mtd, 
    gmr.is_payable_qty_changed_mtd, gmr.is_assay_updated_ytd, gmr.is_payable_qty_changed_ytd, 
    gmr.is_assay_updated_mtd_ar, gmr.is_assay_updated_ytd_ar, 
@@ -15708,14 +15723,50 @@ update gmr_goods_movement_record gmr
        and gmr1.internal_gmr_ref_no =
            gmr.internal_gmr_ref_no)
  where gmr.corporate_id = pc_corporate_id
-   and gmr.process_id = pc_process_id;
+   and gmr.process_id = pc_process_id;*/
+for cc in (select gmr1.internal_gmr_ref_no,
+                    gmr1.is_new_mtd,
+                    gmr1.is_new_ytd,
+                    gmr1.is_new_mtd_ar,
+                    gmr1.is_new_ytd_ar,
+                    gmr1.is_assay_updated_mtd,
+                    gmr1.is_payable_qty_changed_mtd,
+                    gmr1.is_assay_updated_ytd,
+                    gmr1.is_payable_qty_changed_ytd,
+                    gmr1.is_assay_updated_mtd_ar,
+                    gmr1.is_assay_updated_ytd_ar,
+                    gmr1.is_new_landing,
+                    gmr1.is_new_shipment
+               from process_gmr gmr1
+              where gmr1.corporate_id = pc_corporate_id
+                and gmr1.process_id = pc_process_id
+                and gmr1.is_deleted = 'N')
+  loop
+    update gmr_goods_movement_record gmr
+       set gmr.is_new_mtd                 = cc.is_new_mtd,
+           gmr.is_new_ytd                 = cc.is_new_ytd,
+           gmr.is_new_mtd_ar              = cc.is_new_mtd_ar,
+           gmr.is_new_ytd_ar              = cc.is_new_ytd_ar,
+           gmr.is_assay_updated_mtd       = cc.is_assay_updated_mtd,
+           gmr.is_payable_qty_changed_mtd = cc.is_payable_qty_changed_mtd,
+           gmr.is_assay_updated_ytd       = cc.is_assay_updated_ytd,
+           gmr.is_payable_qty_changed_ytd = cc.is_payable_qty_changed_ytd,
+           gmr.is_assay_updated_mtd_ar    = cc.is_assay_updated_mtd_ar,
+           gmr.is_assay_updated_ytd_ar    = cc.is_assay_updated_ytd_ar,
+           gmr.is_new_landing             = cc.is_new_landing,
+           gmr.is_new_shipment            = cc.is_new_shipment
+     where gmr.corporate_id = pc_corporate_id
+       and gmr.process_id = pc_process_id
+       and gmr.is_deleted = 'N'
+       and gmr.internal_gmr_ref_no = cc.internal_gmr_ref_no;
+  end loop;   
 commit;
  vn_log_counter := vn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
                         pd_trade_date,
                         pc_process_id,
                         vn_log_counter,
-                        'End of sp_misc'); 
+                        'End of Process_GMR to GMR Update'); 
 
   gvn_log_counter := vn_log_counter;
 exception
@@ -15738,9 +15789,7 @@ end;
 
 procedure sp_daily_position_record ( pc_corporate_id varchar2, pd_trade_date date,pc_process_id   varchar2)
 as
-
 begin
-
 insert into dpr_daily_position_record
   (trade_date,
    corporate_id,
@@ -18990,7 +19039,7 @@ insert into arg_arrival_report_gmr
            and cgcp.element_id = cur_arrival_rows.element_id;
       exception
         when others then
-          begin
+          /*begin
             select cccp.contract_price,
                    cccp.price_unit_id,
                    cccp.price_unit_weight_unit_id,
@@ -19018,7 +19067,7 @@ insert into arg_arrival_report_gmr
                and cccp.process_id = pc_process_id
                and cccp.element_id = cur_arrival_rows.element_id;
           exception
-            when others then
+            when others then*/
               vn_gmr_price                 := null;
               vc_gmr_price_untit_id        := null;
               vc_price_unit_weight_unit_id := null;
@@ -19029,7 +19078,7 @@ insert into arg_arrival_report_gmr
               vn_pay_price_unit_weight     := null;
               vc_pay_in_weight_unit_id     := null;
               vc_gmr_pay_cur_id            := null;
-          end;
+       --   end;
       end;
     
       pkg_general.sp_get_main_cur_detail(vc_gmr_price_unit_cur_id,
@@ -20935,6 +20984,19 @@ begin
                         pc_process_id,
                         gvn_log_counter,
                         'Delete fct_fc_temp Over');
+  sp_gather_stats('ped_penalty_element_details');  
+  sp_gather_stats('process_gmr');
+  sp_gather_stats('process_grd');    
+  sp_gather_stats('process_spq');
+  --sp_gather_stats('ash_assay_header');
+  --sp_gather_stats('asm_assay_sublot_mapping');
+  sp_gather_stats('eud_element_underlying_details');
+ gvn_log_counter := gvn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'gmr,grd,spq,ash,asm,eud stats Over');                            
   insert into fct_fc_temp
     (gmr_ref_no,
      internal_gmr_ref_no,
@@ -21501,7 +21563,7 @@ sp_eodeom_process_log(pc_corporate_id,
            and cgcp.element_id = cur_feed_rows.element_id;
       exception
         when others then
-          begin
+         /* begin
             select cccp.contract_price,
                    cccp.price_unit_id,
                    cccp.price_unit_weight_unit_id,
@@ -21529,7 +21591,7 @@ sp_eodeom_process_log(pc_corporate_id,
                and cccp.process_id = pc_process_id
                and cccp.element_id = cur_feed_rows.element_id;
           exception
-            when others then
+            when others then*/
               vn_gmr_price                 := null;
               vc_gmr_price_untit_id        := null;
               vc_price_unit_weight_unit_id := null;
@@ -21540,7 +21602,7 @@ sp_eodeom_process_log(pc_corporate_id,
               vn_pay_price_unit_weight     := null;
               vc_pay_in_weight_unit_id     := null;
               vc_gmr_pay_cur_id            := null;
-          end;
+         -- end;
         
       end;
     
@@ -24021,9 +24083,9 @@ begin
            grd.pool_name,
            ash_pricing.ash_id,
            grd.pcdi_id,
-           gmr.invoice_cur_id pay_cur_id,
-           gmr.invoice_cur_code pay_cur_code,
-           gmr.invoice_cur_decimals pay_cur_decimal,
+           grd.invoice_cur_id pay_cur_id,
+           grd.invoice_cur_code pay_cur_code,
+           grd.invoice_cur_decimals pay_cur_decimal,
            'Payable' qty_type,
            grd.base_qty_unit_id conc_base_qty_unit_id,
            grd.base_qty_unit conc_base_qty_unit,
@@ -24177,9 +24239,9 @@ begin
            grd.pool_name,
            grd_assay.latest_ash_id ash_id,
            grd.pcdi_id,
-           gmr.invoice_cur_id pay_cur_id,
-           gmr.invoice_cur_code pay_cur_code,
-           gmr.invoice_cur_decimals pay_cur_decimal,
+           grd.invoice_cur_id pay_cur_id,
+           grd.invoice_cur_code pay_cur_code,
+           grd.invoice_cur_decimals pay_cur_decimal,
            null qty_type,
            grd.base_qty_unit_id conc_base_qty_unit_id,
            grd.base_qty_unit conc_base_qty_unit,
@@ -24257,7 +24319,7 @@ begin
                                                  pc_process_id)
    where ct.parent_internal_gmr_ref_no is null
      and ct.corporate_id = pc_corporate_id;*/
-     delete from tcbp_temp_cb_parent_grd where corporate_id = pc_corporate_id;
+/*delete from tcbp_temp_cb_parent_grd where corporate_id = pc_corporate_id;
 commit;
 insert into tcbp_temp_cb_parent_grd
   (corporate_id, parent_internal_grd_ref_no, parent_internal_gmr_ref_no)
@@ -24284,7 +24346,73 @@ update cbt_cb_temp ct
                                            and t.parent_internal_grd_ref_no =
                                                ct.parent_internal_grd_ref_no)
  where ct.corporate_id = pc_corporate_id;
+  commit;*/
+delete from temp_grd_parent where corporate_id = pc_corporate_id;
+commit;
+insert into temp_grd_parent
+  (corporate_id, internal_grd_ref_no, internal_gmr_ref_no)
+select ct.corporate_id,
+       grd.internal_grd_ref_no,
+       max(grd.internal_gmr_ref_no) internal_gmr_ref_no
+  from process_grd grd,
+       cbt_cb_temp ct
+ where grd.internal_grd_ref_no = ct.parent_internal_grd_ref_no
+   and grd.process_id = pc_process_id
+   and ct.corporate_id = pc_corporate_id
+   and ct.parent_internal_gmr_ref_no is null
+ group by ct.corporate_id,
+          grd.internal_grd_ref_no;
+commit;          
+  for cc in (select corporate_id,
+                    internal_grd_ref_no,
+                    internal_gmr_ref_no
+               from temp_grd_parent
+              where corporate_id = pc_corporate_id)
+  loop
+    update cbt_cb_temp ct
+       set ct.parent_internal_gmr_ref_no = cc.internal_gmr_ref_no
+     where ct.parent_internal_grd_ref_no = cc.internal_grd_ref_no
+       and ct.parent_internal_gmr_ref_no is null
+       and ct.corporate_id = pc_corporate_id;
+  end loop; 
+  commit;  
+   /*update cbt_cb_temp ct
+     set ct.parent_internal_gmr_ref_no = (select max(grd.internal_gmr_ref_no)
+                                            from process_grd grd
+                                           where grd.internal_grd_ref_no =
+                                                 ct.parent_internal_grd_ref_no
+                                             and grd.process_id =
+                                                 pc_process_id)
+   where ct.parent_internal_gmr_ref_no is null
+     and ct.corporate_id = pc_corporate_id;*/
   commit;
+   gvn_log_counter := gvn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'Deletion of unnecessary penality elements started');
+  ------ Deletion of unnecessary penality elements for Internal Movement
+  /*delete from cbt_cb_temp ct
+ where (ct.parent_internal_gmr_ref_no, ct.element_id) not in      
+       (select gepc.internal_gmr_ref_no,
+               gepc.element_id
+          from gepc_gmr_element_pc_charges gepc
+           where gepc.process_id=pc_process_id)
+   and ct.section_name='Penalty'
+   and ct.corporate_id=pc_corporate_id;*/
+ delete from cbt_cb_temp ct
+  where ct.section_name = 'Penalty'
+    and ct.corporate_id = pc_corporate_id
+    and not exists
+  (select gepc.internal_gmr_ref_no,
+                gepc.element_id
+           from gepc_gmr_element_pc_charges gepc
+          where gepc.process_id = pc_process_id
+            and gepc.internal_gmr_ref_no = ct.parent_internal_gmr_ref_no
+            and gepc.element_id = ct.element_id);
+  commit;
+   -------------------------
   gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
                         pd_trade_date,
@@ -24292,22 +24420,6 @@ update cbt_cb_temp ct
                         gvn_log_counter,
                         'CB Update CBT parent_internal_gmr_ref_no end');
 
-  ------ Deletion of unnecessary penality elements for Internal Movement
-  delete from cbt_cb_temp ct
- where (ct.parent_internal_gmr_ref_no, ct.element_id) not in      
-       (select gepc.internal_gmr_ref_no,
-               gepc.element_id
-          from gepc_gmr_element_pc_charges gepc
-           where gepc.process_id=pc_process_id)
-   and ct.section_name='Penalty'
-   and ct.corporate_id=pc_corporate_id;
-   commit;
-   gvn_log_counter := gvn_log_counter + 1;
-  sp_eodeom_process_log(pc_corporate_id,
-                        pd_trade_date,
-                        pc_process_id,
-                        gvn_log_counter,
-                        'Deletion of unnecessary penality elements for IM');
   --
   -- all supplier stocks payable elements
   --
@@ -24702,7 +24814,7 @@ update cbt_cb_temp ct
            and cgcp.element_id = cur_closing_rows.element_id;
       exception
         when others then
-          begin
+          /*begin
             select cccp.contract_price,
                    cccp.price_unit_id,
                    cccp.price_unit_weight_unit_id,
@@ -24730,7 +24842,7 @@ update cbt_cb_temp ct
                and cccp.process_id = pc_process_id
                and cccp.element_id = cur_closing_rows.element_id;
           exception
-            when others then
+            when others then*/
               vn_gmr_price                 := null;
               vc_gmr_price_untit_id        := null;
               vc_price_unit_weight_unit_id := null;
@@ -24741,7 +24853,7 @@ update cbt_cb_temp ct
               vn_pay_price_unit_weight     := null;
               vc_pay_in_weight_unit_id     := null;
               vc_gmr_pay_cur_id            := null;
-          end;
+        --  end;
       end;
       pkg_general.sp_get_main_cur_detail(vc_gmr_price_unit_cur_id,
                                          vc_price_cur_id,
@@ -25353,7 +25465,7 @@ begin
          where cgcp.internal_gmr_ref_no = cc.internal_gmr_ref_no
            and cgcp.process_id = pc_process_id
            and cgcp.element_id = cc.element_id;
-      exception
+      /*exception
         when others then
           begin
             select cccp.contract_price,
@@ -25367,13 +25479,12 @@ begin
               from cccp_conc_contract_cog_price cccp
              where cccp.pcdi_id = cc.pcdi_id
                and cccp.process_id = pc_process_id
-               and cccp.element_id = cc.element_id;
-          
+               and cccp.element_id = cc.element_id;*/
           exception
             when others then
               vn_gmr_price         := null;
               vc_gmr_price_unit_id := null;
-          end;
+         -- end;
       end;
       vn_contract_price := vn_gmr_price;
       for cur_tret_charge in (select pcth.range_type,
@@ -25434,7 +25545,7 @@ begin
         -- 1)When Assay Range Use it
         -- 2) Price Range Range, use from Base
         -- 3) When Assay and Price Range use from Assay Range
-        -- Data sorted to mee this condition already
+        -- Data sorted to meet this condition already
         --
         If vc_tc_weight_unit_id is null then
            vc_tc_weight_unit_id := cur_tret_charge.weight_unit_id;
@@ -26015,7 +26126,7 @@ begin
        where cgcp.internal_gmr_ref_no = cc.internal_gmr_ref_no
          and cgcp.process_id = pc_process_id
          and cgcp.element_id = cc.element_id;
-    exception
+    /*exception
       when others then
         begin
           select cccp.contract_price,
@@ -26029,12 +26140,12 @@ begin
             from cccp_conc_contract_cog_price cccp
            where cccp.pcdi_id = cc.pcdi_id
              and cccp.process_id = pc_process_id
-             and cccp.element_id = cc.element_id;
+             and cccp.element_id = cc.element_id;*/
         exception
           when others then
             vn_gmr_price         := null;
             vc_gmr_price_unit_id := null;
-        end;
+        --end;
     end;
     vn_refine_charge  := 0;
     vn_contract_price := vn_gmr_price;
@@ -26219,10 +26330,10 @@ begin
           -- RC Charge Price Unit should be taken from Range Type = Base or Range Type = Null(Assay Range)
           -- App is storing Price Unit of Price and Not Price Unit of RC Charge
           -- Where is the correct data present?
-          -- 1)When Assay Range Use it
+          -- 1) When Assay Range Use it
           -- 2) Price Range Range, use from Base
           -- 3) When Assay and Price Range use from Assay Range
-          -- Data sorted to mee this condition already
+          -- Data sorted to meet this condition already
           --
           if vc_rc_weight_unit_id is null then
             vc_rc_weight_unit_id := cur_ref_charge.weight_unit_id;
@@ -27090,6 +27201,12 @@ begin
 --
   -- Previous EOM ID
   --
+vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'inside sp_delta_updates ..');      
   begin
     select tdc.process_id
       into vc_previous_eom_id
@@ -27125,6 +27242,66 @@ begin
     when no_data_found then
       vc_previous_year_eom_id := null;
   end;
+vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'delete temp_gmr_supp_gmr');  
+delete from temp_gmr_supp_gmr where corporate_id = pc_corporate_id;
+commit;
+vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'insert temp_gmr_supp_gmr');  
+insert into temp_gmr_supp_gmr
+  (corporate_id, internal_gmr_ref_no, supp_internal_gmr_ref_no)
+  select gmr.corporate_id,
+         gmr.internal_gmr_ref_no,
+         grd.supp_internal_gmr_ref_no
+    from gmr_goods_movement_record gmr,
+         process_grd               grd
+   where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
+     and grd.status = 'Active'
+     and grd.tolling_stock_type = 'Clone Stock'
+     and gmr.tolling_service_type = 'P'
+     and gmr.is_pass_through = 'Y'
+     and gmr.is_deleted = 'N'
+     and gmr.process_id = pc_process_id
+     and grd.process_id = pc_process_id
+     and gmr.corporate_id = pc_corporate_id
+   group by gmr.corporate_id,
+            gmr.internal_gmr_ref_no,
+            grd.supp_internal_gmr_ref_no;
+commit;     
+vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'delete temp_gmr_arrival_ytdmtd');  
+delete from temp_gmr_arrival_ytdmtd where corporate_id = pc_corporate_id;
+commit;
+vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'insert temp_gmr_arrival_ytdmtd');  
+insert into temp_gmr_arrival_ytdmtd
+  (corporate_id, internal_gmr_ref_no, mtd_ytd)
+  select ar.corporate_id,
+         ar.internal_gmr_ref_no,
+         ar.mtd_ytd
+    from ar_arrival_report ar
+   where ar.corporate_id = pc_corporate_id
+   group by ar.corporate_id,
+            ar.internal_gmr_ref_no,
+            ar.mtd_ytd;
+sp_gather_stats('temp_gmr_supp_gmr');
+sp_gather_stats('temp_gmr_arrival_ytdmtd');            
 --
 -- Start of Assay Updated Flag for Arrival Report for Arrival/Feed GMRS Based on TC/RC/PC
 -- If TC/RC/Penalty is changed between EOM for Arrival/Delivery GMRs Update 
@@ -27133,7 +27310,13 @@ begin
 -- a) is_assay_updated_mtd or b) is_assay_updated_ytd                       
 --
 -- MTD Assay Update Based on TC Value Change                         
---                        
+--    
+vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'update gmr is_assay_updated_mtd tc starts');                      
 begin
     for cur_assay_mtd in (
 select getc.internal_gmr_ref_no
@@ -27144,10 +27327,11 @@ select getc.internal_gmr_ref_no
    and getc_prev.process_id = vc_previous_eom_id
                              and exists
                            (select *
-                                    from ar_arrival_report ar
+                                    from temp_gmr_arrival_ytdmtd ar
                                    where ar.internal_gmr_ref_no =
                                          getc.internal_gmr_ref_no
-                                     and ar.mtd_ytd = 'MTD')
+                                     and ar.mtd_ytd = 'MTD'
+                                     and ar.corporate_id = pc_corporate_id)
                            group by getc.internal_gmr_ref_no                           
 having sum(getc.tc_amt) <> sum(getc_prev.tc_amt))
                             
@@ -27166,42 +27350,39 @@ having sum(getc.tc_amt) <> sum(getc_prev.tc_amt))
         and gmr.is_deleted = 'N'
         and gmr.is_new_mtd_ar = 'N'
         and gmr.internal_gmr_ref_no in
-            (select gmr.internal_gmr_ref_no
-               from gmr_goods_movement_record gmr,
-                    process_grd   grd
-              where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-                and grd.status = 'Active'
-                and grd.tolling_stock_type = 'Clone Stock'
-                and gmr.tolling_service_type = 'P'
-                and gmr.is_pass_through = 'Y'
-                and gmr.is_deleted = 'N'
-                and gmr.process_id = pc_process_id
-                and grd.process_id = pc_process_id
-                and grd.supp_internal_gmr_ref_no =
-                    cur_assay_mtd.internal_gmr_ref_no);
+            (select tgmr.internal_gmr_ref_no
+               from temp_gmr_supp_gmr tgmr
+              where tgmr.supp_internal_gmr_ref_no = cur_assay_mtd.internal_gmr_ref_no
+              and tgmr.corporate_id = pc_corporate_id);
     commit;
     end loop;
   end;
 commit;
+vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'update gmr is_assay_updated_mtd pc starts');  
 --                        
 -- MTD Assay Update Based on Penalty Value Change                         
 --                        
 begin
     for cur_assay_mtd in (
-select gepc.internal_gmr_ref_no
-  from gepc_gmr_element_pc_charges gepc,
-       gepc_gmr_element_pc_charges gepc_prev
- where gepc.internal_gmr_ref_no = gepc_prev.internal_gmr_ref_no
-   and gepc.process_id = pc_process_id
-   and gepc_prev.process_id = vc_previous_eom_id
-                             and exists
-                           (select *
-                                    from ar_arrival_report ar
-                                   where ar.internal_gmr_ref_no =
-                                         gepc.internal_gmr_ref_no
-                                     and ar.mtd_ytd = 'MTD')
-                           group by gepc.internal_gmr_ref_no                           
-having sum(gepc.pc_amt) <> sum(gepc_prev.pc_amt))
+      select gepc.internal_gmr_ref_no
+        from gepc_gmr_element_pc_charges gepc,
+             gepc_gmr_element_pc_charges gepc_prev
+       where gepc.internal_gmr_ref_no = gepc_prev.internal_gmr_ref_no
+         and gepc.process_id = pc_process_id
+         and gepc_prev.process_id = vc_previous_eom_id
+         and exists
+       (select *
+                from temp_gmr_arrival_ytdmtd ar
+               where ar.internal_gmr_ref_no = gepc.internal_gmr_ref_no
+                 and ar.mtd_ytd = 'MTD'
+                 and ar.corporate_id = pc_corporate_id)
+       group by gepc.internal_gmr_ref_no
+      having sum(gepc.pc_amt) <> sum(gepc_prev.pc_amt))
                             
     loop
       update process_gmr gmr
@@ -27217,7 +27398,11 @@ having sum(gepc.pc_amt) <> sum(gepc_prev.pc_amt))
         and gmr.is_deleted = 'N'
         and gmr.is_new_mtd_ar = 'N'
         and gmr.internal_gmr_ref_no in
-            (select gmr.internal_gmr_ref_no
+        (select tgmr.internal_gmr_ref_no
+               from temp_gmr_supp_gmr tgmr
+              where tgmr.supp_internal_gmr_ref_no = cur_assay_mtd.internal_gmr_ref_no
+              and tgmr.corporate_id = pc_corporate_id);
+            /*(select gmr.internal_gmr_ref_no
                from gmr_goods_movement_record gmr,
                     process_grd   grd
               where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
@@ -27229,11 +27414,16 @@ having sum(gepc.pc_amt) <> sum(gepc_prev.pc_amt))
                 and gmr.process_id = pc_process_id
                 and grd.process_id = pc_process_id
                 and grd.supp_internal_gmr_ref_no =
-                    cur_assay_mtd.internal_gmr_ref_no);
+                    cur_assay_mtd.internal_gmr_ref_no);*/
     end loop;
   end;
 commit;
-
+vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'update gmr is_assay_updated_mtd rc starts');  
 --                        
 -- MTD Assay Update Based on RC Value Change                         
 --                        
@@ -27247,10 +27437,11 @@ select gerc.internal_gmr_ref_no
    and gerc_prev.process_id = vc_previous_eom_id
                              and exists
                            (select *
-                                    from ar_arrival_report ar
+                                    from temp_gmr_arrival_ytdmtd ar
                                    where ar.internal_gmr_ref_no =
                                          gerc.internal_gmr_ref_no
-                                     and ar.mtd_ytd = 'MTD')
+                                     and ar.mtd_ytd = 'MTD'
+                                     and ar.corporate_id = pc_corporate_id)
                            group by gerc.internal_gmr_ref_no                           
 having sum(gerc.rc_amt) <> sum(gerc_prev.rc_amt))
                             
@@ -27268,6 +27459,11 @@ having sum(gerc.rc_amt) <> sum(gerc_prev.rc_amt))
         and gmr.is_deleted = 'N'
         and gmr.is_new_mtd_ar = 'N'
         and gmr.internal_gmr_ref_no in
+        (select tgmr.internal_gmr_ref_no
+               from temp_gmr_supp_gmr tgmr
+              where tgmr.supp_internal_gmr_ref_no = cur_assay_mtd.internal_gmr_ref_no
+              and tgmr.corporate_id = pc_corporate_id);
+/*        
             (select gmr.internal_gmr_ref_no
                from gmr_goods_movement_record gmr,
                     process_grd   grd
@@ -27280,7 +27476,7 @@ having sum(gerc.rc_amt) <> sum(gerc_prev.rc_amt))
                 and gmr.process_id = pc_process_id
                 and grd.process_id = pc_process_id
                 and grd.supp_internal_gmr_ref_no =
-                    cur_assay_mtd.internal_gmr_ref_no);
+                    cur_assay_mtd.internal_gmr_ref_no);*/
     end loop;
   end;
 commit;
@@ -27304,10 +27500,11 @@ vn_log_counter := vn_log_counter + 1;
    and getc_prev.process_id = vc_previous_year_eom_id
                              and exists
                            (select *
-                                    from ar_arrival_report ar
+                                    from temp_gmr_arrival_ytdmtd ar
                                    where ar.internal_gmr_ref_no =
                                          getc.internal_gmr_ref_no
-                                     and ar.mtd_ytd = 'YTD')
+                                     and ar.mtd_ytd = 'YTD'
+                                     and ar.corporate_id = pc_corporate_id)
                            group by getc.internal_gmr_ref_no                           
 having sum(getc.tc_amt) <> sum(getc_prev.tc_amt))
     loop
@@ -27317,13 +27514,20 @@ having sum(getc.tc_amt) <> sum(getc_prev.tc_amt))
          and gmr.internal_gmr_ref_no = cur_assay_ytd.internal_gmr_ref_no
          and gmr.is_deleted = 'N'
          and gmr.is_new_ytd_ar = 'N';
+commit;         
         -- Marking for MFT GMR 
        update process_gmr gmr
          set gmr.is_assay_updated_ytd = 'Y', gmr.is_tc_changed_ytd = 'Y'
        where gmr.process_id = pc_process_id
          and gmr.is_deleted = 'N'
          and gmr.is_new_ytd_ar = 'N'
-         and gmr.internal_gmr_ref_no in( select gmr.internal_gmr_ref_no
+         and gmr.internal_gmr_ref_no in
+        (select tgmr.internal_gmr_ref_no
+               from temp_gmr_supp_gmr tgmr
+              where tgmr.supp_internal_gmr_ref_no = cur_assay_ytd.internal_gmr_ref_no
+              and tgmr.corporate_id = pc_corporate_id);
+         
+        /* ( select gmr.internal_gmr_ref_no
       from gmr_goods_movement_record      gmr,
            process_grd        grd
      where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
@@ -27334,11 +27538,16 @@ having sum(getc.tc_amt) <> sum(getc_prev.tc_amt))
        and gmr.is_deleted = 'N'
        and gmr.process_id = pc_process_id
        and grd.process_id = pc_process_id
-       and grd.supp_internal_gmr_ref_no = cur_assay_ytd.internal_gmr_ref_no);
+       and grd.supp_internal_gmr_ref_no = cur_assay_ytd.internal_gmr_ref_no);*/
     end loop;
   end;
   commit;
-  
+vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'update gmr is_assay_updated_ytd pc starts');    
 --
 -- YTD Assay Update Based on Penalty Value change
 --
@@ -27351,10 +27560,11 @@ having sum(getc.tc_amt) <> sum(getc_prev.tc_amt))
    and gepc_prev.process_id = vc_previous_year_eom_id
                              and exists
                            (select *
-                                    from ar_arrival_report ar
+                                    from temp_gmr_arrival_ytdmtd ar
                                    where ar.internal_gmr_ref_no =
                                          gepc.internal_gmr_ref_no
-                                     and ar.mtd_ytd = 'YTD')
+                                     and ar.mtd_ytd = 'YTD'
+                                     and ar.corporate_id = pc_corporate_id)
                            group by gepc.internal_gmr_ref_no                           
 having sum(gepc.pc_amt) <> sum(gepc_prev.pc_amt))
     loop
@@ -27364,13 +27574,20 @@ having sum(gepc.pc_amt) <> sum(gepc_prev.pc_amt))
          and gmr.internal_gmr_ref_no = cur_assay_ytd.internal_gmr_ref_no
          and gmr.is_deleted = 'N'
          and gmr.is_new_ytd_ar = 'N';
+    commit;
         -- Marking for MFT GMR 
    update process_gmr gmr
          set gmr.is_assay_updated_ytd = 'Y', gmr.is_pc_changed_ytd = 'Y'
        where gmr.process_id = pc_process_id
          and gmr.is_deleted = 'N'
          and gmr.is_new_ytd_ar = 'N'
-         and gmr.internal_gmr_ref_no in( select gmr.internal_gmr_ref_no
+         and gmr.internal_gmr_ref_no in
+          (select tgmr.internal_gmr_ref_no
+               from temp_gmr_supp_gmr tgmr
+              where tgmr.supp_internal_gmr_ref_no = cur_assay_ytd.internal_gmr_ref_no
+              and tgmr.corporate_id = pc_corporate_id);
+         commit;
+         /*( select gmr.internal_gmr_ref_no
       from gmr_goods_movement_record      gmr,
            process_grd        grd
      where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
@@ -27381,13 +27598,19 @@ having sum(gepc.pc_amt) <> sum(gepc_prev.pc_amt))
        and gmr.is_deleted = 'N'
        and gmr.process_id = pc_process_id
        and grd.process_id = pc_process_id
-       and grd.supp_internal_gmr_ref_no = cur_assay_ytd.internal_gmr_ref_no);
+       and grd.supp_internal_gmr_ref_no = cur_assay_ytd.internal_gmr_ref_no);*/
     end loop;
   end;
   commit;
 --
 -- YTD Assay Update Based on RC Value change
 --
+vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'update gmr is_assay_updated_ytd rc starts');    
   begin
     for cur_assay_ytd in (select gerc.internal_gmr_ref_no
   from gerc_gmr_element_rc_charges gerc,
@@ -27397,10 +27620,11 @@ having sum(gepc.pc_amt) <> sum(gepc_prev.pc_amt))
    and gerc_prev.process_id = vc_previous_year_eom_id
                              and exists
                            (select *
-                                    from ar_arrival_report ar
+                                    from temp_gmr_arrival_ytdmtd ar
                                    where ar.internal_gmr_ref_no =
                                          gerc.internal_gmr_ref_no
-                                     and ar.mtd_ytd = 'YTD')
+                                     and ar.mtd_ytd = 'YTD'
+                                     and ar.corporate_id = pc_corporate_id)
                            group by gerc.internal_gmr_ref_no                           
 having sum(gerc.rc_amt) <> sum(gerc_prev.rc_amt))
     loop
@@ -27416,7 +27640,13 @@ having sum(gerc.rc_amt) <> sum(gerc_prev.rc_amt))
        where gmr.process_id = pc_process_id
          and gmr.is_deleted = 'N'
          and gmr.is_new_ytd_ar = 'N'
-         and gmr.internal_gmr_ref_no in( select gmr.internal_gmr_ref_no
+         and gmr.internal_gmr_ref_no in
+          (select tgmr.internal_gmr_ref_no
+               from temp_gmr_supp_gmr tgmr
+              where tgmr.supp_internal_gmr_ref_no = cur_assay_ytd.internal_gmr_ref_no
+              and tgmr.corporate_id = pc_corporate_id);
+         
+         /*( select gmr.internal_gmr_ref_no
       from gmr_goods_movement_record      gmr,
            process_grd        grd
      where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
@@ -27427,7 +27657,7 @@ having sum(gerc.rc_amt) <> sum(gerc_prev.rc_amt))
        and gmr.is_deleted = 'N'
        and gmr.process_id = pc_process_id
        and grd.process_id = pc_process_id
-       and grd.supp_internal_gmr_ref_no = cur_assay_ytd.internal_gmr_ref_no);
+       and grd.supp_internal_gmr_ref_no = cur_assay_ytd.internal_gmr_ref_no);*/
     end loop;
   end;
   commit; 
@@ -27437,24 +27667,391 @@ vn_log_counter := vn_log_counter + 1;
                         pc_process_id,
                         vn_log_counter,
                         'Assay Update delta update to gmr from  process gmr');  
-  update gmr_goods_movement_record gmr
-   set (gmr.is_assay_updated_mtd_ar,gmr.is_assay_updated_ytd_ar,gmr.is_assay_updated_mtd,gmr.is_assay_updated_ytd,
-   gmr.is_tc_changed_mtd,gmr.is_pc_changed_mtd,gmr.is_rc_changed_mtd,gmr.is_tc_changed_ytd,gmr.is_pc_changed_ytd,gmr.is_rc_changed_ytd
-       ) = (select gmr1.is_assay_updated_mtd_ar,gmr1.is_assay_updated_ytd_ar,gmr1.is_assay_updated_mtd,gmr1.is_assay_updated_ytd,
-   gmr1.is_tc_changed_mtd,gmr1.is_pc_changed_mtd,gmr1.is_rc_changed_mtd,gmr1.is_tc_changed_ytd,gmr1.is_pc_changed_ytd,gmr1.is_rc_changed_ytd
-              from process_gmr gmr1
-             where gmr1.corporate_id = pc_corporate_id
-               and gmr1.internal_gmr_ref_no = gmr.internal_gmr_ref_no)
- where gmr.corporate_id = pc_corporate_id
-   and gmr.process_id = pc_process_id;
-commit; 
+ /*update gmr_goods_movement_record gmr
+    set (gmr.is_assay_updated_mtd_ar, gmr.is_assay_updated_ytd_ar, gmr.is_assay_updated_mtd, 
+    gmr.is_assay_updated_ytd, gmr.is_tc_changed_mtd, gmr.is_pc_changed_mtd, gmr.is_rc_changed_mtd, 
+    gmr.is_tc_changed_ytd, gmr.is_pc_changed_ytd, gmr.is_rc_changed_ytd) = (select gmr1.is_assay_updated_mtd_ar,
+                                               gmr1.is_assay_updated_ytd_ar,
+                                               gmr1.is_assay_updated_mtd,
+                                               gmr1.is_assay_updated_ytd,
+                                               gmr1.is_tc_changed_mtd,
+                                               gmr1.is_pc_changed_mtd,
+                                               gmr1.is_rc_changed_mtd,
+                                               gmr1.is_tc_changed_ytd,
+                                               gmr1.is_pc_changed_ytd,
+                                               gmr1.is_rc_changed_ytd
+                                          from process_gmr gmr1
+                                         where gmr1.corporate_id =
+                                               pc_corporate_id
+                                           and gmr1.internal_gmr_ref_no =
+                                               gmr.internal_gmr_ref_no)
+  where gmr.corporate_id = pc_corporate_id
+    and gmr.process_id = pc_process_id;*/
 vn_log_counter := vn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
                         pd_trade_date,
                         pc_process_id,
                         vn_log_counter,
-                        'YTD Assay Update for TC/RC/PC Over');
+                        'YTD Assay Update for TC/RC/PC Over');    
+ 
+sp_gather_stats('gmr_goods_movement_record');
+sp_gather_stats('process_gmr');            
+
+ for cc in (select gmr1.internal_gmr_ref_no,
+                    gmr1.is_assay_updated_mtd_ar,
+                    gmr1.is_assay_updated_ytd_ar,
+                    gmr1.is_assay_updated_mtd,
+                    gmr1.is_assay_updated_ytd,
+                    gmr1.is_tc_changed_mtd,
+                    gmr1.is_pc_changed_mtd,
+                    gmr1.is_rc_changed_mtd,
+                    gmr1.is_tc_changed_ytd,
+                    gmr1.is_pc_changed_ytd,
+                    gmr1.is_rc_changed_ytd
+               from process_gmr gmr1
+              where gmr1.corporate_id = pc_corporate_id
+                and gmr1.process_id = pc_process_id
+                and gmr1.is_deleted = 'N')
+  loop
+    update gmr_goods_movement_record gmr
+       set gmr.is_assay_updated_mtd_ar = cc.is_assay_updated_mtd_ar,
+           gmr.is_assay_updated_ytd_ar = cc.is_assay_updated_ytd_ar,
+           gmr.is_assay_updated_mtd    = cc.is_assay_updated_mtd,
+           gmr.is_assay_updated_ytd    = cc.is_assay_updated_ytd,
+           gmr.is_tc_changed_mtd       = cc.is_tc_changed_mtd,
+           gmr.is_pc_changed_mtd       = cc.is_pc_changed_mtd,
+           gmr.is_rc_changed_mtd       = cc.is_rc_changed_mtd,
+           gmr.is_tc_changed_ytd       = cc.is_tc_changed_ytd,
+           gmr.is_pc_changed_ytd       = cc.is_pc_changed_ytd,
+           gmr.is_rc_changed_ytd       = cc.is_rc_changed_ytd
+     where gmr.corporate_id = pc_corporate_id
+       and gmr.process_id = pc_process_id
+       and gmr.internal_gmr_ref_no = cc.internal_gmr_ref_no;
+  end loop;
+  commit;
+vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'GMR Assay Updated');    
+commit; 
+
+--
+-- Date 8th Oct 2013
+-- Add Price Change, Qty Change and Other Charge Changes Start
+                     
+--
+-- Raw data into GDS
+--
+insert into gds_gmr_delta_status
+  (process_id, internal_gmr_ref_no, is_new_mtd_ar, is_new_ytd_ar)
+  select gmr.process_id,
+         gmr.internal_gmr_ref_no,
+         gmr.is_new_mtd_ar,
+         gmr.is_new_ytd_ar
+    from gmr_goods_movement_record gmr
+   where gmr.process_id = pc_process_id
+     and gmr.is_deleted = 'N';
+COMMIT;
+vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'Insert Daw Data into GDS');  
+--
+-- MTD Data
+--
+-- Updation of Dry or Wet Quantity for Stock
+--
+for cur_qty_mtd in (select grd.internal_gmr_ref_no
+               from grd_goods_record_detail grd,
+                    grd_goods_record_detail grd_prev
+              where grd.internal_gmr_ref_no = grd_prev.internal_gmr_ref_no
+                and grd.process_id = pc_process_id
+                and grd_prev.process_id = vc_previous_eom_id
+                and grd.is_deleted = 'N'
+                and grd.status = 'Active'
+                and grd_prev.is_deleted = 'N'
+                and grd_prev.status = 'Active'
+                and grd.tolling_stock_type = 'None Tolling'
+                and exists
+              (select *
+                       from temp_gmr_arrival_ytdmtd ar
+                      where ar.internal_gmr_ref_no = grd.internal_gmr_ref_no
+                        and ar.mtd_ytd = 'MTD'
+                        and ar.corporate_id = pc_corporate_id)
+              group by grd.internal_gmr_ref_no
+             having((sum(grd.qty) <> sum(grd_prev.qty)) or (sum(grd.dry_qty) <> sum(grd_prev.dry_qty))))
+  loop
+   update gds_gmr_delta_status gmr
+      set gmr.is_assay_updated_mtd_ar = 'Y', gmr.is_qty_changed_mtd = 'Y'
+    where gmr.process_id = pc_process_id
+      and gmr.internal_gmr_ref_no = cur_qty_mtd.internal_gmr_ref_no
+      and gmr.is_new_mtd_ar = 'N';
+     -- Marking for MFT GMR 
+     update gds_gmr_delta_status gmr
+        set gmr.is_assay_updated_mtd = 'Y', gmr.is_qty_changed_mtd = 'Y'
+      where gmr.process_id = pc_process_id
+        and gmr.is_new_mtd_ar = 'N'
+        and gmr.internal_gmr_ref_no in
+            (select tgmr.internal_gmr_ref_no
+               from temp_gmr_supp_gmr tgmr
+              where tgmr.supp_internal_gmr_ref_no =
+                    cur_qty_mtd.internal_gmr_ref_no
+                and tgmr.corporate_id = pc_corporate_id);
+              
+  end loop;
+COMMIT;
+vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'MTD Dry Quantity Delta Over');  
+--
+-- Other charges Delta
+--
+For cur_oc_delta In(
+    select iocd.internal_gmr_ref_no
+      from iocd_ioc_details iocd,
+           iocd_ioc_details iocd_prev
+     where iocd.process_id = pc_process_id
+       and iocd.internal_gmr_ref_no = iocd_prev.internal_gmr_ref_no
+       and iocd_prev.process_id = vc_previous_eom_id
+       and exists
+     (select *
+              from temp_gmr_arrival_ytdmtd ar
+             where ar.internal_gmr_ref_no = iocd.internal_gmr_ref_no
+               and ar.mtd_ytd = 'MTD'
+               and ar.corporate_id = pc_corporate_id)
+     group by iocd.internal_gmr_ref_no
+    having sum(iocd.charge_rate) <> sum(iocd_prev.charge_rate)) loop
+     update gds_gmr_delta_status gmr
+             set gmr.is_assay_updated_mtd_ar = 'Y', gmr.is_oc_changed_mtd = 'Y'
+           where gmr.process_id = pc_process_id
+             and gmr.internal_gmr_ref_no = cur_oc_delta.internal_gmr_ref_no
+             and gmr.is_new_mtd_ar = 'N';
+         -- Marking for MFT GMR 
+         update gds_gmr_delta_status gmr
+            set gmr.is_assay_updated_mtd = 'Y', gmr.is_oc_changed_mtd = 'Y'
+          where gmr.process_id = pc_process_id
+            and gmr.is_new_mtd_ar = 'N'
+            and gmr.internal_gmr_ref_no in
+            (select tgmr.internal_gmr_ref_no
+                   from temp_gmr_supp_gmr tgmr
+                  where tgmr.supp_internal_gmr_ref_no = cur_oc_delta.internal_gmr_ref_no
+                  and tgmr.corporate_id = pc_corporate_id);
+End Loop;
+COMMIT;
+vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'MTD Other Charges Delta Over'); 
+
+--
+-- Price Change
+--
+for cur_price in(
+    select cgcp.internal_gmr_ref_no
+      from cgcp_conc_gmr_cog_price cgcp,
+           cgcp_conc_gmr_cog_price cgcp_prev
+     where cgcp.process_id = pc_process_id
+       and cgcp.internal_gmr_ref_no = cgcp_prev.internal_gmr_ref_no
+       and cgcp.element_id = cgcp_prev.element_id
+       and cgcp_prev.process_id = vc_previous_eom_id
+       and exists
+     (select *
+              from temp_gmr_arrival_ytdmtd ar
+             where ar.internal_gmr_ref_no = cgcp.internal_gmr_ref_no
+               and ar.mtd_ytd = 'MTD'
+               and ar.corporate_id = pc_corporate_id)
+     group by cgcp.internal_gmr_ref_no
+    having sum(cgcp.contract_price) <> sum(cgcp_prev.contract_price)) loop
+    update gds_gmr_delta_status gmr
+       set gmr.is_assay_updated_mtd_ar = 'Y', gmr.is_price_changed_mtd = 'Y'
+     where gmr.process_id = pc_process_id
+       and gmr.internal_gmr_ref_no = cur_price.internal_gmr_ref_no
+       and gmr.is_new_mtd_ar = 'N';
+        -- Marking for MFT GMR 
+    update gds_gmr_delta_status gmr
+       set gmr.is_assay_updated_mtd = 'Y', gmr.is_price_changed_mtd = 'Y'
+     where gmr.process_id = pc_process_id
+       and gmr.is_new_mtd_ar = 'N'
+       and gmr.internal_gmr_ref_no in
+           (select tgmr.internal_gmr_ref_no
+              from temp_gmr_supp_gmr tgmr
+             where tgmr.supp_internal_gmr_ref_no = cur_price.internal_gmr_ref_no
+               and tgmr.corporate_id = pc_corporate_id);
+End Loop;
+commit;
+vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'MTD Price Delta Over');
   
+--
+-- YTD Data
+--
+-- Updation of Dry or Wet Quantity for Stock
+--
+for cur_qty_ytd in (select grd.internal_gmr_ref_no
+               from grd_goods_record_detail grd,
+                    grd_goods_record_detail grd_prev
+              where grd.internal_gmr_ref_no = grd_prev.internal_gmr_ref_no
+                and grd.process_id = pc_process_id
+                and grd_prev.process_id = vc_previous_year_eom_id
+                and grd.is_deleted = 'N'
+                and grd.status = 'Active'
+                and grd_prev.is_deleted = 'N'
+                and grd_prev.status = 'Active'
+                and grd.tolling_stock_type = 'None Tolling'
+                and exists
+              (select *
+                       from temp_gmr_arrival_ytdmtd ar
+                      where ar.internal_gmr_ref_no = grd.internal_gmr_ref_no
+                        and ar.mtd_ytd = 'YTD'
+                        and ar.corporate_id = pc_corporate_id)
+              group by grd.internal_gmr_ref_no
+             having((sum(grd.qty) <> sum(grd_prev.qty)) or (sum(grd.dry_qty) <> sum(grd_prev.dry_qty))))
+  loop
+   update gds_gmr_delta_status gmr
+         set gmr.is_assay_updated_ytd_ar = 'Y', gmr.is_qty_changed_ytd = 'Y'
+       where gmr.process_id = pc_process_id
+         and gmr.internal_gmr_ref_no = cur_qty_ytd.internal_gmr_ref_no
+        and gmr.is_new_ytd_ar = 'N';
+     -- Marking for MFT GMR 
+     update gds_gmr_delta_status gmr
+        set gmr.is_assay_updated_ytd = 'Y', gmr.is_qty_changed_ytd = 'Y'
+      where gmr.process_id = pc_process_id
+        and gmr.is_new_ytd_ar = 'N'
+        and gmr.internal_gmr_ref_no in
+        (select tgmr.internal_gmr_ref_no
+               from temp_gmr_supp_gmr tgmr
+              where tgmr.supp_internal_gmr_ref_no = cur_qty_ytd.internal_gmr_ref_no
+              and tgmr.corporate_id = pc_corporate_id);
+              
+  end loop;
+COMMIT;
+vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'YTD Dry Quantity Delta Over');  
+--
+-- Other charges Delta
+--
+  For cur_oc_delta In(
+  select iocd.internal_gmr_ref_no
+  from iocd_ioc_details iocd,
+       iocd_ioc_details iocd_prev
+ where iocd.process_id = pc_process_id
+   and iocd.internal_gmr_ref_no = iocd_prev.internal_gmr_ref_no
+   and iocd_prev.process_id = vc_previous_year_eom_id
+                and exists
+              (select *
+                       from temp_gmr_arrival_ytdmtd ar
+                      where ar.internal_gmr_ref_no = iocd.internal_gmr_ref_no
+                        and ar.mtd_ytd = 'YTD'
+                        and ar.corporate_id = pc_corporate_id)
+group by iocd.internal_gmr_ref_no
+Having sum(iocd.charge_rate) <> sum(iocd_prev.charge_rate)) Loop
+ update gds_gmr_delta_status gmr
+         set gmr.is_assay_updated_ytd_ar = 'Y', gmr.is_oc_changed_ytd = 'Y'
+       where gmr.process_id = pc_process_id
+         and gmr.internal_gmr_ref_no = cur_oc_delta.internal_gmr_ref_no
+         and gmr.is_new_ytd_ar = 'N';
+     -- Marking for MFT GMR 
+     update gds_gmr_delta_status gmr
+        set gmr.is_assay_updated_ytd = 'Y', gmr.is_oc_changed_ytd = 'Y'
+      where gmr.process_id = pc_process_id
+        and gmr.is_new_ytd_ar = 'N'
+        and gmr.internal_gmr_ref_no in
+        (select tgmr.internal_gmr_ref_no
+               from temp_gmr_supp_gmr tgmr
+              where tgmr.supp_internal_gmr_ref_no = cur_oc_delta.internal_gmr_ref_no
+              and tgmr.corporate_id = pc_corporate_id);
+End Loop;
+COMMIT;
+vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'YTD Other Charges Delta Over'); 
+--
+-- Price Change
+--
+For cur_price In(
+    select cgcp.internal_gmr_ref_no
+      from cgcp_conc_gmr_cog_price cgcp,
+           cgcp_conc_gmr_cog_price cgcp_prev
+     where cgcp.process_id = pc_process_id
+       and cgcp.internal_gmr_ref_no = cgcp_prev.internal_gmr_ref_no
+       and cgcp.element_id = cgcp_prev.element_id
+       and cgcp_prev.process_id = vc_previous_year_eom_id
+       and exists
+     (select *
+              from temp_gmr_arrival_ytdmtd ar
+             where ar.internal_gmr_ref_no = cgcp.internal_gmr_ref_no
+               and ar.mtd_ytd = 'YTD'
+               and ar.corporate_id = pc_corporate_id)
+     group by cgcp.internal_gmr_ref_no
+    having sum(cgcp.contract_price) <> sum(cgcp_prev.contract_price)) loop
+
+    update gds_gmr_delta_status gmr
+       set gmr.is_assay_updated_ytd_ar = 'Y', gmr.is_price_changed_ytd = 'Y'
+     where gmr.process_id = pc_process_id
+       and gmr.internal_gmr_ref_no = cur_price.internal_gmr_ref_no
+       and gmr.is_new_ytd_ar = 'N';
+        -- Marking for MFT GMR 
+update gds_gmr_delta_status gmr
+   set gmr.is_assay_updated_ytd = 'Y', gmr.is_price_changed_ytd = 'Y'
+ where gmr.process_id = pc_process_id
+   and gmr.is_new_ytd_ar = 'N'
+   and gmr.internal_gmr_ref_no in
+       (select tgmr.internal_gmr_ref_no
+          from temp_gmr_supp_gmr tgmr
+         where tgmr.supp_internal_gmr_ref_no = cur_price.internal_gmr_ref_no
+           and tgmr.corporate_id = pc_corporate_id);
+End Loop;
+commit;
+vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'YTD Price Delta Over');
+for cc in(
+    select t.internal_gmr_ref_no,
+           t.is_assay_updated_mtd,
+           t.is_assay_updated_ytd,
+           t.is_assay_updated_mtd_ar,
+           t.is_assay_updated_ytd_ar
+      from gds_gmr_delta_status t
+     where t.process_id = pc_process_id) loop
+    update process_gmr gmr
+       set gmr.is_assay_updated_mtd    = cc.is_assay_updated_mtd,
+           gmr.is_assay_updated_ytd    = cc.is_assay_updated_ytd,
+           gmr.is_assay_updated_mtd_ar = cc.is_assay_updated_mtd_ar,
+           gmr.is_assay_updated_ytd_ar = cc.is_assay_updated_ytd_ar
+     where gmr.process_id = pc_process_id
+       and gmr.internal_gmr_ref_no = cc.internal_gmr_ref_no;
+end loop;
+commit;
+vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'Delta Flag from GDS to Process_GMR Over');
+
  gvn_log_counter :=vn_log_counter;  
 --  
 -- End of Assay Updated Flag for Arrival Report for Arrival/Feed GMRS Based on TC/RC/PC
