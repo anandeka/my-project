@@ -8,7 +8,6 @@ CREATE TABLE hph_holiday_pricing_header
   created_by                VARCHAR2(30)              NOT NULL,
   created_date              DATE                      NOT NULL,
   status                    VARCHAR2(30),
-  VERSION                   VARCHAR2(15),
   is_active                 CHAR(1)      DEFAULT 'Y'  NOT NULL
 
 );
