@@ -1,0 +1,45 @@
+Patch No *              	:  EKA_METALS_PATCH_1760
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena  
+
+Created on*        		:  30-Oct-2013
+
+Bug / Enhancement*		:  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 148619
+Author: sriveenam
+Date: Wednesday, October 30, 2013 11:02:23 PM
+Message:
+Holiday Handling GMC patch missed
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_651.sql
+
+
