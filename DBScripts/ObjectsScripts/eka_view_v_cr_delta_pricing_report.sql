@@ -173,5 +173,4 @@ select 'Pricing based Pre-defined QP' section_name,
    and pocd.qp_period_type <> 'Event'
    and phd.is_active = 'Y'
    and phd.is_deleted = 'N'
-   --and v_gmr.assay_finalized = 'Y'
-
+/

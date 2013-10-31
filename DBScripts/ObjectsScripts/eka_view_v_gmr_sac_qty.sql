@@ -21,3 +21,4 @@ select   t.internal_gmr_ref_no, sum (t.total_qty_in_wet) total_qty_in_wet,
                    sac.current_qty_wet,
                    sac.grd_qty_unit_id) t
 group by t.internal_gmr_ref_no, t.grd_qty_unit_id
+/

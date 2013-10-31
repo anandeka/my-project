@@ -25,4 +25,4 @@ SELECT inv_lastest.gmr_ref_no, inv_lastest.internal_gmr_ref_no,
               AND iid.internal_invoice_ref_no = iis.internal_invoice_ref_no
               AND axs.internal_action_ref_no = iam.invoice_action_ref_no) inv_lastest
     WHERE inv_lastest.td_rank = 1
-
+/

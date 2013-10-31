@@ -65,3 +65,4 @@ select pofh.internal_gmr_ref_no,
           pofh.priced_qty,
           pofh.qp_start_date,
           pofh.qp_end_date
+/

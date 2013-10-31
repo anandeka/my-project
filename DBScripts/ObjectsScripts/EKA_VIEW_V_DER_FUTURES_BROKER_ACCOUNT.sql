@@ -162,4 +162,5 @@ select ak.corporate_id,
    and bca.account_id = dt.clearer_account_id
    and dpm.purpose_id = dt.purpose_id
    and cmak.cur_id = ak.base_cur_id
+/
 --Bug 61800 Fix end

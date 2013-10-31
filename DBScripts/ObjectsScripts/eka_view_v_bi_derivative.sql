@@ -95,7 +95,6 @@ select temp.derivative_ref_no,
        null attribute3,
        null attribute4,
        null attribute5
-
   from (select dt.derivative_ref_no,
                dt.int_trade_parent_der_ref_no origional_trade_ref_no,
                dt.parent_int_derivative_ref_no,
@@ -526,8 +525,7 @@ select temp.derivative_ref_no,
                        dt.quantity_unit_id trade_qty_unit_id,
                        qum.qty_unit trade_qty_unit,
                        null priced_qty,
-                       null unprice_qt
-                
+                       null unprice_qt                
                   from dt_derivative_trade dt,
                        cpc_corporate_profit_center cpc,
                        blm_business_line_master blm,
@@ -603,9 +601,6 @@ select temp.derivative_ref_no,
                    and cmak.cur_id = ak.base_cur_id
                    and dt.clearer_comm_type_id = bct.commission_type_id(+)
                    and dt.quality_id = qat.quality_id(+)
-                      /*and qat.instrument_id = pdd.derivative_def_id
-                                                                                                                                                                     and pdm.product_id = qat.product_id
-                                                                                                                                                                     and qat.instrument_id = pdd.derivative_def_id(+)*/
                    and dt.price_source_id = ps.price_source_id(+)
                    and dt.price_point_id = pp.price_point_id(+)
                    and dt.settlement_price_unit_id =

@@ -717,4 +717,4 @@ select (case when nvl(poch.is_free_metal_pricing,'NA') = 'Y' then
           dipq.is_price_optionality_present,
           dipq.price_option_call_off_status,
           qat.quality_name
-
+/

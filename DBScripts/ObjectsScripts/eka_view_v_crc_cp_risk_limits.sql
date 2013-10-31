@@ -31,3 +31,4 @@ select rle_id,
    and rle.rlt_id = rlt.rlt_id
    and rlt.risk_type = 'CP RISK LIMIT'
    and rle.cle_id = cle.cle_id(+)
+/

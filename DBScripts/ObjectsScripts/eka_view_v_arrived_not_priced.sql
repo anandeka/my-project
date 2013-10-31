@@ -281,10 +281,8 @@ select phd.companyname cp_name,
           ucm.multiplication_factor,
           qum_under.qty_unit,
           (case when pcbph.is_balance_pricing = 'Y' then 100 else pocd.percntg_of_qty_to_be_fixed end)
-
 union all
-
--- 2. SCT+PC(CONC)+PCT +SC(Conc) Traxys Non Event Based(DI) Query + Conc:
+-- 2. SCT+PC(CONC)+PCT +SC(Conc) Non Event Based(DI) Query + Conc:
 select phd.companyname cp_name,
        phd.profileid,
        'DI Level Pricing' section_name,
@@ -1563,4 +1561,5 @@ select phd.companyname cp_name,
    and pocd.qp_period_type <> 'Event'  
    and pocd.is_any_day_pricing = 'Y'
    and pcdi.price_allocation_method = 'Price Allocation'
-   and (round(nvl(pofh.qty_to_be_fixed, 0), 4) - round(gpah.priced_qty, 4)) > 0 
+   and (round(nvl(pofh.qty_to_be_fixed, 0), 4) - round(gpah.priced_qty, 4)) > 0
+/

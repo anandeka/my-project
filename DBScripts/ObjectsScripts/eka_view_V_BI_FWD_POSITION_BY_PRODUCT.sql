@@ -223,3 +223,4 @@ select t.corporate_id,
           t.forward_month_order,
           t.base_qty_unit_id,
           t.base_qty_unit
+/

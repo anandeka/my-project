@@ -40,3 +40,4 @@ select s1.section_name,
    and blm.business_line_id(+) = cpc.business_line_id
    and cpm.product_id = pdm.product_id
    and pdm.base_quantity_unit = qum.qty_unit_id
+/

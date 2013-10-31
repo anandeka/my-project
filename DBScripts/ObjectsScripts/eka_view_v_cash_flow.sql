@@ -98,7 +98,6 @@ and iss.is_inv_draft = 'N'
 AND    cm_akc_base_cur.cur_id = akc.base_cur_id
 AND    pcpd.strategy_id = css.strategy_id(+)
 AND    iss.total_amount_to_pay <> 0
-
 --
 -- 2. OTC invoices 
 -- 
@@ -491,7 +490,6 @@ AND    akc.base_cur_id = cm_base.cur_id
 AND    (nvl(grd.current_qty, 0) + nvl(grd.release_shipped_qty, 0) -   nvl(grd.title_transfer_out_qty, 0)) > 0
 and    cm_pum.cur_id = pum.cur_id
 and    pcm.contract_type ='BASEMETAL'
-
 UNION ALL
 --
 -- 7. Open Contracts Fixed Price Basis (Base Metal)

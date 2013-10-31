@@ -717,4 +717,4 @@ select 7 section_id,
    and poch.is_active = 'Y'
    and pocd.is_active = 'Y'
    and ppfh.is_active = 'Y'
-
+/

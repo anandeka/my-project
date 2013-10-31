@@ -53,4 +53,4 @@ select t.corporate_id,
 	   and pcm.approval_status <> 'Rejected' ---added for 78648
 	   ) t
            where t.qty_declaration_date <=trunc(sysdate); --added for 65307
-
+/

@@ -191,7 +191,6 @@ select (case
        else
         cim_sld.country_name
       end) ,
-                
           (case
             when nvl(gmr.contract_type, 'NA') = 'Purchase' then
              'P'

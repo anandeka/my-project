@@ -211,3 +211,4 @@ SELECT 'Derivative' section_type,
    AND pdm.base_quantity_unit = qum.qty_unit_id
    AND dt.total_quantity <> NVL(tad.allocated_qty, 0)
    AND dt.status = 'Verified'
+/

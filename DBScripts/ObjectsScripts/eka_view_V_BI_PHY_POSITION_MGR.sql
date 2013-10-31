@@ -300,7 +300,6 @@ select 'Standard' product_type,
    and pdm.base_quantity_unit = ucm_base.to_qty_unit_id
    and pcdb.warehouse_id = phd_wh.profileid(+)
    and pcdb.warehouse_shed_id = sld.storage_loc_id(+)
-
 -- 2) Shipped But Not TT for Purchase GMRs
 union all
 select 'Standard' product_type,
@@ -1032,4 +1031,5 @@ select product_type,
        warehouse_name,
        shed_id,
        shed_name
-  from v_bi_conc_phy_position ;
+  from v_bi_conc_phy_position
+/

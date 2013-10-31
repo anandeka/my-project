@@ -71,7 +71,6 @@ select pci.internal_contract_item_ref_no as internal_contract_item_ref_no,
    and pci.is_active = 'Y'
    and pcm.contract_status = 'In Position'
    and nvl(pcm.approval_status,'NA') <> 'Rejected' --added for 78648
-
 union all
 select pci.internal_contract_item_ref_no as internal_contract_item_ref_no,
        pcm.internal_contract_ref_no as internal_contract_ref_no,

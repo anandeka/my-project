@@ -174,9 +174,6 @@ SELECT akc.corporate_id,
    AND pfd.is_active = 'Y'
    AND pfd.is_hedge_correction = 'Y'
    AND NVL(pfd.is_cancel, 'N') = 'N'
-/*and akc.corporate_id = '{?CorporateID}'
-   and pfd.hedge_correction_date = to_date('{?AsOfDate}', 'dd-Mon-yyyy')*/
-   
 UNION ALL--(for Concentrate Cancelled Fixations)
 select akc.corporate_id,
        akc.corporate_name,
@@ -706,8 +703,6 @@ select fmuh.corporate_id,
    and pum.cur_id = cm.cur_id
    and fmuh.profit_center_id = cpc.profit_center_id
    and fmpfd.is_cancel = 'Y'
---and fmuh.corporate_id = '{?CorporateID}'
---and fmpfd.hedge_correction_date = to_date('{?AsOfDate}','dd-Mon-yyyy')
  group by fmuh.corporate_id,
           fmuh.corporate_id,
           pdm.product_id,

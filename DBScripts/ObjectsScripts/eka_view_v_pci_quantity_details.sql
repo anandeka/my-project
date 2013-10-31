@@ -342,4 +342,5 @@ select pcdi.pcdi_id,
    and pcm.is_active = 'Y'
    and pcdi.is_active = 'Y'
    and ciqs.is_active = 'Y'
-   and pcdb.is_active = 'Y' 
+   and pcdb.is_active = 'Y'
+/

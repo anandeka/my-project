@@ -12,8 +12,7 @@ with assay_dry_qty_ratio_info as
                                                grd_goods_record_detail     grd,
                                                ash_assay_header            ash,
                                                sam_stock_assay_mapping     sam
-                                         where 
-                                                 grd.internal_grd_ref_no = ash.internal_grd_ref_no
+                                         where grd.internal_grd_ref_no = ash.internal_grd_ref_no
                                            and ash.ash_id = sam.ash_id
                                            and sam.is_latest_pricing_assay = 'Y'
                                            and grd.internal_grd_ref_no = sam.internal_grd_ref_no
@@ -113,7 +112,6 @@ select gmr.corporate_id,
    and nvl(grd.tolling_stock_type, 'NA') in
        ('None Tolling', 'MFT In Process Stock','Free Metal IP Stock',
          'Delta MFT IP Stock','Delta FM IP Stock', 'RM In Process Stock', 'NA') --Receive Material is added.
-           
 union all --For Base Metal Sale
 select gmr.corporate_id,
        (case
@@ -202,8 +200,6 @@ select gmr.corporate_id,
    and nvl(dgrd.tolling_stock_type, 'NA') in
        ('None Tolling', 'MFT In Process Stock','Free Metal IP Stock',
          'Delta MFT IP Stock','Delta FM IP Stock', 'RM In Process Stock', 'NA')
-       
-        
 union all --For Receive Material , In Process need to reduce
 SELECT gmr.corporate_id,
        (CASE
@@ -289,9 +285,7 @@ SELECT gmr.corporate_id,
    and pdm.product_type_id = 'Standard'
    and gmr.discharge_city_id = cim_dc.city_id(+)
    and grd.tolling_stock_type = 'RM In Process Stock'
-   
 union all
-
 SELECT gmr.corporate_id,
        (CASE
          WHEN NVL(grd.inventory_status, 'NA') IN ('NA') THEN

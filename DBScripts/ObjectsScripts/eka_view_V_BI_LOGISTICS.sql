@@ -517,5 +517,5 @@ select t.groupid,
                   gmr.wns_status,
                   qum.qty_unit,
                   pcpq.unit_of_measure,
-                  qum.qty_unit) t 
-         
+                  qum.qty_unit) t
+/ 

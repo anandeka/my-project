@@ -90,4 +90,4 @@ from
    and dim.is_deleted = 'N')tmp
    group by tmp.instrument_id,
        tmp.instrument_name,tmp.year_1
-
+/

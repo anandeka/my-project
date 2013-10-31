@@ -436,7 +436,6 @@ select tt.pcdi_id,
        tt.qty_unit_id comp_base_qty_unit_id,
        tt.QP_PERIOD_TYPE,
        tt.contract_row
-
   from (-- Called Off + Not Applicable : -
 select pcdi.pcdi_id,
                 pocd.pcbpd_id,
@@ -867,5 +866,4 @@ select pcdi.pcdi_id,
            and pstrt.poch_id is null
            ) tt
  where tt.open_qty > 0
-
-
+/

@@ -39,3 +39,4 @@ select t.corporate_id,
                   gmr.base_qty_unit_id,
                   gmr.base_qty_unit) t
  where t.order_seq < 6
+/

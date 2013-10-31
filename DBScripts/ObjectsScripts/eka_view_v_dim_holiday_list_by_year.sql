@@ -26,5 +26,5 @@ select v_dim.instrument_id,
        v_dim_holiday_dates  dhd
  where v_dim.instrument_id = dwh.instrument_id(+)
    and v_dim.instrument_id = dhd.instrument_id(+)
-   and v_dim.date_id = dhd.holiday_date(+) 
- 
+   and v_dim.date_id = dhd.holiday_date(+)
+/

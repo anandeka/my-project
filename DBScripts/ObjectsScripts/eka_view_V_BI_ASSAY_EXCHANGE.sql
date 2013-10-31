@@ -9,3 +9,4 @@ select pcm.internal_contract_ref_no,
    and pcar.final_assay_basis_id = 'Assay Exchange'
  group by pcm.internal_contract_ref_no,
           pcar.element_id
+/

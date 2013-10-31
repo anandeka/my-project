@@ -63,3 +63,4 @@ select b.corporate_id,
           b.base_qty_unit_id,
           b.base_qty_unit
  order by sum(b.position_net) desc
+/

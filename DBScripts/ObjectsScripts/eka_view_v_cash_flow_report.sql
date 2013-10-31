@@ -172,4 +172,5 @@ select iss.corporate_id,
         ELSE(CASE WHEN NVL(iss.invoice_type, 'NA') = 'Commercial' THEN
              'TRUE' WHEN NVL(iss.invoice_type, 'NA') = 'Service' THEN 'TRUE' when
              nvl(iss.invoice_type, 'NA') = 'DebitCredit' then 'TRUE' ELSE
-             'FALSE' END) END) 
+             'FALSE' END) END)
+/

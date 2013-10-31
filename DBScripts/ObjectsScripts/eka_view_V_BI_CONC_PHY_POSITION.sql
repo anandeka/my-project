@@ -821,7 +821,6 @@ select 'Composite' product_type,
        qum_under.qty_unit base_qty_unit,
        (dgrd.current_qty * (asm.dry_wet_qty_ratio / 100)) *
        ucm_base.multiplication_factor *
-       
        (case
          when rm.ratio_name = '%' then
           pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
@@ -1072,7 +1071,6 @@ select 'Composite' product_type,
        ((nvl(grd.current_qty, 0) + nvl(grd.release_shipped_qty, 0) -
        nvl(grd.title_transfer_out_qty, 0))* (asm.dry_wet_qty_ratio / 100)) *
        ucm_base.multiplication_factor *
-       
        (case
          when rm.ratio_name = '%' then
           pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,
@@ -1114,7 +1112,6 @@ select 'Composite' product_type,
        qum_under.qty_unit base_qty_unit,
        ((nvl(grd.current_qty, 0) + nvl(grd.release_shipped_qty, 0) -
        nvl(grd.title_transfer_out_qty, 0))* (asm.dry_wet_qty_ratio / 100)) *
-       
        (case
          when rm.ratio_name = '%' then
           pkg_general.f_get_converted_quantity(nvl(pdm_under.product_id,

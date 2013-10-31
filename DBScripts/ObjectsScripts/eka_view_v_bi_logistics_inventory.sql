@@ -66,7 +66,6 @@ select gmr.corporate_id,
             else
              nvl(grd.landed_net_qty,0)
           end)actual_Dry_weight
-
   from gmr_goods_movement_record    gmr,
        ak_corporate                 akc,
        grd_goods_record_detail      grd,
@@ -189,4 +188,4 @@ group by
           sld.city_id,
           cim_sld.city_name,
           qum.qty_unit
-
+/

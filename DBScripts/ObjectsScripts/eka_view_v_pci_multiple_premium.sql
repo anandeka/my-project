@@ -11,7 +11,6 @@ select pcm.contract_ref_no,
        pcqpd_pc_qual_premium_discount pcqpd,
        ppu_product_price_units        ppu,
        pum_price_unit_master          pum,
-       
        pcpdqd_pd_quality_details pcpdqd
  where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
    and pcdi.pcdi_id = pci.pcdi_id
@@ -27,3 +26,4 @@ select pcm.contract_ref_no,
           pcpdqd.pcpq_id,
           pci.pcpq_id,
           pcdi.pcdi_id
+/

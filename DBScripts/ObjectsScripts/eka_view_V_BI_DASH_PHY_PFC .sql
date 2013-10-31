@@ -61,8 +61,7 @@ select t.corporate_id,
                sum(pofh.qty_to_be_fixed) qty_to_be_priced,
                qum.qty_unit uom,
                pcbph.price_description,
-               pofh.qp_start_date
-        
+               pofh.qp_start_date        
           from pofh_price_opt_fixation_header pofh,
                pocd_price_option_calloff_dtls pocd,
                poch_price_opt_call_off_header poch,
@@ -73,8 +72,7 @@ select t.corporate_id,
                pcm_physical_contract_main     pcm,
                qum_quantity_unit_master       qum,
                pcbph_pc_base_price_header     pcbph,
-               pcbpd_pc_base_price_detail     pcbpd
-        
+               pcbpd_pc_base_price_detail     pcbpd        
          where pofh.pocd_id = pocd.pocd_id
            and pocd.poch_id = poch.poch_id
            and poch.element_id = aml.attribute_id

@@ -104,12 +104,6 @@ select t.corporate_id,
                    ash.assay_type
                 end) assay_type,
                 ash.assay_ref_no,
-                /*(case
-                  when ash.assay_type ='Final Assay' then
-                   pqca.umpire_name
-                  else
-                   null
-                end)*/
 		pqca.umpire_name umpirename,
                 asm.net_weight wet_qty,
                 asm.dry_weight dry_qty,
@@ -248,12 +242,7 @@ select t.corporate_id,
                   ash.assay_type
                end) assay_type,
                ash.assay_ref_no,
-               (case
-                 when ash.assay_type= 'Final Assay' then
-                  pqca.umpire_name
-                 else
-                  null
-               end) umpirename,
+               pqca.umpire_name umpirename,
                asm.net_weight wet_qty,
                asm.dry_weight dry_qty,
                asm.net_weight_unit,
@@ -269,8 +258,7 @@ select t.corporate_id,
                  else
                   (((asm.net_weight  * (asm.dry_wet_qty_ratio / 100))) *
                  pqca.typical)
-                 end) assay_content
-              
+                 end) assay_content              
           from gmr_goods_movement_record   gmr,
                dgrd_delivered_grd          dgrd,
                pci_physical_contract_item  pci,
@@ -396,7 +384,7 @@ select t.corporate_id,
                  when ash.assay_type ='Umpire Assay' then
                   phd_umpire.companyname
                  else
-                  null
+                 pqca.umpire_name
                end) umpirename,
                asm.net_weight wet_qty,
                asm.dry_weight dry_qty,
@@ -537,7 +525,7 @@ select t.corporate_id,
                  when ash.assay_type ='Umpire Assay' then
                   phd_umpire.companyname
                  else
-                  null
+                  pqca.umpire_name
                end) umpirename,
                asm.net_weight wet_qty,
                asm.dry_weight dry_qty,

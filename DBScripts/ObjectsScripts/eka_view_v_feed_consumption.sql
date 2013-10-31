@@ -276,7 +276,6 @@ select fcr.corporate_name,
           fcr.eod_trade_date,
           fcr.corporate_name
 union all
-
 select fcr.corporate_name,
        fcr.corporate_id,
        fcr.product_id,
@@ -424,4 +423,4 @@ fcr.corporate_name,
        fcr.cp_id,
        fcr.cp_name,
        fcr.currency_code
-
+/

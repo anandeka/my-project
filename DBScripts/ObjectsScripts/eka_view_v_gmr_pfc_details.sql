@@ -643,11 +643,9 @@ select pci.product_group_type,
                                             gmr_pfc.qty_fixation_unit_id,
                                             pdm_und.base_quantity_unit,
                                             1) baseqty_conv_rate,
-       
        -- sum(nvl(dgrd.qty, 0)) total_qty,
        sum(nvl(dgrd.net_weight, 0)) total_qty,
-       sum(nvl(dgrd.current_qty, 0)) open_qty,
-       
+       sum(nvl(dgrd.current_qty, 0)) open_qty,       
        --dgrd.qty_unit_id item_qty_unit_id,
        gmr_pfc.qty_fixation_unit_id item_qty_unit_id,
        qum.qty_unit,
@@ -800,3 +798,4 @@ select pci.product_group_type,
           aml.attribute_id,
           aml.attribute_name,
           pdm_und.base_quantity_unit
+/

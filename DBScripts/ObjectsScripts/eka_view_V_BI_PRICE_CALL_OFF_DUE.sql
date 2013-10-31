@@ -108,7 +108,4 @@ select t.corporate_id,
            and qum.is_active = 'Y'
            and pcm.contract_status <> 'Cancelled') t
            where t.qp_declaration_date<= trunc(sysdate)
-           
-         
-           
-           
+/        

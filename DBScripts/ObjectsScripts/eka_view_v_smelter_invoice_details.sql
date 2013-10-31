@@ -99,8 +99,7 @@ select test.supp_internal_gmr_ref_no,
            and iid.stock_id = inrc.grd_id(+)
            and iid.internal_invoice_ref_no = inrc.internal_invoice_ref_no(+)
            and iid.stock_id = iepd.stock_id(+)
-           and iid.internal_invoice_ref_no = iepd.internal_invoice_ref_no(+)
-              
+           and iid.internal_invoice_ref_no = iepd.internal_invoice_ref_no(+)              
            and iid.invoice_currency_id = cm.cur_id
            and pcm.cp_id = phd.profileid
            and gmr.corporate_id = akc.corporate_id

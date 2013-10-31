@@ -103,8 +103,7 @@ select 'Other Charges' section_name,
        null iban,
        null aba_rtn,
        null instruction,
-       null remarks,
-       
+       null remarks,       
        -- Summary Details
        isd.total_premium_amount,
        isd.freight_charge,
@@ -132,8 +131,7 @@ select 'Other Taxes' section_name,
        akc.phone_no,
        akc.fax_no,
        isd.internal_doc_ref_no,
-       isd.internal_invoice_ref_no,
-       
+       isd.internal_invoice_ref_no,       
        -- Summary Header Details
        isd.invoice_ref_no invoice_no,
        isd.invoice_type_name invoice_type,
@@ -215,8 +213,7 @@ select 'Other Taxes' section_name,
        null invoice_ref_no,
        null invoice_description,
        null provisional_percentage,
-       null provisional_api_amount,
-       
+       null provisional_api_amount,       
        -- VAT Details
        null our_vat_reg_no,
        null cp_vat_reg_no,
@@ -231,8 +228,7 @@ select 'Other Taxes' section_name,
        null iban,
        null aba_rtn,
        null instruction,
-       null remarks,
-       
+       null remarks,       
        -- Summary Details
        isd.total_premium_amount,
        isd.freight_charge,
@@ -260,8 +256,7 @@ select 'Invoice' section_name,
        akc.phone_no,
        akc.fax_no,
        isd.internal_doc_ref_no,
-       isd.internal_invoice_ref_no,
-       
+       isd.internal_invoice_ref_no,       
        -- Summary Header Details
        isd.invoice_ref_no invoice_no,
        isd.invoice_type_name invoice_type,
@@ -343,16 +338,14 @@ select 'Invoice' section_name,
        null invoice_ref_no,
        null invoice_description,
        null provisional_percentage,
-       null provisional_api_amount,
-       
+       null provisional_api_amount,       
        -- VAT Details
        null our_vat_reg_no,
        null cp_vat_reg_no,
        null vat_code,
        null vat_text,
        null vat_rate,
-       null vat_amount,
-       
+       null vat_amount,       
        -- Bank Details       
 --       (case
 --         when isd.sales_purchase = 'P' then
@@ -514,8 +507,7 @@ select 'Invoice' section_name,
        null invoice_ref_no,
        null invoice_description,
        null provisional_percentage,
-       null provisional_api_amount,
-       
+       null provisional_api_amount,       
        -- VAT Details
        vat.our_vat_no our_vat_reg_no,
        vat.cp_vat_no cp_vat_reg_no,
@@ -531,8 +523,7 @@ select 'Invoice' section_name,
        null iban,
        null aba_rtn,
        null instruction,
-       null remarks,
-       
+       null remarks,       
        -- Summary Details
        isd.total_premium_amount,
        isd.freight_charge,
@@ -555,8 +546,7 @@ select 'Invoice' section_name,
 union all
 select 'Invoice' section_name,
        'Summary' sub_section,
-       ds.corporate_id,
-       
+       ds.corporate_id,       
        -- cross check
        akc.logo_path,
        akc.address1,
@@ -649,8 +639,7 @@ select 'Invoice' section_name,
        null invoice_ref_no,
        null invoice_description,
        null provisional_percentage,
-       null provisional_api_amount,
-       
+       null provisional_api_amount,       
        -- VAT Details
        null our_vat_reg_no,
        null cp_vat_reg_no,
@@ -665,8 +654,7 @@ select 'Invoice' section_name,
        null iban,
        null aba_rtn,
        null instruction,
-       null remarks,
-       
+       null remarks,       
        -- Summary Details
        isd.total_premium_amount,
        isd.freight_charge,
@@ -678,4 +666,5 @@ select 'Invoice' section_name,
        ds_document_summary ds,
        v_ak_corporate      akc
  where isd.internal_doc_ref_no = ds.internal_doc_ref_no(+)
-   and ds.corporate_id = akc.corporate_id(+);
+   and ds.corporate_id = akc.corporate_id(+)
+/

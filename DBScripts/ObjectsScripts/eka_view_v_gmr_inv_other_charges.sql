@@ -22,3 +22,4 @@ select t.internal_gmr_ref_no,
                   gmr.qty) t,
        is_invoice_summary is1
  where t.internal_invoice_ref_no = is1.internal_invoice_ref_no
+/

@@ -33,4 +33,4 @@ select ash.internal_grd_ref_no,
           rm.ratio_id,
            rm.ratio_name,
            pqca.is_deductible
-
+/

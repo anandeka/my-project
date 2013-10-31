@@ -34,3 +34,4 @@ SELECT pcdi.pcdi_id, pci.internal_contract_item_ref_no,
       AND pcm.contract_status <> 'Cancelled'
       AND pcm.is_active = 'Y'
       and pcpd.input_output = 'Input'
+/

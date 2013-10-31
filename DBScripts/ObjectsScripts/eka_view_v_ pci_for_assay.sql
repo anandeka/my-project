@@ -1,4 +1,3 @@
-
 CREATE OR REPLACE FORCE VIEW v_pci_for_assay (internal_contract_item_ref_no,
                                               internal_contract_ref_no,
                                               contract_ref_no,
@@ -50,4 +49,4 @@ AS
       AND pdm.product_id = pcpd.product_id
       AND pci.is_active = 'Y'
       AND pcm.contract_status = 'In Position'
-      AND (pci.is_called_off = 'Y' OR pcdi.is_phy_optionality_present = 'N')
+      AND (pci.is_called_off = 'Y' OR pcdi.is_phy_optionality_present = 'N');

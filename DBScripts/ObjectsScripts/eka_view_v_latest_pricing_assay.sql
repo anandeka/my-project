@@ -14,4 +14,4 @@ select sam.internal_dgrd_ref_no internal_grd_ref_no,
  where sam.is_active = 'Y'
    and sam.is_latest_pricing_assay = 'Y'
    and sam.internal_dgrd_ref_no is not null
-
+/

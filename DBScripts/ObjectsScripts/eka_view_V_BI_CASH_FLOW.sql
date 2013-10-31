@@ -254,8 +254,7 @@ select 'Invoices to extent not paid' section_name,
        end invoice_amt,
        iss.invoice_issue_date activity_date,
        iss.payment_due_date cash_flow_date,
-       iss.invoice_type_name invoice_name
-       
+       iss.invoice_type_name invoice_name       
   from is_invoice_summary           iss,
        iam_invoice_action_mapping   iam,
        iid_invoicable_item_details  iid,
@@ -529,9 +528,7 @@ AND    ct.trader_id = akcu.user_id(+)
 AND    akcu.gabid = gab.gabid(+)
 and    nvl(pgm.is_active,'Y') = 'Y'
 and    nvl(gab.is_active,'Y') = 'Y'
-
 -- 5. Accruals - Expense accruals (remaining), income accrual (remaining)
-
 UNION ALL
 SELECT 'Accruals ',
        akc.corporate_id,
@@ -659,9 +656,9 @@ and    cigc.is_deleted='N'
 and    gmr.is_deleted='N'
 and    pcm.is_active='Y'
 and    pcpd.is_active='Y'
-
+---
 -- 6. Open Contracts(includes shipped title not transferred), title transferrred but not invoiced
-
+---
 UNION ALL
 SELECT 'Open Contracts',
        mvf.corporate_id,
@@ -770,7 +767,6 @@ AND    NOT EXISTS -- Not Invoiced Check
         AND    iss.corporate_id = mvf.corporate_id
         and    iss.is_inv_draft = 'N'
         AND    instr(mvf.contract_ref_no, gmr.gmr_ref_no, 1) = 1)
-
 AND    cpc.business_line_id = blm.business_line_id(+)
 AND    mvf.product_id = pdm.product_id(+)
 and    pdm.product_group_id = pgm.product_group_id
@@ -778,9 +774,7 @@ AND    phd_contract_cp.profileid(+) = mvf.cp_id
 AND    mvf.trader_user_id = akcu.user_id(+)
 AND    akcu.gabid = gab.gabid(+)
 and    nvl(pgm.is_active,'Y') = 'Y'
-
 -- 7. Base Metal Open Uninvoiced GMRs with Fixed Price (Base Metal)
-
 UNION ALL
 SELECT 'Fixed Price GMRs Base Metal' section_name,
        akc.corporate_id,
@@ -923,9 +917,7 @@ AND    akcu.gabid = gab.gabid(+)
 and    grd.qty_unit_id = qum.qty_unit_id(+)
 and    nvl(pgm.is_active,'Y') = 'Y'
 and    nvl(gab.is_active,'Y') = 'Y'
-
 -- 8. Open Contracts Fixed Price Basis (Base Metal)
-
 UNION ALL
 SELECT 'Fixed Price Contracts Base Metal' section_name,
        akc.corporate_id,

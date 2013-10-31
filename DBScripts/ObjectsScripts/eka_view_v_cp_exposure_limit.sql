@@ -59,3 +59,4 @@ select crc.limit_id profile_id,
           akc.corporate_name,
           crc.exposure_curr_id,
           akc.base_cur_id
+/

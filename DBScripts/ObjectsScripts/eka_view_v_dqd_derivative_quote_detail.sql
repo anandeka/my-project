@@ -80,5 +80,4 @@ select dqd.dqd_id || new_drm.dr_id dqd_id,
    and drm.instrument_id = new_drm.instrument_id
    and drm.prompt_date = new_drm.prompt_date
    and drm.dr_id <> new_drm.dr_id
---and new_drm.prompt_date = '21-Apr-2010'
---and new_drm.instrument_id = 'DIM-11'
+/
