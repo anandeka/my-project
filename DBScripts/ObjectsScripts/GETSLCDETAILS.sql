@@ -47,10 +47,14 @@ IS
               || pcmac.charge
               || ' '
               || cm.cur_code
-              || ' , '
-              || pcmac.charge_rate_basis
-              || ' , '
-              || qum.qty_unit
+              || '/'
+             || case
+              when  qum.qty_unit <> null
+              then qum.qty_unit
+              when pcmac.charge_rate_basis = 'Container' or pcmac.charge_rate_basis = 'Lot' or pcmac.charge_rate_basis = 'Bags'
+                then pcmac.charge_rate_basis
+                else qum.qty_unit||', '||pcmac.charge_rate_basis
+               end
              ) AS SLC
         FROM pcmac_pcm_addn_charges pcmac,
              pcm_physical_contract_main pcm,

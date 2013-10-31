@@ -47,6 +47,7 @@ IS
    cancellationdate           VARCHAR2 (50);
    cancellationreason         VARCHAR2 (4000);
    contractstatus             VARCHAR2 (20);
+   timeofdelivery varchar2(30);
 
    CURSOR cr_delivery
    IS
@@ -593,8 +594,8 @@ BEGIN
 
     IF(istollingcontract = 'Y')
     THEN
-    inputoutputproduct := 'Input Product and Quantity';
-    inputoutputquality := 'Input Quality/Qualities';
+    inputoutputproduct := 'Product and Quantity';
+    inputoutputquality := 'Qualities';
     ELSE
     inputoutputproduct := 'Product and Quantity';
     inputoutputquality := 'Quality/Qualities';
@@ -923,6 +924,7 @@ BEGIN
                    'N', 'FULL', 'N'
                   );
                   
+
         display_order := display_order + 1;
 
         INSERT INTO cod_contract_output_detail
@@ -970,7 +972,7 @@ BEGIN
                    NULL, 'N', 'N',
                    'N', 'FULL', 'N'
                   );
-                
+
       display_order := display_order + 1;
 
       INSERT INTO cod_contract_output_detail
@@ -1112,5 +1114,42 @@ BEGIN
                 NULL, 'N', 'N',
                 'N', 'FULL', 'N'
                );
+           
+    Begin
+    SELECT   DECODE
+            (pcdi.delivery_period_type,'Date', (TO_CHAR (MIN (pcdi.delivery_from_date), 'MON-yyyy')
+                      || ' To '
+                      || TO_CHAR (MAX (pcdi.delivery_from_date), 'MON-yyyy') ), 'Month', (TO_CHAR
+                             ((MIN(TO_DATE (   '01-'
+                                           || DECODE (pcdi.delivery_from_month,NULL, 'Jan',pcdi.delivery_from_month)
+                                           || '-'
+                                           || DECODE (pcdi.delivery_from_year,NULL, '2011',pcdi.delivery_from_year)))),'MON-yyyy')
+                       || ' To '
+                       || TO_CHAR ((MAX(TO_DATE ('01-' || DECODE(pcdi.delivery_from_month,NULL, 'Jan',pcdi.delivery_from_month)
+                                           || '-'
+                                           || DECODE (pcdi.delivery_from_year,NULL, '2011',pcdi.delivery_from_year) ))),'MON-yyyy'))) timeofdelivery
+      into   timeofdelivery                                   
+    FROM pcdi_pc_delivery_item pcdi, pcm_physical_contract_main pcm
+   WHERE pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+     AND pcm.internal_contract_ref_no = p_contractno
+     AND pcdi.is_active = 'Y'
+GROUP BY pcdi.delivery_period_type;
+    end;
+    
+   display_order := display_order + 1;
+   
+   INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, 'Time Of Delivery',
+                'Time Of Delivery', 'Y', NULL,
+                NULL, timeOfDelivery, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );      
 END;
 /

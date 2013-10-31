@@ -25,20 +25,20 @@ IS
     SELECT qat.quality_name , ((aml.attribute_name)||' :'|| 
         (CASE 
           WHEN pcap.range_min_op is null
-              THEN ' ' || pcap.range_max_op || ' ' || pcap.range_max_value || ' ' || RM.RATIO_NAME 
+              THEN ' ' || pcap.range_max_op || ' ' || rtrim(TO_CHAR (pcap.range_max_value, 'FM999990D909999999'),'.') || ' ' || RM.RATIO_NAME 
           WHEN pcap.range_max_op is null
-              THEN ' ' || pcap.range_min_op || ' ' || pcap.range_min_value || ' ' || RM.RATIO_NAME  
-          ELSE pcap.range_min_op || ' ' || pcap.range_min_value || ' to ' || pcap.range_max_op || ' ' || pcap.range_max_value  || ' ' ||  RM.RATIO_NAME 
+              THEN ' ' || pcap.range_min_op || ' ' || rtrim(TO_CHAR (pcap.range_min_value, 'FM999990D909999999'),'.') || ' ' || RM.RATIO_NAME  
+          ELSE pcap.range_min_op || ' ' || rtrim(TO_CHAR (pcap.range_min_value, 'FM999990D909999999'),'.') || ' to ' || pcap.range_max_op || ' ' || rtrim(TO_CHAR (pcap.range_max_value, 'FM999990D909999999'),'.')  || ' ' ||  RM.RATIO_NAME 
         END) ||'  '||        
          (CASE 
           WHEN pcap.penalty_charge_type = 'Fixed' 
-              THEN  f_format_to_char(pcap.penalty_amount,4) || ' ' ||  pum.price_unit_name ||  ' of ' || pcap.penalty_weight_type || ' weight'
+              THEN  rtrim(TO_CHAR (pcap.penalty_amount, 'FM999990D909999999'),'.') || ' ' ||  pum.price_unit_name ||  ' of ' || pcap.penalty_weight_type || ' weight'
           WHEN pcap.penalty_charge_type = 'Variable'
            THEN CASE 
               WHEN pcap.penalty_basis = 'Quantity'
-                THEN  f_format_to_char(pcap.penalty_amount,4) || ' ' ||  pum.price_unit_name ||  ' of ' || pcap.penalty_weight_type || ' weight per ' || PCAP.PER_INCREASE_VALUE || ' ' ||  RM.RATIO_NAME  || ' increase'
+                THEN rtrim(TO_CHAR (pcap.penalty_amount, 'FM999990D909999999'),'.') || ' ' ||  pum.price_unit_name ||  ' of ' || pcap.penalty_weight_type || ' weight per ' || rtrim(TO_CHAR (PCAP.PER_INCREASE_VALUE, 'FM999990D909999999'),'.')  || ' ' ||  RM.RATIO_NAME  || ' increase'
               WHEN pcap.penalty_basis = 'Payable Content'
-                THEN 'deduct ' || PCAP.DEDUCTED_PAYABLE_VALUE || DEDUCTED_UNIT.RATIO_NAME || 'of' ||  DEDUCTED_ELEMENT.ATTRIBUTE_NAME || ' per ' || PCAP.PER_INCREASE_VALUE || ' ' ||  RM.RATIO_NAME || ' increase'  
+                THEN 'deduct ' || PCAP.DEDUCTED_PAYABLE_VALUE || DEDUCTED_UNIT.RATIO_NAME || 'of' ||  DEDUCTED_ELEMENT.ATTRIBUTE_NAME || ' per ' || rtrim(TO_CHAR (PCAP.PER_INCREASE_VALUE, 'FM999990D909999999'),'.') || ' ' ||  RM.RATIO_NAME || ' increase'  
              ELSE
              ''
             END 

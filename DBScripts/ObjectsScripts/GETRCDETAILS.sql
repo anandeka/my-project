@@ -31,14 +31,14 @@ IS
         END) ||' '||      
         (CASE 
           WHEN pcerc.charge_type = 'Fixed' 
-              THEN  f_format_to_char(pcerc.REFINING_CHARGE,4) || ' ' ||  pum.price_unit_name || ' of payable content'
+              THEN  f_format_to_char(pcerc.REFINING_CHARGE,2) || ' ' ||  pum.price_unit_name || ' of payable content'
           WHEN pcerc.charge_type = 'Variable'
            THEN CASE 
               WHEN pcerc.POSITION = 'Base'
-                THEN 'Base : ' ||  f_format_to_char(pcerc.REFINING_CHARGE,4) || ' ' ||  pum.price_unit_name || ' of payable content' 
-              ELSE 'Increase ' ||  f_format_to_char(pcerc.ESC_DESC_VALUE,2) || ' ' || CM.CUR_CODE || ' per ' ||  f_format_to_char(pcerc.REFINING_CHARGE,4) || ' ' ||  pum.price_unit_name
+                THEN 'Base : ' ||  f_format_to_char(pcerc.REFINING_CHARGE,2) || ' ' ||  pum.price_unit_name || ' of payable content' 
+              ELSE 'Increase ' ||  f_format_to_char(pcerc.ESC_DESC_VALUE,2) || ' ' || CM.CUR_CODE || ' per ' ||  f_format_to_char(pcerc.REFINING_CHARGE,2) || ' ' ||  pum.price_unit_name
             END 
-          ELSE  f_format_to_char(PCERC.REFINING_CHARGE,4) || ' ' ||  pum.price_unit_name || ' of payable content'
+          ELSE  f_format_to_char(PCERC.REFINING_CHARGE,2) || ' ' ||  pum.price_unit_name || ' of payable content'
         END)) RC
   FROM PCRH_PC_REFINING_HEADER pcrh,
        RED_REFINING_ELEMENT_DETAILS red,
@@ -70,7 +70,8 @@ IS
    AND pcrh.is_active = 'Y'
    AND red.is_active = 'Y'
    AND rqd.is_active = 'Y'
-   AND PCM.INTERNAL_CONTRACT_REF_NO =pContractNo;
+   AND PCM.INTERNAL_CONTRACT_REF_NO =pContractNo 
+   ORDER BY aml.attribute_name;
  
    RC_DETAILS   VARCHAR2(4000) :='';  
    begin

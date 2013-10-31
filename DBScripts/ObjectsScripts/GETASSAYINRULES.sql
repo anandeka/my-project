@@ -24,18 +24,18 @@ IS
     IS
 
     SELECT qat.quality_name ,
-         (aml.attribute_name ||' : '||
-         'Will be finalized based on ' || PCAR.FINAL_ASSAY_BASIS_ID ||
+         (aml.attribute_name ||' : '|| CHR(10) ||
+         'Final Assay  :     Will be finalized based on ' || PCAR.FINAL_ASSAY_BASIS_ID || CHR(10) ||
          (case
             when PCAR.FINAL_ASSAY_BASIS_ID = 'Assay Exchange' 
-                then ',Method : ' || PCAR.COMPARISION || ' ' ||     
+                then 'Method        :     '|| PCAR.COMPARISION || ' ' ||     
                     case 
                         when PCAR.COMPARISION = 'Apply Spliting Limit' and  PCAR.SPLIT_LIMIT_BASIS = 'Fixed'
-                            then PCAR.SPLIT_LIMIT || RM.RATIO_NAME
+                            then rtrim(TO_CHAR(PCAR.SPLIT_LIMIT, 'FM999990D909999999'),'.') || RM.RATIO_NAME
                         when PCAR.COMPARISION = 'Apply Spliting Limit' and PCAR.SPLIT_LIMIT_BASIS = 'Assay Content Based'
-                            then PCAESL.APPLICABLE_VALUE  || RM.RATIO_NAME || ' ,if range falls in   '|| PCAESL.ASSAY_MIN_OP || ' ' || PCAESL.ASSAY_MIN_VALUE || ' to ' || PCAESL.ASSAY_MAX_OP || ' ' || PCAESL.ASSAY_MAX_VALUE || RM.RATIO_NAME                     
+                            then rtrim(TO_CHAR (PCAESL.APPLICABLE_VALUE, 'FM999990D909999999'),'.')  || RM.RATIO_NAME || ' ,if range falls in   '|| PCAESL.ASSAY_MIN_OP || ' ' || rtrim(TO_CHAR(PCAESL.ASSAY_MIN_VALUE, 'FM999990D909999999'),'.') || ' to ' || PCAESL.ASSAY_MAX_OP || ' ' || rtrim(TO_CHAR(PCAESL.ASSAY_MAX_VALUE, 'FM999990D909999999'),'.') || RM.RATIO_NAME                     
                     end
-         end) ) as final_assay         
+         end) ) as final_assay       
     FROM pcar_pc_assaying_rules pcar,
          pcaesl_assay_elem_split_limits pcaesl,
          arqd_assay_quality_details arqd,
@@ -56,11 +56,12 @@ IS
      AND pcar.is_active = 'Y'
      AND pcaesl.is_active(+) = 'Y'
      AND arqd.is_active = 'Y'
-     AND pcm.internal_contract_ref_no = pContractNo;
+     AND pcm.internal_contract_ref_no = pContractNo
+     order by AML.ATTRIBUTE_NAME;
    
     cursor cr_umpire
     is
-    SELECT URM.RULE_NAME as umpire_rule,
+    SELECT URM.RULE_DESC as umpire_rule,
             PCM.COST_BASIS_ID  as umpire_cost    
      FROM   pcm_physical_contract_main pcm,URM_UMPIRE_RULE_MASTER urm  
      where  PCM.UMPIRE_RULE_ID = URM.URM_ID
@@ -68,9 +69,13 @@ IS
      
     cursor cr_umpires_list
     is
-    select PHD.COMPANYNAME as umpire_name from PCM_PHYSICAL_CONTRACT_MAIN pcm,PCU_PC_UMPIRES pcu, PHD_PROFILEHEADERDETAILS phd
+    select PHD.COMPANYNAME as umpire_name,PAD.ADDRESS as umpire_address from PCM_PHYSICAL_CONTRACT_MAIN pcm,PCU_PC_UMPIRES pcu, PHD_PROFILEHEADERDETAILS phd,
+    PAD_PROFILE_ADDRESSES pad
     where PCM.INTERNAL_CONTRACT_REF_NO = PCU.INTERNAL_CONTRACT_REF_NO
     and PCU.UMPIRE_ID = PHD.PROFILEID
+    and PHD.PROFILEID = PAD.PROFILE_ID
+    and PAD.IS_DELETED = 'N'
+    and PAD.ADDRESS_TYPE = 'Main'
     and PCU.IS_ACTIVE = 'Y'
     AND pcm.internal_contract_ref_no = pContractNo;
    
@@ -109,7 +114,7 @@ IS
             for umpires in cr_umpires_list
             loop
                 if (umpires.umpire_name is not null) then
-                     umpires_list:= umpires_list || chr(10) ||  umpires.umpire_name;
+                     umpires_list:= umpires_list || chr(10) ||  umpires.umpire_name ||',' ||umpires.umpire_address||'. ';
                 end if;
             end loop;
             

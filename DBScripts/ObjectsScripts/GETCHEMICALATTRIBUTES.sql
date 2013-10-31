@@ -5,9 +5,9 @@ IS
    IS
       SELECT (   aml.attribute_name
               || ' :'
-              || pqca.min_value
+              || rtrim(TO_CHAR (pqca.min_value, 'FM999990D909999999'),'.')
               || ' - '
-              || pqca.max_value
+              || rtrim(TO_CHAR (pqca.max_value, 'FM999990D909999999'), '.')
               || ' '
               || rm.ratio_name
               || ' '
@@ -25,7 +25,10 @@ IS
          AND pqca.element_id = aml.attribute_id
          AND pqca.unit_of_measure = rm.ratio_id
          AND PQCA.IS_ACTIVE = 'Y'
-         AND asm.ash_id = p_ashid;
+         AND asm.ash_id = p_ashid
+         ORDER BY pqca.is_elem_for_pricing DESC,
+         pqca.is_deductible DESC,
+         aml.attribute_name;
 
    qualitydescription   VARCHAR2 (4000) := '';
 BEGIN

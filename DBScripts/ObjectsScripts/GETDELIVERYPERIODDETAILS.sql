@@ -6,8 +6,8 @@ CREATE OR REPLACE FUNCTION GETDELIVERYPERIODDETAILS(p_contractNo  VARCHAR2,
   quotaPeriod         VARCHAR2(4000) := '';
   qualityDetails      VARCHAR2(4000) := '';
   quantityDetails     VARCHAR2(4000) := '';
-  incotermDetails     VARCHAR2(4000) := 'Incoterm-Location:';
-  pricingDetails      VARCHAR2(4000) := 'Price Description :';
+  incotermDetails     VARCHAR2(4000) := 'Terms of Delivery:';
+  pricingDetails      VARCHAR2(4000) := 'Pricing of Payable metals :';
   formulaDetails      VARCHAR2(4000) := '';
   QPDeclarationDate   VARCHAR2(50);
   PaymentDueDate      VARCHAR2(50);
@@ -19,7 +19,7 @@ CREATE OR REPLACE FUNCTION GETDELIVERYPERIODDETAILS(p_contractNo  VARCHAR2,
   itemQtyUnit         VARCHAR2(50);
 
   cursor cr_incoterm IS
-    Select ITM.INCOTERM || ' - ' || CIM.CITY_NAME || (case
+    Select 'Incoterm ' || ITM.INCOTERM || ' - ' || CIM.CITY_NAME || (case
              WHEN PCDB.CUSTOMS IS Null THEN
               ''
              ELSE
@@ -131,7 +131,7 @@ begin
   end if;
 
   for incoterm_rec in cr_incoterm loop
-    incotermDetails := chr(10) || 'Incoterm-Location :' ||
+    incotermDetails := chr(10) || 'Terms of Delivery :' ||
                        incoterm_rec.Incoterm_details;
   end loop;
 
@@ -174,10 +174,10 @@ begin
                            'QP declaration Date:' || QPDeclarationDate;
   end if;
 
-  if (PaymentDueDate is not null) then
-    deliveryDescription := deliveryDescription || chr(10) ||
-                           'Payment Due Date:' || PaymentDueDate;
-  end if;
+--  if (PaymentDueDate is not null) then
+--    deliveryDescription := deliveryDescription || chr(10) ||
+--                           'Payment Due Date:' || PaymentDueDate;
+--  end if;
 
   return deliveryDescription;
 

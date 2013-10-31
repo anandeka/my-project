@@ -3,7 +3,6 @@ CREATE OR REPLACE FUNCTION GETDELIVERYDETAILSWITHCOMFEE (
    p_delivery_id   VARCHAR2,
    p_cp_id         VARCHAR2,
    p_issue_date    VARCHAR2
-   
 )
    RETURN CLOB
 IS
@@ -12,7 +11,7 @@ IS
    quotaperiod           VARCHAR2 (4000) := '';
    qualitydetails        VARCHAR2 (4000) := '';
    quantitydetails       VARCHAR2 (4000) := '';
-   incotermdetails       VARCHAR2 (4000) := 'Incoterm-Location:';
+   incotermdetails       VARCHAR2 (4000) := 'Terms of Delivery:';
    pricingdetails        VARCHAR2 (4000) := 'Pricing Details :';
    qpdeclarationdate     VARCHAR2 (50);
    paymentduedate        VARCHAR2 (50);
@@ -29,6 +28,7 @@ IS
    CURSOR cr_incoterm
    IS
       SELECT    itm.incoterm
+             || ' Incoterm '
              || ' - '
              || cim.city_name
              || (CASE
@@ -98,7 +98,7 @@ BEGIN
    END;
 
    BEGIN
-      SELECT    'Quota Period :'
+      SELECT    'Delivery period :'
              || (CASE
                     WHEN pcdi.delivery_period_type = 'Month'
                        THEN    pcdi.delivery_from_month
@@ -159,7 +159,7 @@ BEGIN
    FOR incoterm_rec IN cr_incoterm
    LOOP
       incotermdetails :=
-            CHR (10) || 'Incoterm-Location :'
+            CHR (10) || 'Terms of Delivery :'
             || incoterm_rec.incoterm_details;
    END LOOP;
 
@@ -204,11 +204,11 @@ BEGIN
                     || ' '
                     || cm.cur_code
                     || (CASE
-               		WHEN qum.qty_unit IS NULL
-                 	 THEN ''
-               		ELSE '/' || qum.qty_unit
-            		END)
-        	    || ' '
+                    WHEN qum.qty_unit IS NULL
+                     THEN ''
+                    ELSE '/' || qum.qty_unit
+                    END)
+                    || ' '
                     || mcc.weight_rate_basis
                     || ' '
                     || 'Basis'
@@ -226,16 +226,18 @@ BEGIN
                AND mcc.qty_unit_id = qum.qty_unit_id(+)
                AND mcc.quality_id = quality_rec.quality_id
                AND mcc.charge_name = 'Commercial Fee'
-               AND mcc.is_active='Y'
- 	           AND p_issue_date BETWEEN mcc.from_date AND mcc.TO_DATE;
-		 EXCEPTION
+               AND mcc.is_active = 'Y'
+               AND (   TO_DATE (mcc.from_date, 'dd-Mon-YYYY') <= p_issue_date
+                    OR TO_DATE (mcc.TO_DATE, 'dd-Mon-YYYY') >= p_issue_date
+                   );
+         EXCEPTION
             WHEN NO_DATA_FOUND
             THEN
                DBMS_OUTPUT.put_line ('No data found');
                commercialdetails := '';
          END;
-	
-	 BEGIN
+
+         BEGIN
             SELECT (   'Premium:'
                     || ' '
                     || mcc.charge
@@ -262,53 +264,52 @@ BEGIN
                AND mcc.quality_id = quality_rec.quality_id
                AND mcc.charge_name = 'Premium'
                AND mcc.is_active = 'Y'
-               AND p_issue_date BETWEEN mcc.from_date AND mcc.TO_DATE;
-
+               AND (   TO_DATE (mcc.from_date, 'dd-Mon-YYYY') <= p_issue_date
+                    OR TO_DATE (mcc.TO_DATE, 'dd-Mon-YYYY') >= p_issue_date
+                   );
          EXCEPTION
             WHEN NO_DATA_FOUND
             THEN
                DBMS_OUTPUT.put_line ('No data found');
                premiumdetails := '';
+         END;
+      END LOOP;
 
-            END;
-      	END LOOP;
-	
-		IF (commercialdetails IS NULL AND premiumdetails IS NULL)
-      		THEN
-         	qualitydecs := qualitydecs;
-      		END IF;
+      IF (commercialdetails IS NULL AND premiumdetails IS NULL)
+      THEN
+         qualitydecs := qualitydecs;
+      END IF;
 
-     		IF (commercialdetails IS NOT NULL AND premiumdetails IS NULL)
-      		THEN
-         	qualitydecs := qualitydecs || '(' || commercialdetails || ')';
-      		END IF;
+      IF (commercialdetails IS NOT NULL AND premiumdetails IS NULL)
+      THEN
+         qualitydecs := qualitydecs || '(' || commercialdetails || ')';
+      END IF;
 
-      		IF (commercialdetails IS NULL AND premiumdetails IS NOT NULL)
-      		THEN
-         	qualitydecs := qualitydecs || '(' || premiumdetails || ')';
-      		END IF;
+      IF (commercialdetails IS NULL AND premiumdetails IS NOT NULL)
+      THEN
+         qualitydecs := qualitydecs || '(' || premiumdetails || ')';
+      END IF;
 
-      		IF (commercialdetails IS NOT NULL AND premiumdetails IS NOT NULL)
-      		THEN
-         	qualitydecs :=
-               	qualitydecs
-            	|| '('
-            	|| commercialdetails
-            	|| ', '
-            	|| premiumdetails
-            	|| ')';
+      IF (commercialdetails IS NOT NULL AND premiumdetails IS NOT NULL)
+      THEN
+         qualitydecs :=
+               qualitydecs
+            || '('
+            || commercialdetails
+            || ', '
+            || premiumdetails
+            || ')';
       END IF;
    END;
 
    deliverydescription :=
-         deliveryitem
-      || CHR (10)
-      || quotaperiod
-      || CHR (10)
-      || 'Quality:'
+         'Quality:'
       || qualitydecs
       || CHR (10)
       || quantitydetails
+      || CHR (10)
+      || quotaperiod
+      || CHR (10)
       || incotermdetails
       || ' '
       || optionality
@@ -324,14 +325,14 @@ BEGIN
          || qpdeclarationdate;
    END IF;
 
-   IF (paymentduedate IS NOT NULL)
-   THEN
-      deliverydescription :=
-            deliverydescription
-         || CHR (10)
-         || 'Payment Due Date:'
-         || paymentduedate;
-   END IF;
+--   IF (paymentduedate IS NOT NULL)
+--   THEN
+--      deliverydescription :=
+--            deliverydescription
+--         || CHR (10)
+--         || 'Payment Due Date:'
+--         || paymentduedate;
+--   END IF;
 
    RETURN deliverydescription;
 END;

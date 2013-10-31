@@ -7,8 +7,8 @@ return CLOB is
     IS
           Select QAT.QUALITY_NAME ||':'|| (CASE
               WHEN PCPQ.QTY_TYPE ='Fixed'
-                 THEN f_format_to_char(PCPQ.QTY_MAX_VAL,4) || ' '|| QUM.QTY_UNIT_DESC 
-              ELSE PCPQ.QTY_MIN_OP ||' '||  f_format_to_char(PCPQ.QTY_MIN_VAL,4) ||' '||  PCPQ.QTY_MAX_OP ||' '||  f_format_to_char(PCPQ.QTY_MAX_VAL,4) || ' '|| QUM.QTY_UNIT_DESC 
+                 THEN PCPQ.QTY_MAX_VAL || ' '|| QUM.QTY_UNIT_DESC 
+              ELSE PCPQ.QTY_MIN_OP ||' '||  PCPQ.QTY_MIN_VAL ||' '||  PCPQ.QTY_MAX_OP ||' '||  PCPQ.QTY_MAX_VAL || ' '|| QUM.QTY_UNIT_DESC 
               END
               ) quality_details,ORM.ORIGIN_NAME as origin_name,
          (CASE
@@ -45,7 +45,7 @@ return CLOB is
             end if;
             
             if (quality_rec.CHEM_ATTR is not null) then
-                qualityDescription:=qualityDescription ||'Chemical Composition :' || chr(10)|| quality_rec.CHEM_ATTR ;
+                qualityDescription:=qualityDescription ||'Typical Assays :' || chr(10)|| quality_rec.CHEM_ATTR ;
             end if;
             
             if (quality_rec.PHY_ATTR is not null) then
