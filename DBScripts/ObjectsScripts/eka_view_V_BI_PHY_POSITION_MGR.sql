@@ -1031,5 +1031,4 @@ select product_type,
        warehouse_name,
        shed_id,
        shed_name
-  from v_bi_conc_phy_position
-/
+  from v_bi_conc_phy_position ;
