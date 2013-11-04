@@ -1,0 +1,46 @@
+Patch No *              	:  EKA_METALS_PATCH_1762
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+
+Created on*        		:  04-Nov-2103
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  88506
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 148822
+Author: anupkumar.agarwal
+Date: 5:18:08 PM, Monday, November 04, 2013
+Message:
+Added A New View For Stock Wise Container Number Data 
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_stock_container_data.sql
+
+
+
