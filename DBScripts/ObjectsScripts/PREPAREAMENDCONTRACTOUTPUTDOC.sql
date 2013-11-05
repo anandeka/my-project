@@ -37,6 +37,7 @@ IS
    qualityprintname           VARCHAR2 (1000) := '';
    p_doc_type                 VARCHAR2 (15)   := '';
    old_doc_id                 VARCHAR2 (15)   := '';
+   timeofdelivery varchar2(30);
 
    CURSOR cr_delivery
    IS
@@ -55,7 +56,7 @@ BEGIN
 
    BEGIN
       SELECT TO_CHAR (pcm.issue_date, 'dd-Mon-YYYY'), pcm.contract_ref_no,
-             NVL (pcm.cp_contract_ref_no, 'NA'), ak.corporate_name,
+             NVL (pcm.cp_contract_ref_no, 'NA'), (pad.address_name || ' ' || pad.address),
              ak.corporate_id, pcm.purchase_sales, phd.companyname,
              pcm.cp_id, pcm.product_group_type,
              TO_CHAR (par.amendment_date, 'dd-Mon-YYYY'),
@@ -71,9 +72,13 @@ BEGIN
              phd_profileheaderdetails phd,
              par_physical_amend_reason par
        WHERE pcm.corporate_id = ak.corporate_id
+         AND PHD.PROFILEID = PAD.PROFILE_ID
          AND phd.profileid = pcm.cp_id
+         AND pad.address_type = 'Main'
+         AND pad.is_deleted = 'N'
          AND par.internal_contract_ref_no(+) = pcm.internal_contract_ref_no
          AND pcm.internal_contract_ref_no = p_contractno;
+         
    EXCEPTION
       WHEN NO_DATA_FOUND
       THEN
@@ -150,21 +155,21 @@ BEGIN
                 'N', 'FULL', 'N'
                );
 
-   display_order := display_order + 1;
+--   display_order := display_order + 1;
 
-   INSERT INTO acd_amend_contract_details
-               (doc_id, display_order, field_layout_id, section_name,
-                field_name, is_print_reqd, pre_content_text_id,
-                post_content_text_id, contract_content, pre_content_text,
-                post_content_text, is_custom_section, is_footer_section,
-                is_amend_section, print_type, is_changed
-               )
-        VALUES (docid, display_order, NULL, contractsection,
-                'Counterparty Contract Ref No', 'Y', NULL,
-                NULL, cpcontractrefno, NULL,
-                NULL, 'N', 'N',
-                'N', 'FULL', 'N'
-               );
+--   INSERT INTO acd_amend_contract_details
+--               (doc_id, display_order, field_layout_id, section_name,
+--                field_name, is_print_reqd, pre_content_text_id,
+--                post_content_text_id, contract_content, pre_content_text,
+--                post_content_text, is_custom_section, is_footer_section,
+--                is_amend_section, print_type, is_changed
+--               )
+--        VALUES (docid, display_order, NULL, contractsection,
+--                'Counterparty Contract Ref No', 'Y', NULL,
+--                NULL, cpcontractrefno, NULL,
+--                NULL, 'N', 'N',
+--                'N', 'FULL', 'N'
+--               );
 
    BEGIN
       SELECT NVL ((gab.firstname || ' ' || gab.lastname), 'NA')
@@ -195,21 +200,21 @@ BEGIN
          cpcontactpersoson := NULL;
    END;
 
-   display_order := display_order + 1;
+--   display_order := display_order + 1;
 
-   INSERT INTO acd_amend_contract_details
-               (doc_id, display_order, field_layout_id, section_name,
-                field_name, is_print_reqd, pre_content_text_id,
-                post_content_text_id, contract_content, pre_content_text,
-                post_content_text, is_custom_section, is_footer_section,
-                is_amend_section, print_type, is_changed
-               )
-        VALUES (docid, display_order, NULL, contractsection,
-                'Traxys Trader', 'Y', NULL,
-                NULL, traxystrader, NULL,
-                NULL, 'N', 'N',
-                'N', 'FULL', 'N'
-               );
+--   INSERT INTO acd_amend_contract_details
+--               (doc_id, display_order, field_layout_id, section_name,
+--                field_name, is_print_reqd, pre_content_text_id,
+--                post_content_text_id, contract_content, pre_content_text,
+--                post_content_text, is_custom_section, is_footer_section,
+--                is_amend_section, print_type, is_changed
+--               )
+--        VALUES (docid, display_order, NULL, contractsection,
+--                'Traxys Trader', 'Y', NULL,
+--                NULL, traxystrader, NULL,
+--                NULL, 'N', 'N',
+--                'N', 'FULL', 'N'
+--               );
 
    display_order := display_order + 1;
 
@@ -227,21 +232,21 @@ BEGIN
                 'N', 'FULL', 'N'
                );
 
-   display_order := display_order + 1;
+--   display_order := display_order + 1;
 
-   INSERT INTO acd_amend_contract_details
-               (doc_id, display_order, field_layout_id, section_name,
-                field_name, is_print_reqd, pre_content_text_id,
-                post_content_text_id, contract_content, pre_content_text,
-                post_content_text, is_custom_section, is_footer_section,
-                is_amend_section, print_type, is_changed
-               )
-        VALUES (docid, display_order, NULL, contractsection,
-                'Contract Issue Date', 'Y', NULL,
-                NULL, issuedate, NULL,
-                NULL, 'N', 'N',
-                'N', 'FULL', 'N'
-               );
+--   INSERT INTO acd_amend_contract_details
+--               (doc_id, display_order, field_layout_id, section_name,
+--                field_name, is_print_reqd, pre_content_text_id,
+--                post_content_text_id, contract_content, pre_content_text,
+--                post_content_text, is_custom_section, is_footer_section,
+--                is_amend_section, print_type, is_changed
+--               )
+--        VALUES (docid, display_order, NULL, contractsection,
+--                'Contract Issue Date', 'Y', NULL,
+--                NULL, issuedate, NULL,
+--                NULL, 'N', 'N',
+--                'N', 'FULL', 'N'
+--               );
 
    display_order := display_order + 1;
 
@@ -275,21 +280,6 @@ BEGIN
                 'N', 'FULL', 'N'
                );
 
-   display_order := display_order + 1;
-
-   INSERT INTO acd_amend_contract_details
-               (doc_id, display_order, field_layout_id, section_name,
-                field_name, is_print_reqd, pre_content_text_id,
-                post_content_text_id, contract_content, pre_content_text,
-                post_content_text, is_custom_section, is_footer_section,
-                is_amend_section, print_type, is_changed
-               )
-        VALUES (docid, display_order, NULL, contractsection,
-                'Seller', 'Y', NULL,
-                NULL, seller, NULL,
-                NULL, 'N', 'N',
-                'N', 'FULL', 'N'
-               );
 
    BEGIN
       SELECT    pad.address
@@ -318,20 +308,20 @@ BEGIN
 
    display_order := display_order + 1;
 
-   INSERT INTO acd_amend_contract_details
+  INSERT INTO acd_amend_contract_details
                (doc_id, display_order, field_layout_id, section_name,
                 field_name, is_print_reqd, pre_content_text_id,
                 post_content_text_id, contract_content, pre_content_text,
                 post_content_text, is_custom_section, is_footer_section,
                 is_amend_section, print_type, is_changed
                )
-        VALUES (docid, display_order, NULL, 'Counter Party',
-                'CP Address', 'Y', NULL,
-                NULL, cpaddress, NULL,
+        VALUES (docid, display_order, NULL, contractsection,
+                'Seller', 'Y', NULL,
+                NULL, seller || CHR (10) || cpaddress, NULL,
                 NULL, 'N', 'N',
                 'N', 'FULL', 'N'
                );
-
+   
    IF (executiontype = 'Joint Venture')
    THEN
       IF (contracttype = 'P')
@@ -881,6 +871,43 @@ END;
                 NULL, 'N', 'N',
                 'N', 'FULL', 'N'
                );
+               
+    Begin
+      SELECT   DECODE
+            (pcdi.delivery_period_type,'Date', (TO_CHAR (MIN (pcdi.delivery_from_date), 'MON-yyyy')
+                      || ' To '
+                      || TO_CHAR (MAX (pcdi.delivery_from_date), 'MON-yyyy') ), 'Month', (TO_CHAR
+                             ((MIN(TO_DATE (   '01-'
+                                           || DECODE (pcdi.delivery_from_month,NULL, 'Jan',pcdi.delivery_from_month)
+                                           || '-'
+                                           || DECODE (pcdi.delivery_from_year,NULL, '2011',pcdi.delivery_from_year)))),'MON-yyyy')
+                       || ' To '
+                       || TO_CHAR ((MAX(TO_DATE ('01-' || DECODE(pcdi.delivery_from_month,NULL, 'Jan',pcdi.delivery_from_month)
+                                           || '-'
+                                           || DECODE (pcdi.delivery_from_year,NULL, '2011',pcdi.delivery_from_year) ))),'MON-yyyy'))) timeofdelivery
+      into   timeofdelivery                                   
+      FROM pcdi_pc_delivery_item pcdi, pcm_physical_contract_main pcm
+     WHERE pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+      AND pcm.internal_contract_ref_no = p_contractno
+      AND pcdi.is_active = 'Y'
+      GROUP BY pcdi.delivery_period_type;
+    end;
+    
+   display_order := display_order + 1;
+   
+   INSERT INTO acd_amend_contract_details
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, 'Time Of Delivery',
+                'Time Of Delivery', 'Y', NULL,
+                NULL, timeOfDelivery, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );           
 
    IF (p_activity_id = 'CONTRACT_APPROVED')
    THEN
