@@ -24,6 +24,7 @@ IS
    commercialdetails     VARCHAR2 (4000) := '';
    premiumdetails        VARCHAR2 (4000) := '';
    qualitydecs           VARCHAR2 (4000);
+   packingtype           VARCHAR2 (4000) := 'Packing Type:';
 
    CURSOR cr_incoterm
    IS
@@ -95,6 +96,19 @@ BEGIN
       WHEN NO_DATA_FOUND
       THEN
          deliveryitem := '';
+   END;
+   
+   BEGIN
+      SELECT    'Packing Type :'
+               || pcdi.packing_type
+        INTO packingtype
+        FROM pcdi_pc_delivery_item pcdi, pcm_physical_contract_main pcm
+       WHERE pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+         AND pcdi.pcdi_id = p_delivery_id;
+   EXCEPTION
+      WHEN NO_DATA_FOUND
+      THEN
+         packingtype := '';
    END;
 
    BEGIN
@@ -311,6 +325,8 @@ BEGIN
       || quotaperiod
       || CHR (10)
       || incotermdetails
+      || CHR (10)
+      || packingtype
       || ' '
       || optionality
       || CHR (10)

@@ -17,6 +17,7 @@ CREATE OR REPLACE FUNCTION GETDELIVERYPERIODDETAILS(p_contractNo  VARCHAR2,
   minQtyValue         NUMBER(25, 10);
   maxQtyValue         NUMBER(25, 10);
   itemQtyUnit         VARCHAR2(50);
+  packingtype           VARCHAR2 (4000) := 'Packing Type:';
 
   cursor cr_incoterm IS
     Select 'Incoterm ' || ITM.INCOTERM || ' - ' || CIM.CITY_NAME || (case
@@ -72,6 +73,19 @@ begin
     when no_data_found then
       deliveryItem := '';
   end;
+  
+  BEGIN
+      SELECT    'Packing Type :'
+               || pcdi.packing_type
+        INTO packingtype
+        FROM pcdi_pc_delivery_item pcdi, pcm_physical_contract_main pcm
+       WHERE pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+         AND pcdi.pcdi_id = p_delivery_id;
+   EXCEPTION
+      WHEN NO_DATA_FOUND
+      THEN
+         packingtype := '';
+   END;
 
   begin
   
@@ -166,7 +180,7 @@ begin
 
   deliveryDescription := deliveryItem || chr(10) || quotaPeriod || chr(10) ||
                          qualityDetails || chr(10) || quantityDetails ||
-                         incotermDetails || ' ' || Optionality || chr(10) ||
+                         incotermDetails || chr(10) || packingtype || ' ' || Optionality || chr(10) ||
                          pricingDetails;
 
   if (QPDeclarationDate is not null) then

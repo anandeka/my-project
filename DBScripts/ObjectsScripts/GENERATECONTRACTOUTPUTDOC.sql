@@ -67,7 +67,7 @@ BEGIN
    BEGIN
       
         SELECT TO_CHAR (pcm.issue_date, 'dd-Mon-YYYY'), pcm.contract_ref_no,
-               NVL (pcm.cp_contract_ref_no, 'NA'), ak.corporate_name,
+               NVL (pcm.cp_contract_ref_no, 'NA'), (pad.address_name || ' ' || pad.address),
                ak.corporate_id, pcm.purchase_sales, phd.companyname, pcm.cp_id,
                pcm.product_group_type, pcm.partnership_type, pcm.is_tolling_contract,
                pcm.is_commercial_fee_applied,
@@ -81,9 +81,13 @@ BEGIN
                cancellationdate, cancellationreason,contractstatus
           FROM pcm_physical_contract_main pcm,
                ak_corporate ak,
-               phd_profileheaderdetails phd
+               phd_profileheaderdetails phd,
+               PAD_PROFILE_ADDRESSES pad
          WHERE pcm.corporate_id = ak.corporate_id
+           AND PHD.PROFILEID = PAD.PROFILE_ID
            AND phd.profileid = pcm.cp_id
+           AND pad.address_type = 'Main'
+           AND pad.is_deleted = 'N'
            AND pcm.internal_contract_ref_no = p_contractno;
    EXCEPTION
       WHEN NO_DATA_FOUND
@@ -144,74 +148,74 @@ BEGIN
                 'N', 'FULL', 'N'
                );
 
-  IF(istollingcontract = 'Y')
-   THEN
-    BEGIN
-        SELECT pcmte.agreement_number
-            INTO agreementnumber
-                FROM pcmte_pcm_tolling_ext pcmte
-                    WHERE pcmte.int_contract_ref_no =
-                                  (SELECT pcm.internal_contract_ref_no
-                                     FROM pcm_physical_contract_main pcm
-                                    WHERE pcm.contract_ref_no = contractrefno);
-    EXCEPTION
-            WHEN NO_DATA_FOUND
-                THEN
-                agreementnumber := NULL;
-    END;
+--  IF(istollingcontract = 'Y')
+--   THEN
+--    BEGIN
+--        SELECT pcmte.agreement_number
+--            INTO agreementnumber
+--                FROM pcmte_pcm_tolling_ext pcmte
+--                    WHERE pcmte.int_contract_ref_no =
+--                                  (SELECT pcm.internal_contract_ref_no
+--                                     FROM pcm_physical_contract_main pcm
+--                                    WHERE pcm.contract_ref_no = contractrefno);
+--    EXCEPTION
+--            WHEN NO_DATA_FOUND
+--                THEN
+--                agreementnumber := NULL;
+--    END;
 
-    display_order := display_order + 1;
+--    display_order := display_order + 1;
 
-    INSERT INTO cod_contract_output_detail
-               (doc_id, display_order, field_layout_id, section_name,
-                field_name, is_print_reqd, pre_content_text_id,
-                post_content_text_id, contract_content, pre_content_text,
-                post_content_text, is_custom_section, is_footer_section,
-                is_amend_section, print_type, is_changed
-               )
-        VALUES (docid, display_order, NULL, contractsection,
-                'Agreement No', 'Y', NULL,
-                NULL, agreementnumber, NULL,
-                NULL, 'N', 'N',
-                'N', 'FULL', 'N'
-               );
+--    INSERT INTO cod_contract_output_detail
+--               (doc_id, display_order, field_layout_id, section_name,
+--                field_name, is_print_reqd, pre_content_text_id,
+--                post_content_text_id, contract_content, pre_content_text,
+--                post_content_text, is_custom_section, is_footer_section,
+--                is_amend_section, print_type, is_changed
+--               )
+--        VALUES (docid, display_order, NULL, contractsection,
+--                'Agreement No', 'Y', NULL,
+--                NULL, agreementnumber, NULL,
+--                NULL, 'N', 'N',
+--                'N', 'FULL', 'N'
+--               );
 
-    END IF;
+--    END IF;
 
-   display_order := display_order + 1;
+--   display_order := display_order + 1;
 
-   INSERT INTO cod_contract_output_detail
-               (doc_id, display_order, field_layout_id, section_name,
-                field_name, is_print_reqd, pre_content_text_id,
-                post_content_text_id, contract_content, pre_content_text,
-                post_content_text, is_custom_section, is_footer_section,
-                is_amend_section, print_type, is_changed
-               )
-        VALUES (docid, display_order, NULL, contractsection,
-                'Counterparty Contract Ref No', 'Y', NULL,
-                NULL, cpcontractrefno, NULL,
-                NULL, 'N', 'N',
-                'N', 'FULL', 'N'
-               );
+--   INSERT INTO cod_contract_output_detail
+--               (doc_id, display_order, field_layout_id, section_name,
+--                field_name, is_print_reqd, pre_content_text_id,
+--                post_content_text_id, contract_content, pre_content_text,
+--                post_content_text, is_custom_section, is_footer_section,
+--                is_amend_section, print_type, is_changed
+--               )
+--        VALUES (docid, display_order, NULL, contractsection,
+--                'Counterparty Contract Ref No', 'Y', NULL,
+--                NULL, cpcontractrefno, NULL,
+--                NULL, 'N', 'N',
+--                'N', 'FULL', 'N'
+--               );
 
  
 
 
-   BEGIN
-      SELECT NVL ((gab.firstname || ' ' || gab.lastname), 'NA')
-        INTO traxystrader
-        FROM ak_corporate_user aku, gab_globaladdressbook gab
-       WHERE gab.gabid = aku.gabid
-         AND aku.user_id IN (
-                             SELECT pcm.trader_id
-                               FROM pcm_physical_contract_main pcm
-                              WHERE pcm.internal_contract_ref_no =
-                                                                  p_contractno);
-   EXCEPTION
-      WHEN NO_DATA_FOUND
-      THEN
-         traxystrader := NULL;
-   END;
+--   BEGIN
+--      SELECT NVL ((gab.firstname || ' ' || gab.lastname), 'NA')
+--        INTO traxystrader
+--        FROM ak_corporate_user aku, gab_globaladdressbook gab
+--       WHERE gab.gabid = aku.gabid
+--         AND aku.user_id IN (
+--                             SELECT pcm.trader_id
+--                               FROM pcm_physical_contract_main pcm
+--                              WHERE pcm.internal_contract_ref_no =
+--                                                                  p_contractno);
+--   EXCEPTION
+--      WHEN NO_DATA_FOUND
+--      THEN
+--         traxystrader := NULL;
+--   END;
 
    BEGIN
       SELECT gab.firstname || ' ' || gab.lastname
@@ -226,21 +230,21 @@ BEGIN
          cpcontactpersoson := NULL;
    END;
 
-   display_order := display_order + 1;
+--   display_order := display_order + 1;
 
-   INSERT INTO cod_contract_output_detail
-               (doc_id, display_order, field_layout_id, section_name,
-                field_name, is_print_reqd, pre_content_text_id,
-                post_content_text_id, contract_content, pre_content_text,
-                post_content_text, is_custom_section, is_footer_section,
-                is_amend_section, print_type, is_changed
-               )
-        VALUES (docid, display_order, NULL, contractsection,
-                'Trader', 'Y', NULL,
-                NULL, traxystrader, NULL,
-                NULL, 'N', 'N',
-                'N', 'FULL', 'N'
-               );
+--   INSERT INTO cod_contract_output_detail
+--               (doc_id, display_order, field_layout_id, section_name,
+--                field_name, is_print_reqd, pre_content_text_id,
+--                post_content_text_id, contract_content, pre_content_text,
+--                post_content_text, is_custom_section, is_footer_section,
+--                is_amend_section, print_type, is_changed
+--               )
+--        VALUES (docid, display_order, NULL, contractsection,
+--                'Trader', 'Y', NULL,
+--                NULL, traxystrader, NULL,
+--                NULL, 'N', 'N',
+--                'N', 'FULL', 'N'
+--               );
 
    display_order := display_order + 1;
 
@@ -258,21 +262,21 @@ BEGIN
                 'N', 'FULL', 'N'
                );
 
-   display_order := display_order + 1;
+--   display_order := display_order + 1;
 
-   INSERT INTO cod_contract_output_detail
-               (doc_id, display_order, field_layout_id, section_name,
-                field_name, is_print_reqd, pre_content_text_id,
-                post_content_text_id, contract_content, pre_content_text,
-                post_content_text, is_custom_section, is_footer_section,
-                is_amend_section, print_type, is_changed
-               )
-        VALUES (docid, display_order, NULL, contractsection,
-                'Contract Issue Date', 'Y', NULL,
-                NULL, issuedate, NULL,
-                NULL, 'N', 'N',
-                'N', 'FULL', 'N'
-               );
+--   INSERT INTO cod_contract_output_detail
+--               (doc_id, display_order, field_layout_id, section_name,
+--                field_name, is_print_reqd, pre_content_text_id,
+--                post_content_text_id, contract_content, pre_content_text,
+--                post_content_text, is_custom_section, is_footer_section,
+--                is_amend_section, print_type, is_changed
+--               )
+--        VALUES (docid, display_order, NULL, contractsection,
+--                'Contract Issue Date', 'Y', NULL,
+--                NULL, issuedate, NULL,
+--                NULL, 'N', 'N',
+--                'N', 'FULL', 'N'
+--               );
     
    display_order := display_order + 1;
 
@@ -352,22 +356,8 @@ BEGIN
                 'N', 'FULL', 'N'
                );
 
-   display_order := display_order + 1;
-
-   INSERT INTO cod_contract_output_detail
-               (doc_id, display_order, field_layout_id, section_name,
-                field_name, is_print_reqd, pre_content_text_id,
-                post_content_text_id, contract_content, pre_content_text,
-                post_content_text, is_custom_section, is_footer_section,
-                is_amend_section, print_type, is_changed
-               )
-        VALUES (docid, display_order, NULL, contractsection,
-                'Seller', 'Y', NULL,
-                NULL, seller, NULL,
-                NULL, 'N', 'N',
-                'N', 'FULL', 'N'
-               );
-
+   
+   
    BEGIN
       SELECT    pad.address
              || ','
@@ -392,22 +382,36 @@ BEGIN
       THEN
          cpaddress := NULL;
    END;
-
-   display_order := display_order + 1;
-
-   INSERT INTO cod_contract_output_detail
+   
+    display_order := display_order + 1;
+    
+    INSERT INTO cod_contract_output_detail
                (doc_id, display_order, field_layout_id, section_name,
                 field_name, is_print_reqd, pre_content_text_id,
                 post_content_text_id, contract_content, pre_content_text,
                 post_content_text, is_custom_section, is_footer_section,
                 is_amend_section, print_type, is_changed
                )
-        VALUES (docid, display_order, NULL, 'Counter Party',
-                'CP Address', 'Y', NULL,
-                NULL, cpaddress, NULL,
+        VALUES (docid, display_order, NULL, contractsection,
+                'Seller', 'Y', NULL,
+                NULL, seller || CHR (10) || cpaddress, NULL,
                 NULL, 'N', 'N',
                 'N', 'FULL', 'N'
                );
+
+--   INSERT INTO cod_contract_output_detail
+--               (doc_id, display_order, field_layout_id, section_name,
+--                field_name, is_print_reqd, pre_content_text_id,
+--                post_content_text_id, contract_content, pre_content_text,
+--                post_content_text, is_custom_section, is_footer_section,
+--                is_amend_section, print_type, is_changed
+--               )
+--        VALUES (docid, display_order, NULL, 'Counter Party',
+--                'CP Address', 'Y', NULL,
+--                NULL, cpaddress, NULL,
+--                NULL, 'N', 'N',
+--                'N', 'FULL', 'N'
+--               );
 
    IF (executiontype = 'Joint Venture')
    THEN
@@ -505,21 +509,21 @@ BEGIN
             contractservicetype :='Buy Tolling Services';
         END IF;
 
-    display_order := display_order + 1;
+--    display_order := display_order + 1;
 
-   INSERT INTO cod_contract_output_detail
-               (doc_id, display_order, field_layout_id, section_name,
-                field_name, is_print_reqd, pre_content_text_id,
-                post_content_text_id, contract_content, pre_content_text,
-                post_content_text, is_custom_section, is_footer_section,
-                is_amend_section, print_type, is_changed
-               )
-        VALUES (docid, display_order, NULL, contractsection,
-                'Contract Type', 'Y', NULL,
-                NULL, contractservicetype, NULL,
-                NULL, 'N', 'N',
-                'N', 'FULL', 'N'
-               );
+--   INSERT INTO cod_contract_output_detail
+--               (doc_id, display_order, field_layout_id, section_name,
+--                field_name, is_print_reqd, pre_content_text_id,
+--                post_content_text_id, contract_content, pre_content_text,
+--                post_content_text, is_custom_section, is_footer_section,
+--                is_amend_section, print_type, is_changed
+--               )
+--        VALUES (docid, display_order, NULL, contractsection,
+--                'Contract Type', 'Y', NULL,
+--                NULL, contractservicetype, NULL,
+--                NULL, 'N', 'N',
+--                'N', 'FULL', 'N'
+--               );
  
      BEGIN
         SELECT pcmte.is_pass_through
@@ -542,21 +546,21 @@ BEGIN
         passthroughdetails:= 'No';
     END IF;
 
-    display_order := display_order + 1;
+--    display_order := display_order + 1;
 
-    INSERT INTO cod_contract_output_detail
-               (doc_id, display_order, field_layout_id, section_name,
-                field_name, is_print_reqd, pre_content_text_id,
-                post_content_text_id, contract_content, pre_content_text,
-                post_content_text, is_custom_section, is_footer_section,
-                is_amend_section, print_type, is_changed
-               )
-        VALUES (docid, display_order, NULL, contractsection,
-                'Pass Through', 'Y', NULL,
-                NULL, passthroughdetails, NULL,
-                NULL, 'N', 'N',
-                'N', 'FULL', 'N'
-               );
+--    INSERT INTO cod_contract_output_detail
+--               (doc_id, display_order, field_layout_id, section_name,
+--                field_name, is_print_reqd, pre_content_text_id,
+--                post_content_text_id, contract_content, pre_content_text,
+--                post_content_text, is_custom_section, is_footer_section,
+--                is_amend_section, print_type, is_changed
+--               )
+--        VALUES (docid, display_order, NULL, contractsection,
+--                'Pass Through', 'Y', NULL,
+--                NULL, passthroughdetails, NULL,
+--                NULL, 'N', 'N',
+--                'N', 'FULL', 'N'
+--               );
    END IF;
 
    BEGIN
