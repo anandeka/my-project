@@ -70,7 +70,8 @@ BEGIN
         FROM pcm_physical_contract_main pcm,
              ak_corporate ak,
              phd_profileheaderdetails phd,
-             par_physical_amend_reason par
+             par_physical_amend_reason par,
+             PAD_PROFILE_ADDRESSES pad
        WHERE pcm.corporate_id = ak.corporate_id
          AND PHD.PROFILEID = PAD.PROFILE_ID
          AND phd.profileid = pcm.cp_id
