@@ -1,0 +1,43 @@
+Patch No *              	:  EKA_METALS_PATCH_1767
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anand H
+
+Created on*        		:  06-Nov-2103
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  88797
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  O/P doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 149278
+Author: anandp
+Date: 18:56:00, 07 November 2013
+Message:
+For bug no.88797
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_655.sql
