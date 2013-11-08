@@ -1,0 +1,87 @@
+Patch No *              	:  EKA_METALS_PATCH_1768
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Varaprasad B
+
+Created on*        		:  08-Nov-2103
+
+Bug / Enhancement*		:  Enhancement
+
+Bug ID*            		:  88164,88165 and 88450
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Report
+
+Sub-Module  			 :  Report
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 149392
+Author: varaprasad.b
+Date: 15:34:22, 08 November 2013
+Message:
+Bug # 88164,88165,88450 fixes.
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AirWayAdvice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AirWayDetails.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ArrivalNote.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ReleaseOrder.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ShipmentAdvice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ShipmentBackToBack.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ShipmentDetail.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TrainAdvice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TrainDetails.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TruckAdvice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/TruckDetail.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/Warehouse_Receipt.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/WeighNote_Purchase.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/WeighNote_Sales.rpt
+
+================================================================================================================
+
+Revision: 149396
+Author: varaprasad.b
+Date: 15:40:05, 08 November 2013
+Message:
+Bug # 88164,88165,88450 fixes.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_496.sql
+
+=================================================================================================================
+
+Revision: 149399
+Author: varaprasad.b
+Date: 15:43:05, 08 November 2013
+Message:
+Bug # 88164,88165,88450 fixes.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_656.sql
+
+
+==================================================================================================================
+
+Revision: 149403
+Author: varaprasad.b
+Date: 15:49:35, 08 November 2013
+Message:
+Bug # 88164,88165,88450 fixes.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_54.sql
