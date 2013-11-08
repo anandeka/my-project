@@ -44,13 +44,14 @@ select corporate_id,
                t1.contract_ref_no contract_ref_no,
                t1.current_per_unit,
                t1.previous_per_unit,
-               (case
+               (case when t1.current_per_unit < 0 then
+                    -1 else 1 end)*
+               abs(round((case
                  when t1.previous_per_unit <> 0 then
-                  (t1.current_per_unit - t1.previous_per_unit) * 100 /
-                  t1.previous_per_unit
+                ((t1.current_per_unit - t1.previous_per_unit)/ t1.previous_per_unit)*100
                  else
                   100
-               end) percentage_value,
+               end),2))  percentage_value,
                t1.base_cur_code,
                t1.base_cur_id
           from (select aa.corporate_id,
@@ -88,13 +89,14 @@ select corporate_id,
                t2.contract_ref_no contract_ref_no,
                t2.current_per_unit,
                t2.previous_per_unit,
-               (case
+              ( case when t2.current_per_unit < 0 then
+               -1 else 1 end)*
+               abs(round((case
                  when t2.previous_per_unit <> 0 then
-                  (t2.current_per_unit - t2.previous_per_unit) * 100 /
-                  t2.previous_per_unit
+                 ((t2.current_per_unit - t2.previous_per_unit) / t2.previous_per_unit)*100
                  else
                   100
-               end) percentage_value,
+               end),2)) percentage_value,
                t2.base_cur_code,
                t2.base_cur_id
           from (select aa.corporate_id,
@@ -124,4 +126,3 @@ select corporate_id,
                           aa.contract_ref_no,
                           aa.base_cur_code,
                           aa.base_cur_id) t2) ctab;
---			  

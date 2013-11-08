@@ -837,8 +837,8 @@ select 'Standard' product_type,
        sm_gmr_dest_state.state_name dest_state_name, -- Newly Added
        rem_dest.region_name dest_loc_group_name, -- Newly Added
        to_char(nvl(gmr.inventory_in_date,sysdate), 'Mon-yyyy') period_month_year,
-       trunc(nvl(gmr.inventory_in_date,sysdate),'dd-Mon-yyyy') delivery_from_date,
-       trunc(nvl(gmr.inventory_in_date,sysdate),'dd-Mon-yyyy') delivery_to_date,
+       nvl(gmr.inventory_in_date,sysdate) delivery_from_date,
+       nvl(gmr.inventory_in_date,sysdate) delivery_to_date,
       (nvl(grd.current_qty, 0) + nvl(grd.release_shipped_qty, 0) -
        nvl(grd.title_transfer_out_qty, 0)) * ucm.multiplication_factor qty_in_group_unit,
        qum_gcd.qty_unit group_qty_unit,

@@ -574,7 +574,7 @@ union all
 select pcm.corporate_id,
        pcm.contract_ref_no,
        pcm.internal_contract_ref_no,
-       pcm.issue_date price_date,
+       pofh.qp_start_date price_date,--changed from contract issue date qp start date as per the request from demo..
        pcdi.pcdi_id,
        qat.product_id,
        pdm.product_desc productname,
@@ -765,5 +765,4 @@ select pcm.corporate_id,
    and pocd.qp_period_type = 'Event'
    and pcdi_qty.qty_unit_id = ucm.from_qty_unit_id
    and pdm.base_quantity_unit = ucm.to_qty_unit_id
-   and ucm.is_active = 'Y'
-/
+   and ucm.is_active = 'Y' 
