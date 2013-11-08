@@ -197,7 +197,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                 'Y'
                else
                 'N'
-             end) approval_flag
+             end) approval_flag,
+             asm.dry_wet_qty_ratio
         from pcm_physical_contract_main pcm,
              ak_corporate akc,
              pcdi_pc_delivery_item pcdi,
@@ -209,6 +210,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
              ciqs_contract_item_qty_status ciqs,
              qum_quantity_unit_master qum,
              pcpq_pc_product_quality pcpq,
+             ash_assay_header       ash,
+             asm_assay_sublot_mapping asm,
              qat_quality_attributes qat,
              qat_quality_attributes qat_und,
              qav_quality_attribute_values qav,
@@ -264,6 +267,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
          and ciqs.item_qty_unit_id = qum.qty_unit_id
          and pci.pcpq_id = pcpq.pcpq_id
          and pcpq.quality_template_id = qat.quality_id
+         and pcpq.assay_header_id=ash.ash_id
+         and ash.ash_id=asm.ash_id         
          and qat.quality_id = qav.quality_id
          and qav.attribute_id = ppm.property_id
          and qav.comp_quality_id = qat_und.quality_id
@@ -466,7 +471,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
           null;
       end;
       -- convert wet qty to dry qty
-      if cur_unrealized_rows.unit_of_measure = 'Wet' then
+      /*if cur_unrealized_rows.unit_of_measure = 'Wet' then
         vn_dry_qty   := round(pkg_metals_general.fn_get_assay_dry_qty(cur_unrealized_rows.conc_product_id,
                                                                       cur_unrealized_rows.assay_header_id,
                                                                       cur_unrealized_rows.item_qty,
@@ -476,8 +481,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
       else
         vn_dry_qty := round(cur_unrealized_rows.item_qty,
                             cur_unrealized_rows.item_qty_decimal);
-      end if;
-    
+      end if;*/
+      vn_dry_qty  :=cur_unrealized_rows.item_qty*(cur_unrealized_rows.dry_wet_qty_ratio/100);
       vn_wet_qty := cur_unrealized_rows.item_qty;
       -- convert into dry qty to base qty element level
       vn_dry_qty_in_base := round(pkg_general.f_get_converted_quantity(cur_unrealized_rows.conc_product_id,
@@ -978,10 +983,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                                            cur_unrealized_rows.mvp_id,
                                                            'Penalties',
                                                            cc.element_id,
-                                                           to_char(pd_trade_date,
-                                                                   'Mon'),
-                                                           to_char(pd_trade_date,
-                                                                   'YYYY'),
+                                                           cur_unrealized_rows.shipment_month,
+                                                           cur_unrealized_rows.shipment_year,
                                                            vc_price_unit_id,
                                                            cur_unrealized_rows.payment_due_date,
                                                            vn_m2m_penality,
@@ -1751,7 +1754,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
              tt.cp_name,
              tt.delivery_month,
              tt.delivery_premium,
-             tt.delivery_premium_unit_id
+             tt.delivery_premium_unit_id,
+             tt.dry_wet_qty_ratio
         from (
               ----  Stock non event based GMR price using CIPDE
               select 'Purchase' section_type,
@@ -1807,7 +1811,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                       cipde.element_id,
                       aml.attribute_name,
                       --sam.ash_id assay_header_id,
-                      grd.weg_avg_pricing_assay_id assay_header_id,
+                      pcpq.assay_header_id assay_header_id,
                       ceqs.assay_qty,
                       ceqs.assay_qty_unit_id,
                       --Added Suresh                   
@@ -1932,7 +1936,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                          to_char(pcdi.delivery_to_date, 'Mon-YYYY')
                       end) delivery_month,
                       nvl(pcdb.premium, 0) delivery_premium,
-                      pcdb.premium_unit_id delivery_premium_unit_id
+                      pcdb.premium_unit_id delivery_premium_unit_id,
+                      asm.dry_wet_qty_ratio
                 from gmr_goods_movement_record gmr,
                       grd_goods_record_detail grd,
                       pcm_physical_contract_main pcm,
@@ -1982,7 +1987,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                       v_ppu_pum                    tc_ppu_pum,
                       v_ppu_pum                    rc_ppu_pum,
                       ceqs_contract_ele_qty_status ceqs,
-                      sam_stock_assay_mapping      sam,
+                    --  sam_stock_assay_mapping      sam,
                       gscs_gmr_sec_cost_summary    gscs,
                       itm_incoterm_master          itm,
                       phd_profileheaderdetails     phd_cp
@@ -2037,7 +2042,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and md.tc_price_unit_id = tc_ppu_pum.product_price_unit_id
                  and md.rc_price_unit_id = rc_ppu_pum.product_price_unit_id
                     -- added Suresh
-                 and grd.weg_avg_pricing_assay_id = ash.ash_id
+                 and pcpq.assay_header_id = ash.ash_id
                  and ash.ash_id = asm.ash_id
                  and asm.asm_id = pqca.asm_id
                  and pqca.is_elem_for_pricing = 'Y'
@@ -2096,8 +2101,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and pcm.purchase_sales = 'P'
                  and nvl(grd.current_qty, 0) > 0
                  and gmr.is_internal_movement = 'N'
-                 and grd.internal_grd_ref_no = sam.internal_grd_ref_no
-                 and sam.is_latest_position_assay = 'Y'
+               --  and grd.internal_grd_ref_no = sam.internal_grd_ref_no
+               --  and sam.is_latest_position_assay = 'Y'
                  and gmr.internal_gmr_ref_no = gscs.internal_gmr_ref_no(+)
                  and gmr.process_id = gscs.process_id(+)
                  and pcdb.inco_term_id = itm.incoterm_id
@@ -2163,7 +2168,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      md.settlement_to_val_fx_rate,
                      ceqs.element_id,
                      aml.attribute_name,
-                     sam.ash_id assay_header_id,
+                     pcpq.assay_header_id assay_header_id,
                      ceqs.assay_qty,
                      ceqs.assay_qty_unit_id,
                      --- added Suresh
@@ -2294,7 +2299,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                         to_char(pcdi.delivery_to_date, 'Mon-YYYY')
                      end) delivery_month,
                      nvl(pcdb.premium, 0) delivery_premium,
-                     pcdb.premium_unit_id delivery_premium_unit_id
+                     pcdb.premium_unit_id delivery_premium_unit_id,
+                     asm.dry_wet_qty_ratio
                 from gmr_goods_movement_record gmr,
                      grd_goods_record_detail grd,
                      gpd_gmr_conc_price_daily gpd,
@@ -2344,7 +2350,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      v_ppu_pum                    tc_ppu_pum,
                      v_ppu_pum                    rc_ppu_pum,
                      ceqs_contract_ele_qty_status ceqs,
-                     sam_stock_assay_mapping      sam,
+                   --  sam_stock_assay_mapping      sam,
                      gscs_gmr_sec_cost_summary    gscs,
                      itm_incoterm_master          itm,
                      phd_profileheaderdetails     phd_cp
@@ -2399,7 +2405,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and md.tc_price_unit_id = tc_ppu_pum.product_price_unit_id
                  and md.rc_price_unit_id = rc_ppu_pum.product_price_unit_id
                     ---Added Suresh
-                 and grd.weg_avg_pricing_assay_id = ash.ash_id
+                 and pcpq.assay_header_id = ash.ash_id
                  and ash.ash_id = asm.ash_id
                  and asm.asm_id = pqca.asm_id
                  and pqca.is_elem_for_pricing = 'Y'
@@ -2458,8 +2464,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and pcm.purchase_sales = 'P'
                  and nvl(grd.current_qty, 0) > 0
                  and gmr.is_internal_movement = 'N'
-                 and grd.internal_grd_ref_no = sam.internal_grd_ref_no
-                 and sam.is_latest_position_assay = 'Y'
+               --  and grd.internal_grd_ref_no = sam.internal_grd_ref_no
+              --   and sam.is_latest_position_assay = 'Y'
                  and gmr.internal_gmr_ref_no = gscs.internal_gmr_ref_no(+)
                  and gmr.process_id = gscs.process_id(+)
                  and pcdb.inco_term_id = itm.incoterm_id
@@ -2519,7 +2525,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      md.settlement_to_val_fx_rate,
                      cipde.element_id,
                      aml.attribute_name,
-                     sam.ash_id assay_header_id,
+                      pcpq.assay_header_id assay_header_id,
                      ceqs.assay_qty,
                      ceqs.assay_qty_unit_id,
                      --- added Suresh
@@ -2644,7 +2650,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                         to_char(pcdi.delivery_to_date, 'Mon-YYYY')
                      end) delivery_month,
                      nvl(pcdb.premium, 0) delivery_premium,
-                     pcdb.premium_unit_id delivery_premium_unit_id
+                     pcdb.premium_unit_id delivery_premium_unit_id,
+                     asm.dry_wet_qty_ratio
               
                 from gmr_goods_movement_record gmr,
                      dgrd_delivered_grd dgrd,
@@ -2753,7 +2760,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and md.tc_price_unit_id = tc_ppu_pum.product_price_unit_id
                  and md.rc_price_unit_id = rc_ppu_pum.product_price_unit_id
                     --- Added Suresh
-                 and dgrd.weg_avg_pricing_assay_id = ash.ash_id
+                 and pcpq.assay_header_id = ash.ash_id
                  and ash.ash_id = asm.ash_id
                  and asm.asm_id = pqca.asm_id
                  and pqca.is_elem_for_pricing = 'Y'
@@ -2813,8 +2820,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and agh.is_deleted = 'N'
                  and gmr.corporate_id = pc_corporate_id
                  and gmr.is_internal_movement = 'N'
-                 and dgrd.internal_dgrd_ref_no = sam.internal_dgrd_ref_no
-                 and sam.is_latest_position_assay = 'Y'
+               --  and dgrd.internal_dgrd_ref_no = sam.internal_dgrd_ref_no
+               --  and sam.is_latest_position_assay = 'Y'
                  and pcdb.inco_term_id = itm.incoterm_id
                  and not exists
                (select gpd.process_id
@@ -2881,7 +2888,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      md.settlement_to_val_fx_rate,
                      ceqs.element_id,
                      aml.attribute_name,
-                     sam.ash_id assay_header_id,
+                     pcpq.assay_header_id assay_header_id,
                      ceqs.assay_qty,
                      ceqs.assay_qty_unit_id,
                      -- added Suresh
@@ -3012,7 +3019,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                         to_char(pcdi.delivery_to_date, 'Mon-YYYY')
                      end) delivery_month,
                      nvl(pcdb.premium, 0) delivery_premium,
-                     pcdb.premium_unit_id delivery_premium_unit_id
+                     pcdb.premium_unit_id delivery_premium_unit_id,
+                     asm.dry_wet_qty_ratio
               
                 from gmr_goods_movement_record gmr,
                      gpd_gmr_conc_price_daily gpd,
@@ -3064,7 +3072,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      v_ppu_pum                    tc_ppu_pum,
                      v_ppu_pum                    rc_ppu_pum,
                      ceqs_contract_ele_qty_status ceqs,
-                     sam_stock_assay_mapping      sam,
+                   --  sam_stock_assay_mapping      sam,
                      gscs_gmr_sec_cost_summary    gscs,
                      itm_incoterm_master          itm,
                      phd_profileheaderdetails     phd_cp
@@ -3115,7 +3123,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and md.tc_price_unit_id = tc_ppu_pum.product_price_unit_id
                  and md.rc_price_unit_id = rc_ppu_pum.product_price_unit_id
                     --- Added Suresh
-                 and dgrd.weg_avg_pricing_assay_id = ash.ash_id
+                 and pcpq.assay_header_id = ash.ash_id
                  and ash.ash_id = asm.ash_id
                  and asm.asm_id = pqca.asm_id
                  and pqca.is_elem_for_pricing = 'Y'
@@ -3175,8 +3183,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and agh.is_deleted = 'N'
                  and gmr.corporate_id = pc_corporate_id
                  and gmr.is_internal_movement = 'N'
-                 and dgrd.internal_dgrd_ref_no = sam.internal_dgrd_ref_no
-                 and sam.is_latest_position_assay = 'Y'
+               --  and dgrd.internal_dgrd_ref_no = sam.internal_dgrd_ref_no
+                -- and sam.is_latest_position_assay = 'Y'
                  and gmr.internal_gmr_ref_no = gscs.internal_gmr_ref_no(+)
                  and gmr.process_id = gscs.process_id(+)
                  and pcdb.inco_term_id = itm.incoterm_id
@@ -3323,7 +3331,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      cur_grd_rows.internal_contract_item_ref_no || '-' ||
                      cur_grd_rows.container_no;
       
-        if cur_grd_rows.unit_of_measure = 'Wet' then
+        /*if cur_grd_rows.unit_of_measure = 'Wet' then
           vn_dry_qty := round(pkg_metals_general.fn_get_assay_dry_qty(cur_grd_rows.conc_product_id,
                                                                       cur_grd_rows.assay_header_id,
                                                                       cur_grd_rows.stock_qty,
@@ -3331,8 +3339,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                               cur_grd_rows.stocky_qty_decimal);
         else
           vn_dry_qty := cur_grd_rows.stock_qty;
-        end if;
-      
+        end if;*/
+        vn_dry_qty := cur_grd_rows.stock_qty*(cur_grd_rows.dry_wet_qty_ratio*100);
         vn_wet_qty := cur_grd_rows.stock_qty;
       
         -- convert into dry qty to base qty element level
@@ -3655,10 +3663,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                                                   cur_grd_rows.mvp_id,
                                                                   'Penalties',
                                                                   cc.element_id,
-                                                                  to_char(pd_trade_date,
-                                                                          'Mon'),
-                                                                  to_char(pd_trade_date,
-                                                                          'YYYY'),
+                                                                  cur_grd_rows.shipment_month,
+                                                                  cur_grd_rows.shipment_year,
                                                                   vc_price_unit_id,
                                                                   cur_grd_rows.payment_due_date,
                                                                   vn_m2m_penality,
@@ -4674,7 +4680,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
              tt.is_marked_for_consignment,
              nvl(tt.product_premium_per_unit, 0) product_premium_per_unit,
              tt.contract_pp_fw_exch_rate,
-             tt.price_to_base_fw_exch_rate
+             tt.price_to_base_fw_exch_rate,
+             tt.dry_wet_ratio
         from (select 'Purchase' section_type,
                      pcpd.profit_center_id profit_center,
                      cpc.profit_center_name,
@@ -4864,7 +4871,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      decode(grd.partnership_type, 'Consignment', 'Y', 'N') as is_marked_for_consignment,
                      invm.product_premium_per_unit,
                      invm.contract_pp_fw_exch_rate,
-                     invme.price_to_base_fw_exch_rate
+                     invme.price_to_base_fw_exch_rate,
+                     grd.dry_wet_ratio
                 from gmr_goods_movement_record gmr,
                      grd_goods_record_detail grd,
                      pcm_physical_contract_main pcm,
@@ -4913,7 +4921,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      v_ppu_pum                    tc_ppu_pum,
                      v_ppu_pum                    rc_ppu_pum,
                      ceqs_contract_ele_qty_status ceqs,
-                     sam_stock_assay_mapping      sam,
+                    -- sam_stock_assay_mapping      sam,
                      gscs_gmr_sec_cost_summary    gscs,
                      invm_cog                     invm,
                      itm_incoterm_master          itm,
@@ -5022,8 +5030,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and pcm.purchase_sales = 'P'
                  and nvl(grd.current_qty, 0) > 0
                  and grd.internal_contract_item_ref_no is not null
-                 and grd.internal_grd_ref_no = sam.internal_grd_ref_no
-                 and sam.is_latest_position_assay = 'Y'
+                -- and grd.internal_grd_ref_no = sam.internal_grd_ref_no
+               --  and sam.is_latest_position_assay = 'Y'
                  and gmr.internal_gmr_ref_no = gscs.internal_gmr_ref_no(+)
                  and gmr.process_id = gscs.process_id(+)
                  and grd.internal_grd_ref_no = invm.internal_grd_ref_no
@@ -5154,7 +5162,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      cur_grd_rows.internal_contract_item_ref_no || '-' ||
                      cur_grd_rows.container_no;
       
-        if cur_grd_rows.unit_of_measure = 'Wet' then
+        /*if cur_grd_rows.unit_of_measure = 'Wet' then
           vn_dry_qty := round(pkg_metals_general.fn_get_assay_dry_qty(cur_grd_rows.conc_product_id,
                                                                       cur_grd_rows.assay_header_id,
                                                                       cur_grd_rows.stock_qty,
@@ -5162,8 +5170,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                               cur_grd_rows.stocky_qty_decimal);
         else
           vn_dry_qty := cur_grd_rows.stock_qty;
-        end if;
-      
+        end if;*/
+        vn_dry_qty :=cur_grd_rows.stock_qty*cur_grd_rows.dry_wet_ratio;
         vn_wet_qty := cur_grd_rows.stock_qty;
       
         -- convert into dry qty to base qty element level
@@ -5671,10 +5679,8 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                                                                   cur_grd_rows.mvp_id,
                                                                   'Penalties',
                                                                   cc.element_id,
-                                                                  to_char(pd_trade_date,
-                                                                          'Mon'),
-                                                                  to_char(pd_trade_date,
-                                                                          'YYYY'),
+                                                                  cur_grd_rows.shipment_month,
+                                                                  cur_grd_rows.shipment_year,
                                                                   vc_price_unit_id,
                                                                   cur_grd_rows.payment_due_date,
                                                                   vn_m2m_penality,
