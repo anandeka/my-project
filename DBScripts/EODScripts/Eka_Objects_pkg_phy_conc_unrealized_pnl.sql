@@ -1811,7 +1811,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                       cipde.element_id,
                       aml.attribute_name,
                       --sam.ash_id assay_header_id,
-                      pcpq.assay_header_id assay_header_id,
+                      grd.weg_avg_pricing_assay_id assay_header_id,
                       ceqs.assay_qty,
                       ceqs.assay_qty_unit_id,
                       --Added Suresh                   
@@ -2042,7 +2042,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and md.tc_price_unit_id = tc_ppu_pum.product_price_unit_id
                  and md.rc_price_unit_id = rc_ppu_pum.product_price_unit_id
                     -- added Suresh
-                 and pcpq.assay_header_id = ash.ash_id
+                 and grd.weg_avg_pricing_assay_id = ash.ash_id
                  and ash.ash_id = asm.ash_id
                  and asm.asm_id = pqca.asm_id
                  and pqca.is_elem_for_pricing = 'Y'
@@ -2168,7 +2168,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      md.settlement_to_val_fx_rate,
                      ceqs.element_id,
                      aml.attribute_name,
-                     pcpq.assay_header_id assay_header_id,
+                     grd.weg_avg_pricing_assay_id assay_header_id,
                      ceqs.assay_qty,
                      ceqs.assay_qty_unit_id,
                      --- added Suresh
@@ -2405,7 +2405,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and md.tc_price_unit_id = tc_ppu_pum.product_price_unit_id
                  and md.rc_price_unit_id = rc_ppu_pum.product_price_unit_id
                     ---Added Suresh
-                 and pcpq.assay_header_id = ash.ash_id
+                 and grd.weg_avg_pricing_assay_id = ash.ash_id
                  and ash.ash_id = asm.ash_id
                  and asm.asm_id = pqca.asm_id
                  and pqca.is_elem_for_pricing = 'Y'
@@ -2525,7 +2525,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      md.settlement_to_val_fx_rate,
                      cipde.element_id,
                      aml.attribute_name,
-                      pcpq.assay_header_id assay_header_id,
+                     dgrd.weg_avg_pricing_assay_id assay_header_id,
                      ceqs.assay_qty,
                      ceqs.assay_qty_unit_id,
                      --- added Suresh
@@ -2760,7 +2760,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and md.tc_price_unit_id = tc_ppu_pum.product_price_unit_id
                  and md.rc_price_unit_id = rc_ppu_pum.product_price_unit_id
                     --- Added Suresh
-                 and pcpq.assay_header_id = ash.ash_id
+                 and dgrd.weg_avg_pricing_assay_id = ash.ash_id
                  and ash.ash_id = asm.ash_id
                  and asm.asm_id = pqca.asm_id
                  and pqca.is_elem_for_pricing = 'Y'
@@ -2888,7 +2888,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                      md.settlement_to_val_fx_rate,
                      ceqs.element_id,
                      aml.attribute_name,
-                     pcpq.assay_header_id assay_header_id,
+                     dgrd.weg_avg_pricing_assay_id assay_header_id,
                      ceqs.assay_qty,
                      ceqs.assay_qty_unit_id,
                      -- added Suresh
@@ -3123,7 +3123,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
                  and md.tc_price_unit_id = tc_ppu_pum.product_price_unit_id
                  and md.rc_price_unit_id = rc_ppu_pum.product_price_unit_id
                     --- Added Suresh
-                 and pcpq.assay_header_id = ash.ash_id
+                 and dgrd.weg_avg_pricing_assay_id = ash.ash_id
                  and ash.ash_id = asm.ash_id
                  and asm.asm_id = pqca.asm_id
                  and pqca.is_elem_for_pricing = 'Y'
