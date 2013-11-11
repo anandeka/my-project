@@ -713,9 +713,9 @@ select pcm.corporate_id,
        pocd_price_option_calloff_dtls pocd,
        pcbpd_pc_base_price_detail pcbpd,
        ppfh_phy_price_formula_header ppfh,
-       (select pofh.pocd_id
+/*       (select pofh.pocd_id
           from pofh_price_opt_fixation_header pofh
-         group by pofh.pocd_id) pofh,
+         group by pofh.pocd_id) pofh,*/
        v_ppfd_phy_price_formula ppfd,
        qum_quantity_unit_master qum,
        di_del_item_exp_qp_details di,
@@ -751,7 +751,7 @@ select pcm.corporate_id,
    and pcdi.pcdi_id = poch.pcdi_id
    and poch.poch_id = pocd.poch_id
    and qat.attribute_id = poch.element_id
-   and pocd.pocd_id = pofh.pocd_id
+ --  and pocd.pocd_id = pofh.pocd_id -- bug id:88745 pofh entry will be available after creating contract, this table not required
    and pocd.pcbpd_id = pcbpd.pcbpd_id
    and pcbpd.pcbpd_id = ppfh.pcbpd_id
    and ppfh.ppfh_id = ppfd.ppfh_id
