@@ -1377,6 +1377,11 @@ create or replace package body pkg_phy_physical_process is
      where tdc.corporate_id = pc_corporate_id
        and tdc.process_id = vc_prev_process_id;
   
+  update agh_alloc_group_header agh
+     set process_id = pc_process_id
+   where process_id is null
+     and agh.realized_date <= pd_trade_date
+     and agh.dbd_id =vc_dbd_id;
     --
     -- 1. AGH was not present in previous eod and became inventory out in this eod
     --

@@ -1331,8 +1331,7 @@ create or replace package body pkg_phy_populate_data is
        realized_creation_date,
        internal_action_ref_no,
        partnership_type,
-       dbd_id,
-       process_id)
+       dbd_id)
       select decode(int_alloc_group_id,
                     'Empty_String',
                     null,
@@ -1391,8 +1390,7 @@ create or replace package body pkg_phy_populate_data is
                     'Empty_String',
                     null,
                     partnership_type),
-             gvc_dbd_id,
-             pkg_phy_populate_data.gvc_process_id
+             gvc_dbd_id
         from (select aghul.int_alloc_group_id,
                      substr(max(case
                                   when aghul.int_sales_contract_item_ref_no is not null then

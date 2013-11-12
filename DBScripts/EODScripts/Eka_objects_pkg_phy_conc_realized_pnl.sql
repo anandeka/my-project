@@ -2188,12 +2188,12 @@ create or replace package body pkg_phy_conc_realized_pnl is
              trade_user_id,
              trade_user_name,
              prch.product_id,
-             gmr.product_name,
+             prch.product_name,
              prch.dry_qty,
              prch.wet_qty wet_qty,
              prch.qty_unit_id,
              qty_unit,
-             gmr.quality_id,
+             prch.quality_id,
              prch.quality_name,
              prch.price_description price_string,
              prch.price_fixation_status,
@@ -2323,12 +2323,12 @@ create or replace package body pkg_phy_conc_realized_pnl is
              trade_user_id,
              trade_user_name,
              prch.product_id,
-             gmr.product_name,
+             prch.product_name,
              prch.dry_qty,
              prch.wet_qty wet_qty,
              prch.qty_unit_id,
              qty_unit,
-             gmr.quality_id,
+             prch.quality_id,
              prch.quality_name,
              prch.price_description price_string,
              prch.price_fixation_status,
@@ -2456,12 +2456,12 @@ create or replace package body pkg_phy_conc_realized_pnl is
              trade_user_id,
              trade_user_name,
              prch.product_id,
-             gmr.product_name,
+             prch.product_name,
              prch.dry_qty,
              prch.wet_qty wet_qty,
              prch.qty_unit_id,
              qty_unit,
-             gmr.quality_id,
+             prch.quality_id,
              prch.quality_name,
              prch.price_description price_string,
              prch.price_fixation_status,
@@ -2592,12 +2592,12 @@ create or replace package body pkg_phy_conc_realized_pnl is
              trade_user_id,
              trade_user_name,
              prch.product_id,
-             gmr.product_name,
+             prch.product_name,
              prch.dry_qty,
              prch.wet_qty wet_qty,
              prch.qty_unit_id,
              qty_unit,
-             gmr.quality_id,
+             prch.quality_id,
              prch.quality_name,
              prch.price_description price_string,
              prch.price_fixation_status,
@@ -4165,12 +4165,12 @@ create or replace package body pkg_phy_conc_realized_pnl is
     
       vn_contract_value_in_price_cur := (vn_contract_price /
                                         nvl(vn_price_unit_weight, 1)) *
-                                        vn_ele_qty_in_base *
+                                        cur_realized_rows.payable_qty *
                                         vn_cont_price_cur_id_factor *
                                         pkg_general.f_get_converted_quantity(cur_realized_rows.underlying_product_id,
                                                                              cur_realized_rows.payable_qty_unit_id,
-                                                                             cur_realized_rows.underling_base_qty_unit_id,
-                                                                             cur_realized_rows.item_qty);
+                                                                             vc_price_unit_weight_unit_id,
+                                                                             1);
     
       if vc_price_cur_id <> cur_realized_rows.base_cur_id then
         pkg_general.sp_bank_fx_rate(pc_corporate_id,
