@@ -1,0 +1,48 @@
+Patch No *              	:  EKA_METALS_PATCH_1775
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+
+Created on*        		:  13-Nov-2013
+
+Bug / Enhancement*		:  
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 149848
+Author: anupkumar.agarwal
+Date: 4:16:10 PM, Wednesday, November 13, 2013
+Message:
+Fixed For After Contract Closure Was Allowing to Create Yield  (This Got Overridden During Mft Performance Fix )
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_TOLLING_GMR.sql
+
+
+
+
+
