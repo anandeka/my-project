@@ -979,7 +979,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
       --
       vc_error_msg := '799';
     
-      begin
+      /*begin
         select round((case
                        when getc.weight_type = 'Dry' then
                         vn_dry_qty * ucm.multiplication_factor * getc.tc_value
@@ -1004,7 +1004,15 @@ create or replace package body pkg_phy_conc_realized_pnl is
         when others then
           vn_con_treatment_charge := 0;
           vc_con_treatment_cur_id := null;
-      end;
+      end;*/
+       pkg_metals_general.sp_get_gmr_treatment_charge(cur_realized_rows.internal_gmr_ref_no,
+                                                      cur_realized_rows.internal_grd_ref_no,
+                                                      cur_realized_rows.element_id,
+                                                      pc_dbd_id,
+                                                      vn_contract_price,
+                                                      vc_price_unit_id,
+                                                      vn_con_treatment_charge,
+                                                      vc_con_treatment_cur_id);
     
       vn_con_treatment_charge := vn_con_treatment_charge;
       -- Converted treatment charges to base currency
@@ -1043,7 +1051,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
       --
       --- Contract Refine Charges
       --
-      begin
+      /*begin
         select round(gerc.rc_value * ucm.multiplication_factor *
                      cur_realized_rows.payable_qty,
                      2) * gerc.currency_factor,
@@ -1064,7 +1072,15 @@ create or replace package body pkg_phy_conc_realized_pnl is
         when others then
           vn_con_refine_charge := 0;
           vc_con_refine_cur_id := null;
-      end;
+      end;*/
+       pkg_metals_general.sp_get_gmr_refine_charge(cur_realized_rows.internal_gmr_ref_no,
+                                                   cur_realized_rows.internal_grd_ref_no,
+                                                   cur_realized_rows.element_id,
+                                                   pc_dbd_id,
+                                                   vn_contract_price,
+                                                   vc_price_unit_id,
+                                                   vn_con_refine_charge,
+                                                   vc_con_refine_cur_id);
     
       vn_con_refine_charge := vn_con_refine_charge;
     
@@ -4196,7 +4212,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
       --
       --- contract refine chrges
       --
-      begin
+      /*begin
         select round((case
                        when getc.weight_type = 'Dry' then
                         vn_dry_qty * ucm.multiplication_factor * getc.tc_value
@@ -4221,7 +4237,16 @@ create or replace package body pkg_phy_conc_realized_pnl is
         when others then
           vn_con_treatment_charge := 0;
           vc_con_treatment_cur_id := null;
-      end;
+      end;*/
+      
+       pkg_metals_general.sp_get_gmr_treatment_charge(cur_realized_rows.internal_gmr_ref_no,
+                                                      cur_realized_rows.internal_grd_ref_no,
+                                                      cur_realized_rows.element_id,
+                                                      pc_dbd_id,
+                                                      vn_contract_price,
+                                                      vc_price_unit_id,
+                                                      vn_con_treatment_charge,
+                                                      vc_con_treatment_cur_id);
       vn_con_treatment_charge := vn_con_treatment_charge;
     
       -- Converted treatment charges to base currency
@@ -4260,7 +4285,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
       --- contract refine chrges
       --
     
-      begin
+      /*begin
         select round(gerc.rc_value * ucm.multiplication_factor *
                      cur_realized_rows.payable_qty,
                      2) * gerc.currency_factor,
@@ -4281,7 +4306,15 @@ create or replace package body pkg_phy_conc_realized_pnl is
         when others then
           vn_con_refine_charge := 0;
           vc_con_refine_cur_id := null;
-      end;
+      end;*/
+       pkg_metals_general.sp_get_gmr_refine_charge(cur_realized_rows.internal_gmr_ref_no,
+                                                   cur_realized_rows.internal_grd_ref_no,
+                                                   cur_realized_rows.element_id,
+                                                   pc_dbd_id,
+                                                   vn_contract_price,
+                                                   vc_price_unit_id,
+                                                   vn_con_refine_charge,
+                                                   vc_con_refine_cur_id);
       vn_con_refine_charge := vn_con_refine_charge;
       --- Converted refine charges to base currency                                              
       if vc_con_refine_cur_id <> cur_realized_rows.base_cur_id then

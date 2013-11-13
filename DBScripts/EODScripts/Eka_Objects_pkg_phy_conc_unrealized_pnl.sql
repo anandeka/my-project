@@ -5329,16 +5329,16 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
         
         end if;
         -- Element Treatment Charge        
-        /* pkg_metals_general.sp_get_gmr_treatment_charge(cur_grd_rows.internal_gmr_ref_no,
+         pkg_metals_general.sp_get_gmr_treatment_charge(cur_grd_rows.internal_gmr_ref_no,
         cur_grd_rows.internal_grd_dgrd_ref_no,
         cur_grd_rows.element_id,
         pc_dbd_id,
         vn_cont_price,
         vc_cont_price_unit_id,
         vn_ele_tc_charges,
-        vc_ele_tc_cur_id);*/
+        vc_ele_tc_cur_id);
       
-        begin
+        /*begin
           select round((case
                          when getc.weight_type = 'Dry' then
                           vn_dry_qty * ucm.multiplication_factor * getc.tc_value
@@ -5363,7 +5363,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
           when others then
             vn_ele_tc_charges := 0;
             vc_ele_tc_cur_id  := null;
-        end;
+        end;*/
       
         if vc_ele_tc_cur_id <> cur_grd_rows.base_cur_id then
           -- Bank FX Rate from TC to Base Currency
@@ -5397,16 +5397,16 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
         
         end if;
         -- Refining Changes
-        /*pkg_metals_general.sp_get_gmr_refine_charge(cur_grd_rows.internal_gmr_ref_no,
+        pkg_metals_general.sp_get_gmr_refine_charge(cur_grd_rows.internal_gmr_ref_no,
         cur_grd_rows.internal_grd_dgrd_ref_no,
         cur_grd_rows.element_id,
         pc_dbd_id,
         vn_cont_price,
         vc_cont_price_unit_id,
         vn_ele_rc_charges,
-        vc_ele_rc_cur_id);*/
+        vc_ele_rc_cur_id);
       
-        begin
+        /*begin
           select round(gerc.rc_value * ucm.multiplication_factor *
                        cur_grd_rows.payable_qty,
                        2) * gerc.currency_factor,
@@ -5427,7 +5427,7 @@ create or replace package body pkg_phy_conc_unrealized_pnl is
           when others then
             vn_ele_rc_charges := 0;
             vc_ele_rc_cur_id  := null;
-        end;
+        end;*/
       
         if vc_ele_rc_cur_id <> cur_grd_rows.base_cur_id then
           -- Bank FX Rate from RC to Base Currency
