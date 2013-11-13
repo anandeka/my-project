@@ -81,7 +81,7 @@ AS
               AND pcpd.internal_contract_ref_no = pcm.internal_contract_ref_no
               AND pci.is_active = 'Y'
               AND pcpq.is_active = 'Y'
-              AND pcm.contract_status = 'In Position'
+              AND pcm.contract_status IN ('In Position','Closed')
               AND (   pci.is_called_off = 'Y'
                    OR pcdi.is_phy_optionality_present = 'N'
                   )
