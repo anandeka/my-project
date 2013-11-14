@@ -226,7 +226,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
              gmr_qty.payable_qty,
              gmr_qty.qty_unit_id payable_qty_unit_id,
              pdm_qum.decimals base_qty_decimals,
-             sam.ash_id assay_header_id,
+             dgrd.weg_avg_pricing_assay_id assay_header_id,
              cm.decimals base_cur_decimal,
              null rc_charges_per_unit,
              null total_rc_charges,
@@ -242,7 +242,8 @@ create or replace package body pkg_phy_conc_realized_pnl is
              qum_payable.qty_unit payable_qty_unit,
              pcdb.premium location_premium_per_unit,
              pcdb.premium_unit_id location_premium_unit_id,
-             null location_premium_fw_exch_rate
+             null location_premium_fw_exch_rate,
+             (asm.dry_wet_qty_ratio/100)  dry_wet_qty_ratio
         from agh_alloc_group_header             agh,
              dgrd_delivered_grd                 dgrd,
              pci_physical_contract_item         pci,
@@ -282,11 +283,12 @@ create or replace package body pkg_phy_conc_realized_pnl is
              aml_attribute_master_list          aml,
              v_gmr_stockpayable_qty             gmr_qty,
              qum_quantity_unit_master           pdm_qum,
-             sam_stock_assay_mapping            sam,
+           --  sam_stock_assay_mapping            sam,
              cm_currency_master                 cm,
              pdm_productmaster                  pdm_under,
              qum_quantity_unit_master           qum_under,
-             qum_quantity_unit_master           qum_payable
+             qum_quantity_unit_master           qum_payable,
+             asm_assay_sublot_mapping           asm
        where agh.process_id = pc_process_id
          and agh.int_alloc_group_id = dgrd.int_alloc_group_id
          and dgrd.status = 'Active'
@@ -352,12 +354,13 @@ create or replace package body pkg_phy_conc_realized_pnl is
          and gmr_qty.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and gmr_qty.element_id = aml.attribute_id
          and pdm_qum.qty_unit_id = pdm.base_quantity_unit
-         and dgrd.internal_dgrd_ref_no = sam.internal_dgrd_ref_no
-         and sam.is_latest_position_assay = 'Y'
+        -- and dgrd.internal_dgrd_ref_no = sam.internal_dgrd_ref_no
+        -- and sam.is_latest_position_assay = 'Y'
          and akc.base_cur_id = cm.cur_id
          and aml.underlying_product_id = pdm_under.product_id
          and pdm_under.base_quantity_unit = qum_under.qty_unit_id
          and gmr_qty.qty_unit_id = qum_payable.qty_unit_id
+         and dgrd.weg_avg_pricing_assay_id=asm.ash_id
       --
       -- 2.  Purchase contracts With Contract Ref Numbers
       -- 
@@ -479,7 +482,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
              (agd.qty / (grd.qty * ucm.multiplication_factor)) payable_qty, -- Convert stock to realized qty 
              invme.payable_qty_unit_id payable_qty_unit_id,
              pdm_qum.decimals base_qty_decimals,
-             sam.ash_id assay_header_id,
+             grd.weg_avg_pricing_assay_id assay_header_id,
              cm.decimals base_cur_decimal,
              invs.rc_charges_per_unit,
              invs.total_rc_charges,
@@ -495,7 +498,8 @@ create or replace package body pkg_phy_conc_realized_pnl is
              qum_payable.qty_unit payable_qty_unit,
              invs.product_premium_per_unit location_premium_per_unit,
              invs.price_unit_id location_premium_price_unit_id,
-             invs.contract_pp_fw_exch_rate location_premium_fw_exch_rate
+             invs.contract_pp_fw_exch_rate location_premium_fw_exch_rate,
+             grd.dry_wet_ratio
         from agh_alloc_group_header       agh,
              agd_alloc_group_detail       agd,
              grd_goods_record_detail      grd,
@@ -539,7 +543,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
              pcpq_pc_product_quality      pcpq,
              -- v_gmr_stockpayable_qty       gmr_qty,
              qum_quantity_unit_master   pdm_qum,
-             sam_stock_assay_mapping    sam,
+            -- sam_stock_assay_mapping    sam,
              cm_currency_master         cm,
              pdm_productmaster          pdm_under,
              qum_quantity_unit_master   qum_under,
@@ -620,8 +624,8 @@ create or replace package body pkg_phy_conc_realized_pnl is
          and invme.element_id = aml.attribute_id
          and invme.internal_grd_ref_no = grd.internal_grd_ref_no
          and pdm_qum.qty_unit_id = pdm.base_quantity_unit
-         and grd.internal_grd_ref_no = sam.internal_grd_ref_no
-         and sam.is_latest_position_assay = 'Y'
+       --  and grd.internal_grd_ref_no = sam.internal_grd_ref_no
+        -- and sam.is_latest_position_assay = 'Y'
          and akc.base_cur_id = cm.cur_id
          and pdm_under.product_id = aml.underlying_product_id
          and pdm_under.base_quantity_unit = qum_under.qty_unit_id
@@ -900,7 +904,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
         vn_sc_per_unit := cur_realized_rows.secondary_cost_per_unit;
       end if;
       vc_error_msg := '727';
-      if cur_realized_rows.unit_of_measure = 'Wet' then
+      /*if cur_realized_rows.unit_of_measure = 'Wet' then
         vn_dry_qty := round(pkg_metals_general.fn_get_assay_dry_qty(cur_realized_rows.product_id,
                                                                     cur_realized_rows.assay_header_id,
                                                                     cur_realized_rows.item_qty,
@@ -908,9 +912,10 @@ create or replace package body pkg_phy_conc_realized_pnl is
                             cur_realized_rows.base_qty_decimals);
       else
         vn_dry_qty := cur_realized_rows.item_qty;
-      end if;
+      end if;*/
     
       vn_wet_qty := cur_realized_rows.item_qty;
+      vn_dry_qty := cur_realized_rows.item_qty*cur_realized_rows.dry_wet_qty_ratio;
       --
       -- Convert into dry qty to base qty element level
       --
@@ -1009,6 +1014,9 @@ create or replace package body pkg_phy_conc_realized_pnl is
                                                       cur_realized_rows.internal_grd_ref_no,
                                                       cur_realized_rows.element_id,
                                                       pc_dbd_id,
+                                                      vn_dry_qty,
+                                                      vn_wet_qty,
+                                                      cur_realized_rows.qty_unit_id,
                                                       vn_contract_price,
                                                       vc_price_unit_id,
                                                       vn_con_treatment_charge,
@@ -1077,6 +1085,8 @@ create or replace package body pkg_phy_conc_realized_pnl is
                                                    cur_realized_rows.internal_grd_ref_no,
                                                    cur_realized_rows.element_id,
                                                    pc_dbd_id,
+                                                   cur_realized_rows.payable_qty,
+                                                   cur_realized_rows.payable_qty_unit_id,                                                   
                                                    vn_contract_price,
                                                    vc_price_unit_id,
                                                    vn_con_refine_charge,
@@ -1613,7 +1623,8 @@ create or replace package body pkg_phy_conc_realized_pnl is
                               prd.strategy_id,
                               prd.strategy_name,
                               prd.business_line_id,
-                              prd.business_line_name
+                              prd.business_line_name,
+                              prd.int_alloc_group_id
                          from prch_phy_realized_conc_header prd
                         where prd.process_id = pc_process_id
                           and prd.contract_type = 'S')
@@ -1627,7 +1638,8 @@ create or replace package body pkg_phy_conc_realized_pnl is
              prch.sales_business_line_id         = cur_update.business_line_id,
              prch.sales_business_line_name       = cur_update.business_line_name
        where prch.contract_type = 'P'
-         and prch.sales_internal_gmr_ref_no = sales_internal_gmr_ref_no
+         and prch.sales_internal_gmr_ref_no = cur_update.sales_internal_gmr_ref_no
+         and prch.int_alloc_group_id        = cur_update.int_alloc_group_id
          and prch.process_id = pc_process_id;
     
     end loop;
@@ -3521,7 +3533,8 @@ create or replace package body pkg_phy_conc_realized_pnl is
              prch.tc_to_base_fw_exch_rate p_tc_to_base_fw_exch_rate,
              prch.rc_to_base_fw_exch_rate p_rc_to_base_fw_exch_rate,
              prch.pc_to_base_fw_exch_rate p_pc_to_base_fw_exch_rate,
-             prch.accrual_to_base_fw_exch_rate p_accrual_to_base_fw_exch_rate
+             prch.accrual_to_base_fw_exch_rate p_accrual_to_base_fw_exch_rate,
+             (asm.dry_wet_qty_ratio/100) dry_wet_qty_ratio
         from prch_phy_realized_conc_header  prch,
              prce_phy_realized_conc_element prce,
              rgmrc_realized_gmr_conc        rgmr,
@@ -3534,7 +3547,8 @@ create or replace package body pkg_phy_conc_realized_pnl is
              pcdi_pc_delivery_item          pcdi,
              spq_stock_payable_qty          spq,
              qum_quantity_unit_master       qum_spq,
-             gmr_goods_movement_record      gmr
+             gmr_goods_movement_record      gmr,
+             asm_assay_sublot_mapping       asm
        where prch.internal_contract_item_ref_no =
              prce.internal_contract_item_ref_no
          and prch.internal_gmr_ref_no = prce.internal_gmr_ref_no
@@ -3564,6 +3578,9 @@ create or replace package body pkg_phy_conc_realized_pnl is
          and pcdi.process_id = pc_process_id
          and dgrd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and gmr.process_id = pc_process_id
+         and asm.ash_id =
+             (case when rgmr.is_qty_change_for_sales = 'Y' then spq.assay_header_id else
+              prch.ash_id end)
          and gmr.is_deleted = 'N'
          and spq.is_active = 'Y'
       union
@@ -3745,7 +3762,8 @@ create or replace package body pkg_phy_conc_realized_pnl is
              prch.tc_to_base_fw_exch_rate p_tc_to_base_fw_exch_rate,
              prch.rc_to_base_fw_exch_rate p_rc_to_base_fw_exch_rate,
              prch.pc_to_base_fw_exch_rate p_pc_to_base_fw_exch_rate,
-             prch.accrual_to_base_fw_exch_rate p_accrual_to_base_fw_exch_rate
+             prch.accrual_to_base_fw_exch_rate p_accrual_to_base_fw_exch_rate,
+             (asm.dry_wet_qty_ratio/100) dry_wet_qty_ratio
         from prch_phy_realized_conc_header  prch,
              prce_phy_realized_conc_element prce,
              rgmrc_realized_gmr_conc        rgmr,
@@ -3755,7 +3773,8 @@ create or replace package body pkg_phy_conc_realized_pnl is
              agh_alloc_group_header         agh,
              agd_alloc_group_detail         agd,
              qum_quantity_unit_master       qum_agd,
-             gmr_goods_movement_record      gmr
+             gmr_goods_movement_record      gmr,
+             asm_assay_sublot_mapping       asm
        where prch.internal_contract_item_ref_no =
              prce.internal_contract_item_ref_no
          and prch.internal_gmr_ref_no = prce.internal_gmr_ref_no
@@ -3785,6 +3804,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
          and qum_agd.qty_unit_id = agd.qty_unit_id
          and grd.internal_gmr_ref_no = gmr.internal_gmr_ref_no
          and gmr.process_id = pc_process_id
+         and prch.ash_id=asm.ash_id
          and gmr.is_deleted = 'N';
   
     cursor cur_update_pnl is
@@ -4141,7 +4161,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
         vn_sc_per_unit := cur_realized_rows.secondary_cost_per_unit;
       end if;
     
-      if cur_realized_rows.unit_of_measure = 'Wet' then
+      /*if cur_realized_rows.unit_of_measure = 'Wet' then
         vn_dry_qty := round(pkg_metals_general.fn_get_assay_dry_qty(cur_realized_rows.product_id,
                                                                     cur_realized_rows.ash_id,
                                                                     cur_realized_rows.item_qty,
@@ -4149,8 +4169,8 @@ create or replace package body pkg_phy_conc_realized_pnl is
                             4);
       else
         vn_dry_qty := cur_realized_rows.item_qty;
-      end if;
-    
+      end if;*/
+      vn_dry_qty := cur_realized_rows.item_qty*cur_realized_rows.dry_wet_qty_ratio;
       vn_wet_qty := cur_realized_rows.item_qty;
     
       if cur_realized_rows.qty_unit_id <>
@@ -4243,6 +4263,9 @@ create or replace package body pkg_phy_conc_realized_pnl is
                                                       cur_realized_rows.internal_grd_ref_no,
                                                       cur_realized_rows.element_id,
                                                       pc_dbd_id,
+                                                      vn_dry_qty,
+                                                      vn_wet_qty,
+                                                      cur_realized_rows.qty_unit_id,
                                                       vn_contract_price,
                                                       vc_price_unit_id,
                                                       vn_con_treatment_charge,
@@ -4311,6 +4334,8 @@ create or replace package body pkg_phy_conc_realized_pnl is
                                                    cur_realized_rows.internal_grd_ref_no,
                                                    cur_realized_rows.element_id,
                                                    pc_dbd_id,
+                                                   cur_realized_rows.payable_qty,
+                                                   cur_realized_rows.payable_qty_unit_id,
                                                    vn_contract_price,
                                                    vc_price_unit_id,
                                                    vn_con_refine_charge,

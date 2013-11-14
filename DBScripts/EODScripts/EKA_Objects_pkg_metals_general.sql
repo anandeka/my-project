@@ -56,6 +56,9 @@ create or replace package pkg_metals_general is
                                         pc_inter_grd_ref_no varchar2,
                                         pc_element_id       varchar2,
                                         pc_dbd_id           varchar2,
+                                        pn_dry_qty          number,
+                                        pn_wet_qty          number,
+                                        pc_qty_unit_id      varchar2,
                                         pn_cp_price         number,
                                         pc_cp_unit_id       varchar2,
                                         pn_total_tc_charge  out number,
@@ -97,6 +100,8 @@ create or replace package pkg_metals_general is
                                      pc_inter_grd_ref_no varchar2,
                                      pc_element_id       varchar2,
                                      pc_dbd_id           varchar2,
+                                     pn_rc_qty           number,
+                                     pc_rc_qty_unit_id   varchar2,
                                      pn_cp_price         number,
                                      pc_cp_unit_id       varchar2,
                                      pn_total_rc_charge  out number,
@@ -1742,6 +1747,9 @@ create or replace package body pkg_metals_general is
                                         pc_inter_grd_ref_no varchar2,
                                         pc_element_id       varchar2,
                                         pc_dbd_id           varchar2,
+                                        pn_dry_qty          number,
+                                        pn_wet_qty          number,
+                                        pc_qty_unit_id      varchar2,
                                         pn_cp_price         number,
                                         pc_cp_unit_id       varchar2,
                                         pn_total_tc_charge  out number,
@@ -1775,8 +1783,14 @@ create or replace package body pkg_metals_general is
   vn_total_base_tret_charge    number;
   vn_item_qty                  number;
   vn_cur_factor                number;
+  vn_dry_qty                   number;
+  vn_wet_qty                   number;                                      
+  vc_qty_unit_id               varchar2(20);
   
 begin
+ vn_dry_qty :=pn_dry_qty;
+ vn_wet_qty :=pn_wet_qty;
+ vc_qty_unit_id:=pc_qty_unit_id;
   for cc in (select grd.internal_gmr_ref_no internal_gmr_ref_no,
                     grd.internal_grd_ref_no,
                     pqca.typical,
@@ -2206,7 +2220,7 @@ begin
       select ucm.multiplication_factor
         into vn_weight_conv_factor
         from ucm_unit_conversion_master ucm
-       where ucm.from_qty_unit_id = cc.grd_qty_unit_id
+       where ucm.from_qty_unit_id =vc_qty_unit_id 
          and ucm.to_qty_unit_id = vc_tc_weight_unit_id;
     exception
       when others then
@@ -2214,9 +2228,9 @@ begin
     end;                   
   
   if vc_weight_type ='Dry' then 
-  vn_total_treatment_charge:=vn_total_treatment_charge*cc.grd_dry_qty*vn_cur_factor*vn_weight_conv_factor;
+  vn_total_treatment_charge:=vn_total_treatment_charge*vn_dry_qty*vn_cur_factor*vn_weight_conv_factor;
   else
-  vn_total_treatment_charge:=vn_total_treatment_charge*cc.grd_wet_qty*vn_cur_factor*vn_weight_conv_factor;
+  vn_total_treatment_charge:=vn_total_treatment_charge*vn_wet_qty*vn_cur_factor*vn_weight_conv_factor;
   end if;
   /*  round((case when getc.weight_type = 'Dry' then 
    getc.grd_dry_qty * getc.grd_to_tc_weight_factor 
@@ -3412,6 +3426,8 @@ begin
                                      pc_inter_grd_ref_no varchar2,
                                      pc_element_id       varchar2,
                                      pc_dbd_id           varchar2,
+                                     pn_rc_qty           number,
+                                     pc_rc_qty_unit_id   varchar2,
                                      pn_cp_price         number,
                                      pc_cp_unit_id       varchar2,
                                      pn_total_rc_charge  out number,
@@ -3442,7 +3458,11 @@ begin
   vn_total_refine_charge       number := 0;
   vc_range_type                varchar2(20);
   vn_cur_factor                number;
+  vn_payable_qty               number;
+  vc_payable_qty_unit_id       varchar2(50);
 begin
+vn_payable_qty:=pn_rc_qty;
+vc_payable_qty_unit_id:=pc_rc_qty_unit_id;
   --Get the Charge Details 
   for cc in (select gmr.internal_gmr_ref_no,
                     grd.internal_grd_ref_no,
@@ -4003,7 +4023,7 @@ begin
       select ucm.multiplication_factor
         into vn_weight_conv_factor
         from ucm_unit_conversion_master ucm
-       where ucm.from_qty_unit_id = cc.payable_qty_unit_id
+       where ucm.from_qty_unit_id = vc_payable_qty_unit_id
          and ucm.to_qty_unit_id = vc_rc_weight_unit_id;
     exception
       when others then
@@ -4012,7 +4032,7 @@ begin
     
    vn_total_refine_charge:= vn_total_refine_charge *
                              vn_weight_conv_factor *
-                             cc.payable_qty * vn_cur_factor;
+                             vn_payable_qty * vn_cur_factor;
   end loop;
 pn_total_rc_charge:=vn_total_refine_charge;
 pc_rc_cur_id:=vc_cur_id;    
