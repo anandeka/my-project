@@ -3887,6 +3887,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
     vn_del_premium_weight          number;
     vc_del_premium_weight_unit_id  varchar2(15);
     vc_base_price_unit_id          varchar2(15);
+    vn_payable_qty                 number;
   begin
     --
     -- PNL Change for Quantity Change
@@ -3894,7 +3895,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
     delete from trgmrc_temp_rgmr_conc where corporate_id = pc_corporate_id;
     vc_error_msg := '1';
   
-    insert into trgmrc_temp_rgmr_conc
+    /*insert into trgmrc_temp_rgmr_conc
       (corporate_id,
        int_alloc_group_id,
        internal_gmr_ref_no,
@@ -3943,8 +3944,62 @@ create or replace package body pkg_phy_conc_realized_pnl is
              tdc_trade_date_closure tdc
        where tdc.corporate_id = pc_corporate_id
          and tdc.trade_date = t.trade_date
-         and tdc.process = pc_process;
+         and tdc.process = pc_process;*/
     vc_error_msg := '2';
+
+--- added Suresh
+insert into trgmrc_temp_rgmr_conc
+      (corporate_id,
+       int_alloc_group_id,
+       internal_gmr_ref_no,
+       realized_status,
+       realized_process_id,
+       realized_process_date,
+       section_name,
+       is_qty_change_for_sales)
+      select pc_corporate_id,
+             t.int_alloc_group_id,
+             t.sales_internal_gmr_ref_no,
+             'Previously Realized PNL Change',
+             tdc.process_id,
+             t.trade_date,
+             t.section_name,
+             is_qty_change_for_sales
+        from (
+              --
+              -- Get the 'Realized Today', 'Previously Realized PNL Change' data for EOD/EOM
+              --
+              select prch.sales_internal_gmr_ref_no,
+                      prch.int_alloc_group_id,
+                      max(prch.trade_date) trade_date,
+                      'Qty Change for Sales' section_name,
+                      'Y' is_qty_change_for_sales
+                from  spql_stock_payable_qty_log     spql,
+                      spq_stock_payable_qty           spq,
+                      prch_phy_realized_conc_header prch,
+                      tdc_trade_date_closure        tdc,
+                      agh_alloc_group_header        agh
+               where spql.internal_dgrd_ref_no = spq.internal_dgrd_ref_no
+                 and spql.process_id = pc_process_id
+                 and spq.process_id = pc_process_id
+                 and prch.corporate_id = pc_corporate_id
+                 and prch.process_id = tdc.process_id
+                 and tdc.process = pc_process
+                 and prch.internal_gmr_ref_no = spq.internal_gmr_ref_no
+                 and prch.trade_date < pd_trade_date
+                 and agh.int_alloc_group_id = prch.int_alloc_group_id
+                 and agh.process_id = pc_process_id
+                 and agh.realized_status = 'Realized'
+                 and prch.realized_type in
+                     ('Realized Today', 'Previously Realized PNL Change')
+               group by prch.sales_internal_gmr_ref_no,
+                         prch.int_alloc_group_id) t,
+             tdc_trade_date_closure tdc
+       where tdc.corporate_id = pc_corporate_id
+         and tdc.trade_date = t.trade_date
+         and tdc.process = pc_process;
+
+
     --
     -- PNL Change For Secondary Cost / Material Cost Change
     --                   
@@ -4065,8 +4120,8 @@ create or replace package body pkg_phy_conc_realized_pnl is
         else
           -- Invoice Present       
           begin
-            select iid.new_invoice_price,
-                   iid.new_invoice_price_unit_id,
+            select iied.element_payable_price,
+                   iied.element_payable_price_unit_id,
                    ppu.cur_id,
                    cm.cur_code,
                    ppu.weight_unit_id,
@@ -4086,7 +4141,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
                    qum_quantity_unit_master      qum
              where iid.internal_invoice_ref_no =
                    cur_realized_rows.latest_internal_invoice_ref_no
-               and iid.new_invoice_price_unit_id =
+               and iied.element_payable_price_unit_id =
                    ppu.product_price_unit_id
                and ppu.cur_id = cm.cur_id
                and ppu.weight_unit_id = qum.qty_unit_id
@@ -4121,6 +4176,24 @@ create or replace package body pkg_phy_conc_realized_pnl is
         vc_price_unit_weight_unit    := cur_realized_rows.price_unit_weight_unit;
         vn_price_unit_weight         := cur_realized_rows.price_unit_weight;
       end if;
+      
+      --- added suresh purchase qty change
+      if cur_realized_rows.contract_type = 'P' then
+        if cur_realized_rows.latest_internal_invoice_ref_no is not null then
+         select    sum(iied.element_invoiced_qty) into vn_payable_qty
+                  from iied_inv_item_element_details iied
+                   where iied.internal_invoice_ref_no=cur_realized_rows.latest_internal_invoice_ref_no
+                       and iied.grd_id=cur_realized_rows.internal_grd_ref_no
+                       and iied.element_id=cur_realized_rows.element_id;
+                   
+        
+        else
+          vn_payable_qty:=cur_realized_rows.payable_qty;
+        end if;
+      else
+         vn_payable_qty:=cur_realized_rows.payable_qty;
+      end if;
+      
     
       if cur_realized_rows.contract_type = 'P' then
         vc_sc_to_base_fw_exch_rate := cur_realized_rows.accrual_to_base_fw_exch_rate;
@@ -4192,16 +4265,16 @@ create or replace package body pkg_phy_conc_realized_pnl is
                                                                          cur_realized_rows.payable_qty_unit_id,
                                                                          cur_realized_rows.underling_prod_qty_unit_id,
                                                                          1) *
-                                    cur_realized_rows.payable_qty,
+                                    vn_payable_qty,
                                     cur_realized_rows.underling_base_qty_unit_id);
       else
-        vn_ele_qty_in_base := round(cur_realized_rows.payable_qty,
+        vn_ele_qty_in_base := round(vn_payable_qty,
                                     cur_realized_rows.underling_base_qty_unit_id);
       end if;
     
       vn_contract_value_in_price_cur := (vn_contract_price /
                                         nvl(vn_price_unit_weight, 1)) *
-                                        cur_realized_rows.payable_qty *
+                                        vn_payable_qty *
                                         vn_cont_price_cur_id_factor *
                                         pkg_general.f_get_converted_quantity(cur_realized_rows.underlying_product_id,
                                                                              cur_realized_rows.payable_qty_unit_id,
@@ -4334,7 +4407,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
                                                    cur_realized_rows.internal_grd_ref_no,
                                                    cur_realized_rows.element_id,
                                                    pc_dbd_id,
-                                                   cur_realized_rows.payable_qty,
+                                                   vn_payable_qty,
                                                    cur_realized_rows.payable_qty_unit_id,
                                                    vn_contract_price,
                                                    vc_price_unit_id,
@@ -4907,7 +4980,7 @@ create or replace package body pkg_phy_conc_realized_pnl is
          cur_realized_rows.underlying_product_id,
          cur_realized_rows.underling_prod_qty_unit_id,
          cur_realized_rows.underling_base_qty_unit_id,
-         cur_realized_rows.payable_qty,
+         vn_payable_qty,
          cur_realized_rows.payable_qty_unit_id,
          cur_realized_rows.payable_qty_unit,
          vn_ele_qty_in_base,

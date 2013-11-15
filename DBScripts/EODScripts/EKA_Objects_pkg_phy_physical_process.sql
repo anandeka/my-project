@@ -1448,6 +1448,24 @@ commit;
                and dbd.process = gvc_process
                and dbd.trade_date <= pd_trade_date);
 commit;  
+-- added Suresh               
+update spql_stock_payable_qty_log sqpl
+       set sqpl.process_id = pc_process_id
+     where sqpl.process_id is null
+       and (sqpl.internal_action_ref_no) in
+           (select axs.internal_action_ref_no
+              from axs_action_summary axs
+             where axs.internal_action_ref_no =
+                   sqpl.internal_action_ref_no
+               and axs.eff_date <= pd_trade_date
+               and axs.corporate_id = pc_corporate_id)
+       and sqpl.dbd_id in
+           (select dbd.dbd_id
+              from dbd_database_dump dbd
+             where dbd.corporate_id = pc_corporate_id
+               and dbd.process = gvc_process
+               and dbd.trade_date <= pd_trade_date);               
+commit;  
     update cdl_cost_delta_log cdl
        set cdl.process_id = pc_process_id
      where cdl.process_id is null
@@ -3989,6 +4007,9 @@ commit;
        set t.process_id = null
      where t.process_id = pc_process_id;
     update cdl_cost_delta_log t
+       set t.process_id = null
+     where t.process_id = pc_process_id;
+      update spql_stock_payable_qty_log t
        set t.process_id = null
      where t.process_id = pc_process_id;
     commit;
