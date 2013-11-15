@@ -6,7 +6,10 @@ v_ppfd_phy_price_formula as (select ppfd.instrument_id,
           from ppfd_phy_price_formula_details ppfd
          where ppfd.is_active = 'Y'
          group by ppfd.ppfh_id,
-                  ppfd.instrument_id)
+                  ppfd.instrument_id),
+v_pofh_data as (select *
+  from pofh_price_opt_fixation_header pofh
+ where pofh.is_active = 'Y')                  
 select pcm.corporate_id,
        pcm.contract_ref_no,
        pcm.internal_contract_ref_no,
@@ -56,6 +59,7 @@ select pcm.corporate_id,
    and diqs.item_qty_unit_id = ucm.from_qty_unit_id
    and pdm.base_quantity_unit = ucm.to_qty_unit_id
    and ucm.is_active = 'Y'
+   and dim.is_deleted='N'
 group by pcm.corporate_id,
        pcm.contract_ref_no,
        pcm.internal_contract_ref_no,
@@ -89,7 +93,7 @@ select pcm.corporate_id,
        diqs_delivery_item_qty_status diqs,
        poch_price_opt_call_off_header poch,
        pocd_price_option_calloff_dtls pocd,
-       pofh_price_opt_fixation_header pofh,
+       v_pofh_data pofh,
        pcbpd_pc_base_price_detail pcbpd,
        ppfh_phy_price_formula_header ppfh,
        v_ppfd_phy_price_formula ppfd,
@@ -125,6 +129,7 @@ select pcm.corporate_id,
    and diqs.item_qty_unit_id = ucm.from_qty_unit_id
    and pdm.base_quantity_unit = ucm.to_qty_unit_id
    and ucm.is_active = 'Y'
+     and dim.is_deleted='N'
    group by pcm.corporate_id,
        pcm.contract_ref_no,
        pcm.internal_contract_ref_no,
@@ -159,7 +164,7 @@ select pcm.corporate_id,
        diqs_delivery_item_qty_status diqs,
        poch_price_opt_call_off_header poch,
        pocd_price_option_calloff_dtls pocd,
-       pofh_price_opt_fixation_header pofh,
+       v_pofh_data pofh,
        pcbpd_pc_base_price_detail pcbpd,
        ppfh_phy_price_formula_header ppfh,
        v_ppfd_phy_price_formula ppfd,
@@ -192,6 +197,7 @@ select pcm.corporate_id,
    and diqs.item_qty_unit_id = ucm.from_qty_unit_id
    and pdm.base_quantity_unit = ucm.to_qty_unit_id
    and ucm.is_active = 'Y'
+     and dim.is_deleted='N'
 union all
 -- 4th event based contract unfixed qty for qty not deliveryed
 select pcm.corporate_id,
@@ -248,7 +254,7 @@ select pcm.corporate_id,
    and ucm.from_qty_unit_id = diqs.item_qty_unit_id
    and ucm.to_qty_unit_id = pdm.base_quantity_unit
    and ucm.is_active = 'Y'
-
+     and dim.is_deleted='N'
 union all
 -- 5th event based  with GMR created(price_fixed_Qty)
 select pcm.corporate_id,
@@ -271,7 +277,7 @@ select pcm.corporate_id,
        diqs_delivery_item_qty_status diqs,
        poch_price_opt_call_off_header poch,
        pocd_price_option_calloff_dtls pocd,
-       pofh_price_opt_fixation_header pofh,
+       v_pofh_data pofh,
        pcbpd_pc_base_price_detail pcbpd,
        ppfh_phy_price_formula_header ppfh,
        v_ppfd_phy_price_formula ppfd,
@@ -308,6 +314,7 @@ select pcm.corporate_id,
    and diqs.item_qty_unit_id = ucm.from_qty_unit_id
    and pdm.base_quantity_unit = ucm.to_qty_unit_id
    and ucm.is_active = 'Y'
+     and dim.is_deleted='N'
 group by pcm.corporate_id,
        pcm.contract_ref_no,
        pcm.internal_contract_ref_no,
@@ -342,7 +349,7 @@ select pcm.corporate_id,
        diqs_delivery_item_qty_status diqs,
        poch_price_opt_call_off_header poch,
        pocd_price_option_calloff_dtls pocd,
-       pofh_price_opt_fixation_header pofh,
+       v_pofh_data pofh,
        pcbpd_pc_base_price_detail pcbpd,
        ppfh_phy_price_formula_header ppfh,
        v_ppfd_phy_price_formula ppfd,
@@ -377,7 +384,7 @@ select pcm.corporate_id,
    and diqs.item_qty_unit_id = ucm.from_qty_unit_id
    and pdm.base_quantity_unit = ucm.to_qty_unit_id
    and ucm.is_active = 'Y'
-
+     and dim.is_deleted='N'
 --7th Fixed Conc contracts
 union all
 select pcm.corporate_id,
@@ -435,6 +442,7 @@ select pcm.corporate_id,
    and ucm.from_qty_unit_id = dipq.qty_unit_id
    and ucm.to_qty_unit_id = pdm.base_quantity_unit
    and pocd.price_type = 'Fixed'
+     and dim.is_deleted='N'
 --8th  Variable contracts with out event based(price_fixed_qty)
 union all
 select pcm.corporate_id,
@@ -463,10 +471,10 @@ select pcm.corporate_id,
        pdm_productmaster              pdm,
        poch_price_opt_call_off_header poch,
        pocd_price_option_calloff_dtls pocd,
-       pofh_price_opt_fixation_header pofh,
+       v_pofh_data pofh,
        pcbpd_pc_base_price_detail     pcbpd,
        ppfh_phy_price_formula_header  ppfh,
-       ppfd_phy_price_formula_details ppfd,
+       v_ppfd_phy_price_formula       ppfd,
        qum_quantity_unit_master       qum,
        pfd_price_fixation_details     pfd
  where pcm.contract_type = 'CONCENTRATES'
@@ -495,6 +503,7 @@ select pcm.corporate_id,
    and pocd.qp_period_type not in ('Event')
    and pofh.pofh_id = pfd.pofh_id
    and pfd.is_active = 'Y'
+     and dim.is_deleted='N'
    and pofh.is_active = 'Y'--------------added for Bug 80208 
  group by pcm.corporate_id,
           pcm.contract_ref_no,
@@ -508,7 +517,6 @@ select pcm.corporate_id,
           pocd.qty_to_be_fixed_unit_id,
           pdm.base_quantity_unit,
           qum.qty_unit
-
 --9th Variable contracts with out event based(un_fixed_qty)
 union all
 select pcm.corporate_id,
@@ -538,7 +546,7 @@ select pcm.corporate_id,
        pdm_productmaster pdm,
        poch_price_opt_call_off_header poch,
        pocd_price_option_calloff_dtls pocd,
-       pofh_price_opt_fixation_header pofh,
+       v_pofh_data pofh,
        pcbpd_pc_base_price_detail pcbpd,
        ppfh_phy_price_formula_header ppfh,
        v_ppfd_phy_price_formula ppfd,
@@ -565,6 +573,7 @@ select pcm.corporate_id,
    and pcbpd.pcbpd_id = ppfh.pcbpd_id
    and ppfh.ppfh_id = ppfd.ppfh_id
    and ppfd.instrument_id = dim.instrument_id
+     and dim.is_deleted='N'
    and pocd.price_type not in ('Fixed')
    and pocd.qp_period_type not in ('Event')
    and pofh.is_active = 'Y'--------------added for Bug 80208 
@@ -583,7 +592,7 @@ select pcm.corporate_id,
        pkg_general.f_get_converted_quantity(qat.product_id,
                                             pocd.qty_to_be_fixed_unit_id,
                                             pdm.base_quantity_unit,
-                                            nvl(pofh.priced_qty, 0)) price_fixed_qty,
+                                            (nvl(pofh.priced_qty, 0)+nvl(pofh.hedge_correction_qty,0))) price_fixed_qty,
        0 unpriced_qty,
        pdm.base_quantity_unit qty_unit_id,
        qum.qty_unit
@@ -596,7 +605,7 @@ select pcm.corporate_id,
        pdm_productmaster pdm,
        poch_price_opt_call_off_header poch,
        pocd_price_option_calloff_dtls pocd,
-       pofh_price_opt_fixation_header pofh,
+       v_pofh_data pofh,
        pcbpd_pc_base_price_detail pcbpd,
        ppfh_phy_price_formula_header ppfh,
        v_ppfd_phy_price_formula ppfd,
@@ -625,6 +634,7 @@ select pcm.corporate_id,
    and ppfd.instrument_id = dim.instrument_id
    and pocd.price_type not in ('Fixed')
    and pocd.qp_period_type = 'Event'
+     and dim.is_deleted='N'
    and pofh.is_active = 'Y'--------------added for Bug 80208 
    and pofh.internal_gmr_ref_no is not null
 --11th variable contract event based with GMR created (un_fixed_qty)
@@ -655,7 +665,7 @@ select pcm.corporate_id,
        pdm_productmaster pdm,
        poch_price_opt_call_off_header poch,
        pocd_price_option_calloff_dtls pocd,
-       pofh_price_opt_fixation_header pofh,
+       v_pofh_data pofh,
        pcbpd_pc_base_price_detail pcbpd,
        ppfh_phy_price_formula_header ppfh,
        v_ppfd_phy_price_formula ppfd,
@@ -686,6 +696,7 @@ select pcm.corporate_id,
    and pocd.qp_period_type = 'Event'
    and pofh.qty_to_be_fixed - nvl(pofh.priced_qty, 0) > 0
    and pofh.internal_gmr_ref_no is not null
+     and dim.is_deleted='N'
 union all
 ---12 th  Event based with Out GMR created
 select pcm.corporate_id,
@@ -714,7 +725,7 @@ select pcm.corporate_id,
        pcbpd_pc_base_price_detail pcbpd,
        ppfh_phy_price_formula_header ppfh,
 /*       (select pofh.pocd_id
-          from pofh_price_opt_fixation_header pofh
+          from v_pofh_data pofh
          group by pofh.pocd_id) pofh,*/
        v_ppfd_phy_price_formula ppfd,
        qum_quantity_unit_master qum,
@@ -766,3 +777,5 @@ select pcm.corporate_id,
    and pcdi_qty.qty_unit_id = ucm.from_qty_unit_id
    and pdm.base_quantity_unit = ucm.to_qty_unit_id
    and ucm.is_active = 'Y' 
+   and dim.is_deleted='N'
+/
