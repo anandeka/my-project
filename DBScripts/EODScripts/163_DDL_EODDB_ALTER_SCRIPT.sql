@@ -1,0 +1,1 @@
+ alter table  SPQL_STOCK_PAYABLE_QTY_LOG  add  PROCESS_ID VARCHAR2 (15 Char);
