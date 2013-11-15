@@ -4243,8 +4243,28 @@ insert into trgmrc_temp_rgmr_conc
       else
         vn_dry_qty := cur_realized_rows.item_qty;
       end if;*/
+     if cur_realized_rows.contract_type = 'S' then
       vn_dry_qty := cur_realized_rows.item_qty*cur_realized_rows.dry_wet_qty_ratio;
       vn_wet_qty := cur_realized_rows.item_qty;
+     end if;
+      if cur_realized_rows.contract_type = 'P' then
+      if cur_realized_rows.latest_internal_invoice_ref_no is not null then 
+       select sum(asm.net_weight),
+       sum(asm.dry_weight)
+       into
+       vn_wet_qty,
+       vn_dry_qty 
+  from iam_invoice_assay_mapping iam_assay,
+       asm_assay_sublot_mapping  asm
+ where iam_assay.internal_grd_ref_no = cur_realized_rows.internal_grd_ref_no
+   and iam_assay.internal_invoice_ref_no =cur_realized_rows.latest_internal_invoice_ref_no 
+   and iam_assay.ash_id = asm.ash_id
+   and asm.is_active='Y';
+   else
+   vn_dry_qty := cur_realized_rows.item_qty*cur_realized_rows.dry_wet_qty_ratio;
+   vn_wet_qty := cur_realized_rows.item_qty;
+   end if;
+   end if;
     
       if cur_realized_rows.qty_unit_id <>
          cur_realized_rows.base_qty_unit_id then
