@@ -7036,7 +7036,8 @@ create or replace package body pkg_phy_custom_reports is
              div.price_unit_id,
              pum.price_unit_name,
           --   ppfh.price_unit_id ppu_price_unit_id,
-             ppu.product_price_unit_id ppu_price_unit_id
+             ppu.product_price_unit_id ppu_price_unit_id,
+             dim.delivery_calender_id
       
         from pcm_physical_contract_main     pcm,
              pcdi_pc_delivery_item          pcdi,
@@ -7091,7 +7092,8 @@ create or replace package body pkg_phy_custom_reports is
                 apm.available_price_name,
                 div.price_unit_id,
                 pum.price_unit_name,
-                ppu.product_price_unit_id;
+                ppu.product_price_unit_id,
+                dim.delivery_calender_id;
   
     vn_price            number;
     vc_price_unit_id    varchar2(15);
@@ -7192,6 +7194,16 @@ create or replace package body pkg_phy_custom_reports is
             end loop;
             vd_3rd_wed_of_qp := vd_quotes_date;
           end if;
+           -- Added Suresh for NPD
+         if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
+                                                 cur_mar_price_rows.delivery_calender_id,
+                                                 vd_3rd_wed_of_qp)=false then
+         
+         vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
+                                                    cur_mar_price_rows.delivery_calender_id,
+                                                    vd_quotes_date);
+          end if;
+          --end
         
           ---- get the dr_id             
           begin
@@ -7331,7 +7343,8 @@ create or replace package body pkg_phy_custom_reports is
              div.price_unit_id,
              pum.price_unit_name,
           --   ppfh.price_unit_id ppu_price_unit_id
-             ppu.product_price_unit_id ppu_price_unit_id
+             ppu.product_price_unit_id ppu_price_unit_id,
+             dim.delivery_calender_id
       
         from pofh_price_opt_fixation_header pofh,
              pocd_price_option_calloff_dtls pocd,
@@ -7391,7 +7404,8 @@ create or replace package body pkg_phy_custom_reports is
                 apm.available_price_name,
                 div.price_unit_id,
                 pum.price_unit_name,
-                ppu.product_price_unit_id;
+                ppu.product_price_unit_id,
+                dim.delivery_calender_id;
     vn_price            number;
     vc_price_unit_id    varchar2(15);
     vd_3rd_wed_of_qp    date;
@@ -7435,6 +7449,16 @@ create or replace package body pkg_phy_custom_reports is
           end loop;
           vd_3rd_wed_of_qp := vd_quotes_date;
         end if;
+          -- Added Suresh for NPD
+         if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
+                                                 cur_mar_gmr_price_rows.delivery_calender_id,
+                                                 vd_3rd_wed_of_qp)=false then
+         
+         vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
+                                                    cur_mar_gmr_price_rows.delivery_calender_id,
+                                                    vd_quotes_date);
+          end if;
+          --end
       
         ---- get the dr_id             
         begin

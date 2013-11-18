@@ -7682,6 +7682,16 @@ create or replace package body pkg_phy_pre_check_process is
       else
         v_trade_date := v_date;
       end if;
+      
+       -- added Suresh for NPD
+        if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
+                                               vc_delivery_calendar_id,
+                                               v_trade_date)=false then
+        v_trade_date:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
+                                                                           vc_delivery_calendar_id,
+                                                                           v_trade_date);
+       end if;
+        -- End
       begin
         select drm.dr_id
           into v_dr_id
@@ -8113,7 +8123,8 @@ create or replace package body pkg_phy_pre_check_process is
                                          pcdi.delivery_to_year),
                                  'dd-Mon-yyyy'))
              end) delivery_date,
-             poch.element_id
+             poch.element_id,
+             dim.delivery_calender_id
         from pcm_physical_contract_main     pcm,
              pcdi_pc_delivery_item          pcdi,
              poch_price_opt_call_off_header poch,
@@ -8171,7 +8182,8 @@ create or replace package body pkg_phy_pre_check_process is
                 pcdi.delivery_to_date,
                 pcdi.delivery_to_month,
                 pcdi.delivery_to_year,
-                poch.element_id
+                poch.element_id,
+                dim.delivery_calender_id
       union all
       select pcdi.pcdi_id,
              pcm.contract_ref_no,
@@ -8192,7 +8204,8 @@ create or replace package body pkg_phy_pre_check_process is
                                          pcdi.delivery_to_year),
                                  'dd-Mon-yyyy'))
              end) delivery_date,
-             pcbph.element_id
+             pcbph.element_id,
+             dim.delivery_calender_id
         from pcm_physical_contract_main     pcm,
              pcdi_pc_delivery_item          pcdi,
              pci_physical_contract_item     pci,
@@ -8257,8 +8270,9 @@ create or replace package body pkg_phy_pre_check_process is
                 pcdi.delivery_to_date,
                 pcdi.delivery_to_month,
                 pcdi.delivery_to_year,
-                pcbph.element_id;
-  
+                pcbph.element_id,
+                dim.delivery_calender_id;
+
     vn_price                     number;
     vc_price_unit_id             varchar2(15);
     vd_3rd_wed_of_qp             date;
@@ -8314,6 +8328,15 @@ create or replace package body pkg_phy_pre_check_process is
         end loop;
         vd_3rd_wed_of_qp := vd_quotes_date;
       end if;
+       -- added Suresh for NPD
+       if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
+                                              cur_mar_price_rows.delivery_calender_id,
+                                              vd_3rd_wed_of_qp)=false then
+      vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
+                                                                             cur_mar_price_rows.delivery_calender_id,
+                                                                             vd_3rd_wed_of_qp);
+       end if;
+       -- End
       ---- get the dr_id             
       begin
         select drm.dr_id

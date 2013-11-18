@@ -463,6 +463,15 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                     end loop;
                     vd_3rd_wed_of_qp := vd_quotes_date;
                   end if;
+                  -- added Suresh for NPD
+                        if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
+                                                               cur_pcdi_rows.delivery_calender_id,
+                                                               vd_3rd_wed_of_qp)=false then
+                        vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
+                                                                                             cur_pcdi_rows.delivery_calender_id,
+                                                                                             vd_3rd_wed_of_qp);
+                       end if;
+                       -- End
                   ---- get the dr_id             
                   begin
                     select drm.dr_id
@@ -646,6 +655,16 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                     end loop;
                     vd_3rd_wed_of_qp := vd_quotes_date;
                   end if;
+                  
+                    -- added Suresh for NPD
+                        if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
+                                                               cur_pcdi_rows.delivery_calender_id,
+                                                               vd_3rd_wed_of_qp)=false then
+                        vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
+                                                                                             cur_pcdi_rows.delivery_calender_id,
+                                                                                             vd_3rd_wed_of_qp);
+                       end if;
+                       -- End
                   ---- get the dr_id             
                   begin
                     select drm.dr_id
@@ -893,6 +912,15 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                       end loop;
                       vd_3rd_wed_of_qp := vd_quotes_date;
                     end if;
+                      -- added Suresh for NPD
+                        if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
+                                                               cur_pcdi_rows.delivery_calender_id,
+                                                               vd_3rd_wed_of_qp)=false then
+                        vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
+                                                                                             cur_pcdi_rows.delivery_calender_id,
+                                                                                             vd_3rd_wed_of_qp);
+                       end if;
+                       -- End
                     --Get the DR-id
                     begin
                       select drm.dr_id
@@ -1266,6 +1294,15 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                     end loop;
                     vd_3rd_wed_of_qp := vd_quotes_date;
                   end if;
+                    -- added Suresh for NPD
+                        if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
+                                                               cur_pcdi_rows.delivery_calender_id,
+                                                               vd_3rd_wed_of_qp)=false then
+                        vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
+                                                                                             cur_pcdi_rows.delivery_calender_id,
+                                                                                             vd_3rd_wed_of_qp);
+                       end if;
+                       -- End
                   --get the price dr_id   
                   begin
                     select drm.dr_id
@@ -1448,6 +1485,15 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                     end loop;
                     vd_3rd_wed_of_qp := vd_quotes_date;
                   end if;
+                    -- added Suresh for NPD
+                        if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
+                                                               cur_pcdi_rows.delivery_calender_id,
+                                                               vd_3rd_wed_of_qp)=false then
+                        vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
+                                                                                             cur_pcdi_rows.delivery_calender_id,
+                                                                                             vd_3rd_wed_of_qp);
+                       end if;
+                       -- End
                   --get the price dr_id   
                   begin
                     select drm.dr_id
@@ -1628,6 +1674,15 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                     end loop;
                     vd_3rd_wed_of_qp := vd_quotes_date;
                   end if;
+                    -- added Suresh for NPD
+                        if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
+                                                               cur_pcdi_rows.delivery_calender_id,
+                                                               vd_3rd_wed_of_qp)=false then
+                        vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
+                                                                                             cur_pcdi_rows.delivery_calender_id,
+                                                                                             vd_3rd_wed_of_qp);
+                       end if;
+                       -- End
                 
                   --get the price dr_id   
                   begin
@@ -2339,6 +2394,15 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
             end loop;
             vd_3rd_wed_of_qp := vd_quotes_date;
           end if;
+            -- added Suresh for NPD
+                        if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
+                                                               cur_gmr_rows.delivery_calender_id,
+                                                               vd_3rd_wed_of_qp)=false then
+                        vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
+                                                                                             cur_gmr_rows.delivery_calender_id,
+                                                                                             vd_3rd_wed_of_qp);
+                       end if;
+                       -- End
           ---- get the dr_id             
           begin
             select drm.dr_id
@@ -2576,6 +2640,16 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
               end loop;
               vd_3rd_wed_of_qp := vd_quotes_date;
             end if;
+             -- added Suresh for NPD
+                        if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
+                                                               cur_gmr_rows.delivery_calender_id,
+                                                               vd_3rd_wed_of_qp)=false then
+                        vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
+                                                                                             cur_gmr_rows.delivery_calender_id,
+                                                                                             vd_3rd_wed_of_qp);
+                       end if;
+                       -- End
+            
             --Get the DR-id
             begin
               select drm.dr_id
@@ -3502,6 +3576,16 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
               end loop;
               vd_3rd_wed_of_qp := vd_quotes_date;
             end if;
+             -- added Suresh for NPD
+                        if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
+                                                               cur_gmr_rows.delivery_calender_id,
+                                                               vd_3rd_wed_of_qp)=false then
+                        vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
+                                                                                             cur_gmr_rows.delivery_calender_id,
+                                                                                             vd_3rd_wed_of_qp);
+                       end if;
+                       -- End	
+
             ---- get the dr_id             
             begin
               select drm.dr_id
@@ -3750,6 +3834,15 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                 end loop;
                 vd_3rd_wed_of_qp := vd_quotes_date;
               end if;
+               -- added Suresh for NPD
+                        if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
+                                                               cur_gmr_rows.delivery_calender_id,
+                                                               vd_3rd_wed_of_qp)=false then
+                        vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
+                                                                                             cur_gmr_rows.delivery_calender_id,
+                                                                                             vd_3rd_wed_of_qp);
+                       end if;
+                       -- End	
               --Get the DR-id
               begin
                 select drm.dr_id
@@ -4634,6 +4727,16 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                     end loop;
                     vd_3rd_wed_of_qp := vd_quotes_date;
                   end if;
+                   -- added Suresh for NPD
+                        if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
+                                                               cur_pcdi_rows.delivery_calender_id,
+                                                               vd_3rd_wed_of_qp)=false then
+                        vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
+                                                                                             cur_pcdi_rows.delivery_calender_id,
+                                                                                             vd_3rd_wed_of_qp);
+                       end if;
+                       -- End
+                  
                   ---- get the dr_id             
                   begin
                     select drm.dr_id
@@ -4822,6 +4925,15 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                     end loop;
                     vd_3rd_wed_of_qp := vd_quotes_date;
                   end if;
+                   -- added Suresh for NPD
+                        if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
+                                                               cur_pcdi_rows.delivery_calender_id,
+                                                               vd_3rd_wed_of_qp)=false then
+                        vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
+                                                                                             cur_pcdi_rows.delivery_calender_id,
+                                                                                             vd_3rd_wed_of_qp);
+                       end if;
+                       -- End
                   ---- get the dr_id             
                   begin
                     select drm.dr_id
@@ -5078,6 +5190,15 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                       end loop;
                       vd_3rd_wed_of_qp := vd_quotes_date;
                     end if;
+                     -- added Suresh for NPD
+                        if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
+                                                               cur_pcdi_rows.delivery_calender_id,
+                                                               vd_3rd_wed_of_qp)=false then
+                        vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
+                                                                                             cur_pcdi_rows.delivery_calender_id,
+                                                                                             vd_3rd_wed_of_qp);
+                       end if;
+                       -- End
                     --Get the DR-id
                     begin
                       select drm.dr_id
@@ -5457,6 +5578,15 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                     end loop;
                     vd_3rd_wed_of_qp := vd_quotes_date;
                   end if;
+                   -- added Suresh for NPD
+                        if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
+                                                               cur_pcdi_rows.delivery_calender_id,
+                                                               vd_3rd_wed_of_qp)=false then
+                        vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
+                                                                                             cur_pcdi_rows.delivery_calender_id,
+                                                                                             vd_3rd_wed_of_qp);
+                       end if;
+                       -- End
                   --get the price dr_id   
                   begin
                     select drm.dr_id
@@ -5643,6 +5773,15 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                     end loop;
                     vd_3rd_wed_of_qp := vd_quotes_date;
                   end if;
+                   -- added Suresh for NPD
+                        if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
+                                                               cur_pcdi_rows.delivery_calender_id,
+                                                               vd_3rd_wed_of_qp)=false then
+                        vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
+                                                                                             cur_pcdi_rows.delivery_calender_id,
+                                                                                             vd_3rd_wed_of_qp);
+                       end if;
+                       -- End
                   --get the price dr_id   
                   begin
                     select drm.dr_id
@@ -5828,6 +5967,15 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                     end loop;
                     vd_3rd_wed_of_qp := vd_quotes_date;
                   end if;
+                   -- added Suresh for NPD
+                        if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
+                                                               cur_pcdi_rows.delivery_calender_id,
+                                                               vd_3rd_wed_of_qp)=false then
+                        vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
+                                                                                             cur_pcdi_rows.delivery_calender_id,
+                                                                                             vd_3rd_wed_of_qp);
+                       end if;
+                       -- End
                 
                   --get the price dr_id   
                   begin
