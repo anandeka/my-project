@@ -4536,7 +4536,7 @@ create or replace package body pkg_phy_cog_price is
         -- Added Sures for NPD
          if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
                                                  cur_price_rows.delivery_calender_id,
-                                                 vd_quotes_date)=false then
+                                                 vd_quotes_date)=true then
          
          vd_quotes_date:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
                                                     cur_price_rows.delivery_calender_id,

@@ -7686,7 +7686,7 @@ create or replace package body pkg_phy_pre_check_process is
        -- added Suresh for NPD
         if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
                                                vc_delivery_calendar_id,
-                                               v_trade_date)=false then
+                                               v_trade_date)=true then
         v_trade_date:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
                                                                            vc_delivery_calendar_id,
                                                                            v_trade_date);
@@ -8331,7 +8331,7 @@ create or replace package body pkg_phy_pre_check_process is
        -- added Suresh for NPD
        if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
                                               cur_mar_price_rows.delivery_calender_id,
-                                              vd_3rd_wed_of_qp)=false then
+                                              vd_3rd_wed_of_qp)=true then
       vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
                                                                              cur_mar_price_rows.delivery_calender_id,
                                                                              vd_3rd_wed_of_qp);

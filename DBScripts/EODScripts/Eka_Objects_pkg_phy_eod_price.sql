@@ -466,7 +466,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                   -- added Suresh for NPD
                         if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
                                                                cur_pcdi_rows.delivery_calender_id,
-                                                               vd_3rd_wed_of_qp)=false then
+                                                               vd_3rd_wed_of_qp)=true then
                         vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
                                                                                              cur_pcdi_rows.delivery_calender_id,
                                                                                              vd_3rd_wed_of_qp);
@@ -659,7 +659,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                     -- added Suresh for NPD
                         if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
                                                                cur_pcdi_rows.delivery_calender_id,
-                                                               vd_3rd_wed_of_qp)=false then
+                                                               vd_3rd_wed_of_qp)=true then
                         vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
                                                                                              cur_pcdi_rows.delivery_calender_id,
                                                                                              vd_3rd_wed_of_qp);
@@ -915,7 +915,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                       -- added Suresh for NPD
                         if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
                                                                cur_pcdi_rows.delivery_calender_id,
-                                                               vd_3rd_wed_of_qp)=false then
+                                                               vd_3rd_wed_of_qp)=true then
                         vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
                                                                                              cur_pcdi_rows.delivery_calender_id,
                                                                                              vd_3rd_wed_of_qp);
@@ -1297,7 +1297,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                     -- added Suresh for NPD
                         if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
                                                                cur_pcdi_rows.delivery_calender_id,
-                                                               vd_3rd_wed_of_qp)=false then
+                                                               vd_3rd_wed_of_qp)=true then
                         vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
                                                                                              cur_pcdi_rows.delivery_calender_id,
                                                                                              vd_3rd_wed_of_qp);
@@ -1488,7 +1488,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                     -- added Suresh for NPD
                         if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
                                                                cur_pcdi_rows.delivery_calender_id,
-                                                               vd_3rd_wed_of_qp)=false then
+                                                               vd_3rd_wed_of_qp)=true then
                         vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
                                                                                              cur_pcdi_rows.delivery_calender_id,
                                                                                              vd_3rd_wed_of_qp);
@@ -1677,7 +1677,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                     -- added Suresh for NPD
                         if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
                                                                cur_pcdi_rows.delivery_calender_id,
-                                                               vd_3rd_wed_of_qp)=false then
+                                                               vd_3rd_wed_of_qp)=true then
                         vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
                                                                                              cur_pcdi_rows.delivery_calender_id,
                                                                                              vd_3rd_wed_of_qp);
@@ -2397,7 +2397,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
             -- added Suresh for NPD
                         if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
                                                                cur_gmr_rows.delivery_calender_id,
-                                                               vd_3rd_wed_of_qp)=false then
+                                                               vd_3rd_wed_of_qp)=true then
                         vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
                                                                                              cur_gmr_rows.delivery_calender_id,
                                                                                              vd_3rd_wed_of_qp);
@@ -2643,7 +2643,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
              -- added Suresh for NPD
                         if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
                                                                cur_gmr_rows.delivery_calender_id,
-                                                               vd_3rd_wed_of_qp)=false then
+                                                               vd_3rd_wed_of_qp)=true then
                         vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
                                                                                              cur_gmr_rows.delivery_calender_id,
                                                                                              vd_3rd_wed_of_qp);
@@ -3579,12 +3579,12 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
              -- added Suresh for NPD
                         if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
                                                                cur_gmr_rows.delivery_calender_id,
-                                                               vd_3rd_wed_of_qp)=false then
+                                                               vd_3rd_wed_of_qp)=true then
                         vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
                                                                                              cur_gmr_rows.delivery_calender_id,
                                                                                              vd_3rd_wed_of_qp);
                        end if;
-                       -- End	
+                       -- End    
 
             ---- get the dr_id             
             begin
@@ -3837,7 +3837,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                -- added Suresh for NPD
                         if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
                                                                cur_gmr_rows.delivery_calender_id,
-                                                               vd_3rd_wed_of_qp)=false then
+                                                               vd_3rd_wed_of_qp)=true then
                         vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
                                                                                              cur_gmr_rows.delivery_calender_id,
                                                                                              vd_3rd_wed_of_qp);
@@ -4730,7 +4730,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                    -- added Suresh for NPD
                         if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
                                                                cur_pcdi_rows.delivery_calender_id,
-                                                               vd_3rd_wed_of_qp)=false then
+                                                               vd_3rd_wed_of_qp)=true then
                         vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
                                                                                              cur_pcdi_rows.delivery_calender_id,
                                                                                              vd_3rd_wed_of_qp);
@@ -4928,7 +4928,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                    -- added Suresh for NPD
                         if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
                                                                cur_pcdi_rows.delivery_calender_id,
-                                                               vd_3rd_wed_of_qp)=false then
+                                                               vd_3rd_wed_of_qp)=true then
                         vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
                                                                                              cur_pcdi_rows.delivery_calender_id,
                                                                                              vd_3rd_wed_of_qp);
@@ -5193,7 +5193,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                      -- added Suresh for NPD
                         if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
                                                                cur_pcdi_rows.delivery_calender_id,
-                                                               vd_3rd_wed_of_qp)=false then
+                                                               vd_3rd_wed_of_qp)=true then
                         vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
                                                                                              cur_pcdi_rows.delivery_calender_id,
                                                                                              vd_3rd_wed_of_qp);
@@ -5581,7 +5581,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                    -- added Suresh for NPD
                         if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
                                                                cur_pcdi_rows.delivery_calender_id,
-                                                               vd_3rd_wed_of_qp)=false then
+                                                               vd_3rd_wed_of_qp)=true then
                         vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
                                                                                              cur_pcdi_rows.delivery_calender_id,
                                                                                              vd_3rd_wed_of_qp);
@@ -5776,7 +5776,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                    -- added Suresh for NPD
                         if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
                                                                cur_pcdi_rows.delivery_calender_id,
-                                                               vd_3rd_wed_of_qp)=false then
+                                                               vd_3rd_wed_of_qp)=true then
                         vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
                                                                                              cur_pcdi_rows.delivery_calender_id,
                                                                                              vd_3rd_wed_of_qp);
@@ -5970,7 +5970,7 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
                    -- added Suresh for NPD
                         if pkg_cdc_pre_check_process.fn_is_npd(pc_corporate_id,
                                                                cur_pcdi_rows.delivery_calender_id,
-                                                               vd_3rd_wed_of_qp)=false then
+                                                               vd_3rd_wed_of_qp)=true then
                         vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
                                                                                              cur_pcdi_rows.delivery_calender_id,
                                                                                              vd_3rd_wed_of_qp);
@@ -6336,5 +6336,5 @@ create or replace package body "PKG_PHY_EOD_PRICE" is
       sp_insert_error_log(vobj_error_log);
       commit;
   end;
-end;
+end; 
 /
