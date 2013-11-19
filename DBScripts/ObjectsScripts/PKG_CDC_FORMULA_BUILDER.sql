@@ -17,6 +17,9 @@ create or replace package "PKG_CDC_FORMULA_BUILDER" is
 
   function f_is_day_holiday(pc_instrumentid in varchar2,
                             pc_trade_date   date) return boolean;
+  function f_is_pp_holiday(pc_instrumentid   in varchar2,
+                           pc_price_point_id in varchar2,
+                           pc_trade_date     date) return boolean;
   procedure sp_calculate_forumla(pobj_fb_setup                in fb_tbl_setup,
                                  pobj_fb_instrument_data      in fb_tbl_instrument_data,
                                  pc_fb_log_id                 out varchar2,
@@ -27,7 +30,7 @@ create or replace package "PKG_CDC_FORMULA_BUILDER" is
                                  pd_event_date                date,
                                  pn_event_before_days         number,
                                  pn_include_exclude_event     number,
-                                 pn_event_after_days          number,                                
+                                 pn_event_after_days          number,
                                  pc_is_event_process          varchar2);
 
   procedure sp_insert_fb_log(pobj_fb_tbl_log in fb_tbl_error);
@@ -115,6 +118,7 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
     pobj_out_fb_instrument_data := vlt_fb_instrument;
     pobj_out_fb_tbl_error       := vlt_fb_tbl_error;
     --call fb log data
+    dbms_output.put_line('vc_log_id ' || vc_log_id);
     sp_insert_fb_data(pobj_out_fb_setup,
                       pobj_out_fb_instrument_data,
                       vc_log_id);
@@ -166,7 +170,7 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
                          vlt_fb_tbl_error,
                          pd_event_date,
                          pn_event_before_days,
-                         pn_include_exclude_event,                         
+                         pn_include_exclude_event,
                          pn_event_after_days,
                          'Y');
     begin
@@ -252,6 +256,36 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
     return result_val;
   end f_is_day_holiday;
 
+  function f_is_pp_holiday(pc_instrumentid   in varchar2,
+                           pc_price_point_id in varchar2,
+                           pc_trade_date     date) return boolean is
+    pc_counter number(1);
+    result_val boolean;
+  begin
+    --Checking Price Point Holiday List
+    select count(*)
+      into pc_counter
+      from dual
+     where trim(pc_trade_date) in
+           (select trim(ppha.holiday_date)
+              from dim_der_instrument_master  dim,
+                   dip_der_instrument_pricing dip,
+                   ppha_pp_holiday_applicable ppha
+             where dim.instrument_id = pc_instrumentid
+               and dim.instrument_id = dip.instrument_id
+               and dip.is_pp_holiday_applicable = 'Y'
+               and dip.is_deleted = 'N'
+               and dip.instrument_pricing_id = ppha.instrument_pricing_id
+               and ppha.price_point_id = pc_price_point_id
+               and ppha.is_deleted = 'N');
+    if (pc_counter = 1) then
+      result_val := true;
+    else
+      result_val := false;
+    end if;
+    return result_val;
+  end f_is_pp_holiday;
+
   procedure sp_calculate_forumla(pobj_fb_setup                fb_tbl_setup,
                                  pobj_fb_instrument_data      fb_tbl_instrument_data,
                                  pc_fb_log_id                 out varchar2,
@@ -273,22 +307,30 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
              tt.formula_internal,
              tt.price_unit_id,
              tt.trade_date,
-             (case when pum1.price_unit_name is not null then
-                  pum1.price_unit_name
-                  else
-             pum.price_unit_name end)price_unit_name,
-             (case when pum1.price_unit_name is not null then
-                  pum1.cur_id
-                  else
-             pum.cur_id end)cur_id,
-             (case when pum1.price_unit_name is not null then
-                  pum1.weight
-                  else
-             pum.weight end)weight,
-             (case when pum1.price_unit_name is not null then
-                  pum1.weight_unit_id
-                  else
-             pum.weight_unit_id end)weight_unit_id
+             (case
+               when pum1.price_unit_name is not null then
+                pum1.price_unit_name
+               else
+                pum.price_unit_name
+             end) price_unit_name,
+             (case
+               when pum1.price_unit_name is not null then
+                pum1.cur_id
+               else
+                pum.cur_id
+             end) cur_id,
+             (case
+               when pum1.price_unit_name is not null then
+                pum1.weight
+               else
+                pum.weight
+             end) weight,
+             (case
+               when pum1.price_unit_name is not null then
+                pum1.weight_unit_id
+               else
+                pum.weight_unit_id
+             end) weight_unit_id
         from (select formula_id,
                      corporate_id,
                      formula_name,
@@ -305,7 +347,7 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
              v_ppu_pum pum,
              pum_price_unit_master pum1
        where tt.price_unit_id = pum.product_price_unit_id(+)
-       and tt.price_unit_id = pum1.price_unit_id(+);
+         and tt.price_unit_id = pum1.price_unit_id(+);
   
     cursor cur_instrument is
       select tt.fb_order_seq,
@@ -462,7 +504,8 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
     vc_formula_id               varchar(30);
     vc_inst_price_status_flag   varchar2(50);
     vc_final_price_status_flag  varchar2(20) := 'Final';
-    vc_setup_price_status_flag  varchar2(20) := 'Final';
+    --vc_setup_price_status_flag  varchar2(20) := 'Final';
+    vc_day_final_price_status   varchar2(20) := 'Final';    
     vc_final_qp_status_flag     varchar2(20) := 'Fixed';
     vc_inst_price_qp_status     varchar2(20);
     vc_calculated_dr_id         varchar2(15);
@@ -495,12 +538,14 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
     vc_record_error             varchar2(1) := 'N';
     vn_no_working_days          number;
     vc_is_event_process         varchar(1);
-    vd_event_Start_date         date;
+    vd_event_start_date         date;
     vd_event_end_date           date;
     vc_zero_flag                char(1);
     vn_dummy_price              number;
     vn_counter                  number;
-
+    vc_off_day_price            varchar(50);
+    vn_temp_day_price           number;
+    vc_inst_holiday_flag        varchar2(5);
   begin
     vobj_fb_tbl_setup   := fb_tbl_setup();
     vc_tbl_daywise      := tp_tbl_formula();
@@ -981,40 +1026,41 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
                   end if;
                 end if;
                 --- Added suresh start  
-                if pn_event_before_days=0 and pn_include_exclude_event=0 and pn_event_after_days=0  then
-                vc_zero_flag:='Y';
+                if pn_event_before_days = 0 and
+                   pn_include_exclude_event = 0 and pn_event_after_days = 0 then
+                  vc_zero_flag := 'Y';
                 else
-                vc_zero_flag:='N';
+                  vc_zero_flag := 'N';
                 end if;
-                                 
-                if vc_is_event_process = 'Y' and vc_zero_flag='N' then
-                  if pn_event_before_days=0 then
-                   vd_event_Start_date      := pd_event_date;
-                   else
-                  vd_event_Start_date      := pd_event_date-1;
+              
+                if vc_is_event_process = 'Y' and vc_zero_flag = 'N' then
+                  if pn_event_before_days = 0 then
+                    vd_event_start_date := pd_event_date;
+                  else
+                    vd_event_start_date := pd_event_date - 1;
                   end if;
                   vn_no_working_days := 0;
-                  
+                
                   --- satart Date
-                  
+                
                   while vn_no_working_days <> pn_event_before_days
                   loop
                   
                     if pkg_cdc_formula_builder.f_is_day_holiday(cur_instrument_rows.instrument_id,
-                                                                vd_event_Start_date) then
-                      vd_event_Start_date := vd_event_Start_date - 1;
+                                                                vd_event_start_date) then
+                      vd_event_start_date := vd_event_start_date - 1;
                     else
-                      vn_no_working_days := vn_no_working_days + 1;                     
+                      vn_no_working_days := vn_no_working_days + 1;
                       if vn_no_working_days <> pn_event_before_days then
-                        vd_event_Start_date := vd_event_Start_date - 1;
+                        vd_event_start_date := vd_event_start_date - 1;
                       end if;
                     end if;
                   end loop;
                   -- End date
-                  if pn_event_after_days=0 then
-                  vd_event_end_date:=pd_event_date;
+                  if pn_event_after_days = 0 then
+                    vd_event_end_date := pd_event_date;
                   else
-                  vd_event_end_date:=pd_event_date+1;
+                    vd_event_end_date := pd_event_date + 1;
                   end if;
                   vn_no_working_days := 0;
                   while vn_no_working_days <> pn_event_after_days
@@ -1023,14 +1069,14 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
                                                                 vd_event_end_date) then
                       vd_event_end_date := vd_event_end_date + 1;
                     else
-                      vn_no_working_days := vn_no_working_days + 1;                     
+                      vn_no_working_days := vn_no_working_days + 1;
                       if vn_no_working_days <> pn_event_after_days then
                         vd_event_end_date := vd_event_end_date + 1;
                       end if;
                     end if;
                   end loop;
-                  
-                  vd_start_date := vd_event_Start_date;
+                
+                  vd_start_date := vd_event_start_date;
                   vd_end_date   := vd_event_end_date;
                 end if;
                 ---- END
@@ -1047,6 +1093,9 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
               /*END OF PROMPT PERIOD TYPE. */
               if vc_inst_price_status_flag <> 'Error' then
                 --START OF Finding the firsr working day
+--                'Previous Day Repeat','Next Day Repeat','Last Day Repeat','Skip'
+
+                if cur_instrument_rows.off_day_price = 'Previous Day Repeat' then
                 while true
                 loop
                   if pkg_cdc_formula_builder.f_is_day_holiday(cur_instrument_rows.instrument_id,
@@ -1056,8 +1105,10 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
                     exit;
                   end if;
                 end loop;
+                end if;
                 vd_first_wkg_date := vd_start_date;
                 --finding the last working day
+               if cur_instrument_rows.off_day_price = 'Next Day Repeat' then
                 while true
                 loop
                   if pkg_cdc_formula_builder.f_is_day_holiday(cur_instrument_rows.instrument_id,
@@ -1067,6 +1118,7 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
                     exit;
                   end if;
                 end loop;
+                end if;
                 vd_last_wkg_date := vd_end_date;
                 /*PUTTING THE HOLIDAY STATUS,INSTRUMENT ID ... IN THE TYPE*/
                 vn_row := 1;
@@ -1087,8 +1139,35 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
                       vc_holiday := 'N';
                     end if;
                   end if;
-                  if vd_first_wkg_date = pd_event_date and pn_include_exclude_event=0 and
-                     vc_is_event_process = 'Y' and vc_zero_flag='N' then
+                  --Price Point holiday check added on 24 Oct 2013
+                  -- do not consider the date If specifed on price point holiday
+                  -- do not include it in avg no of days also If specifed on price point holiday
+                  -- reocord seperately the instrument is holiday or not in vc_inst_holiday_flag
+                  -- vc_inst_holiday_flag is used for daily avg calculation,
+                  -- vc_inst_holiday_flag stored in tp_tbl_formula exp_cur_id, -- TODO : new columns to be added in this ttpe and used..
+                  -- as of now exp_cur_id column used to store this flag, 
+                  -- 
+                  vc_inst_holiday_flag := vc_holiday;
+                  vc_off_day_price     := cur_instrument_rows.off_day_price;
+                  if cur_instrument_rows.price_point_id is not null then
+                    if cur_instrument_rows.instrument_type = 'Average' then
+                      vc_instrument_id := cur_instrument_rows.underlying_instrument_id;
+                    else
+                      vc_instrument_id := cur_instrument_rows.instrument_id;
+                    end if;
+                    if vc_holiday <> 'Y' then
+                      if pkg_cdc_formula_builder.f_is_pp_holiday(cur_instrument_rows.instrument_id,
+                                                                 cur_instrument_rows.price_point_id,
+                                                                 vd_first_wkg_date) then
+                        vc_holiday       := 'Y';
+                        vc_off_day_price := 'Skip';
+                      end if;
+                    end if;
+                  end if;
+                  --Price Point holiday check end on 24 Oct 2013
+                  if vd_first_wkg_date = pd_event_date and
+                     pn_include_exclude_event = 0 and
+                     vc_is_event_process = 'Y' and vc_zero_flag = 'N' then
                     null;
                   else
                     vc_tbl.extend;
@@ -1099,14 +1178,14 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
                                                      null,
                                                      null,
                                                      null,
-                                                     cur_instrument_rows.off_day_price,
+                                                     vc_off_day_price,
                                                      null,
                                                      null,
                                                      null,
                                                      null,
                                                      null,
                                                      null,
-                                                     null);
+                                                     vc_inst_holiday_flag);
                     vn_row := vn_row + 1;
                   end if;
                   vd_first_wkg_date := vd_first_wkg_date + 1;
@@ -1121,6 +1200,7 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
                   begin
                     if cur_instrument_rows.instrument_type = 'Average' then
                       vc_instrument_name := cur_instrument_rows.underlying_instrument_name;
+                      vc_instrument_id   := cur_instrument_rows.underlying_instrument_id;
                       select drm.dr_id
                         into vc_calculated_dr_id
                         from drm_derivative_master drm
@@ -1131,6 +1211,7 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
                          and drm.is_deleted = 'N';
                     else
                       vc_instrument_name := cur_instrument_rows.instrument_name;
+                      vc_instrument_id   := cur_instrument_rows.instrument_id;
                       select drm.dr_id
                         into vc_calculated_dr_id
                         from drm_derivative_master drm
@@ -1473,14 +1554,16 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
                                                                       'CDC-003',
                                                                       vc_instrument_name || ', ' ||
                                                                       vc_drid_name ||
-                                                                       ', Price Source: ' ||
-                                                                       cur_instrument_rows.price_source_name || ',' ||
-                                                                       ' Current Quotes available for Date: ' ||
-                                                                       to_char(vc_tbl(i)
-                                                                      .vd_avl_price_date,'dd-Mon-YYYY') || ',' ||
-                                                                       ' Required Quotes for Date: ' ||
-                                                                       to_char(vc_tbl(i)
-                                                                      .tradedate,'dd-Mon-YYYY'),
+                                                                      ', Price Source: ' ||
+                                                                      cur_instrument_rows.price_source_name || ',' ||
+                                                                      ' Current Quotes available for Date: ' ||
+                                                                      to_char(vc_tbl(i)
+                                                                              .vd_avl_price_date,
+                                                                              'dd-Mon-YYYY') || ',' ||
+                                                                      ' Required Quotes for Date: ' ||
+                                                                      to_char(vc_tbl(i)
+                                                                              .tradedate,
+                                                                              'dd-Mon-YYYY'),
                                                                       'Q1',
                                                                       null,
                                                                       sysdate,
@@ -1504,12 +1587,13 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
                                                                         'procedure sp_calculate_formula_price',
                                                                         'CDC-003',
                                                                         vc_instrument_name || ', ' ||
-                                                                         vc_drid_name ||
-                                                                         ', Price Source: ' ||
-                                                                         cur_instrument_rows.price_source_name || ',' ||
-                                                                         ' Required Quotes for Date: ' ||
-                                                                         to_char(vc_tbl(i)
-                                                                        .tradedate,'dd-Mon-YYYY'),
+                                                                        vc_drid_name ||
+                                                                        ', Price Source: ' ||
+                                                                        cur_instrument_rows.price_source_name || ',' ||
+                                                                        ' Required Quotes for Date: ' ||
+                                                                        to_char(vc_tbl(i)
+                                                                                .tradedate,
+                                                                                'dd-Mon-YYYY'),
                                                                         'Q2',
                                                                         null,
                                                                         sysdate,
@@ -1535,12 +1619,13 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
                                                                         'procedure sp_calculate_formula_price',
                                                                         'CDC-003',
                                                                         vc_instrument_name || ', ' ||
-                                                                         vc_drid_name ||
-                                                                         ', Price Source: ' ||
-                                                                         cur_instrument_rows.price_source_name || ',' ||
-                                                                         ' Required Quotes for Date: ' ||
-                                                                         to_char(vc_tbl(i)
-                                                                        .tradedate,'dd-Mon-YYYY'),
+                                                                        vc_drid_name ||
+                                                                        ', Price Source: ' ||
+                                                                        cur_instrument_rows.price_source_name || ',' ||
+                                                                        ' Required Quotes for Date: ' ||
+                                                                        to_char(vc_tbl(i)
+                                                                                .tradedate,
+                                                                                'dd-Mon-YYYY'),
                                                                         'Q3',
                                                                         null,
                                                                         sysdate,
@@ -1627,15 +1712,17 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
                                                                       'procedure sp_calculate_formula_price',
                                                                       'CDC-003',
                                                                       vc_instrument_name || ', ' ||
-                                                                       vc_drid_name ||
-                                                                       ', Price Source: ' ||
-                                                                       cur_instrument_rows.price_source_name || ',' ||
-                                                                       ' Current Quotes available for Date: ' ||
-                                                                       to_char(vc_tbl(i)
-                                                                      .vd_avl_price_date,'dd-Mon-YYYY') || ',' ||
-                                                                       ' Required Quotes for Date: ' ||
-                                                                       to_char(vc_tbl(i)
-                                                                      .tradedate,'dd-Mon-YYYY'),
+                                                                      vc_drid_name ||
+                                                                      ', Price Source: ' ||
+                                                                      cur_instrument_rows.price_source_name || ',' ||
+                                                                      ' Current Quotes available for Date: ' ||
+                                                                      to_char(vc_tbl(i)
+                                                                              .vd_avl_price_date,
+                                                                              'dd-Mon-YYYY') || ',' ||
+                                                                      ' Required Quotes for Date: ' ||
+                                                                      to_char(vc_tbl(i)
+                                                                              .tradedate,
+                                                                              'dd-Mon-YYYY'),
                                                                       'Q1',
                                                                       null,
                                                                       sysdate,
@@ -1702,7 +1789,7 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
                                                                           ', Price Source: ' ||
                                                                           cur_instrument_rows.price_source_name || ',' ||
                                                                           ' Required Quotes for Date: ' ||
-                                                                           vc_price_date_display,
+                                                                          vc_price_date_display,
                                                                           'Q2',
                                                                           null,
                                                                           sysdate,
@@ -1716,7 +1803,6 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
                         vc_tbl(i).price_unit_id := null;
                         vc_tbl(i).vd_avl_price_date := null;
                       when others then
-                      
                         if cur_instrument_rows.off_day_price = 'Skip' then
                           if (vc_tbl(i).tradedate <=
                               cur_instrument_rows.period_to_date and
@@ -1834,15 +1920,17 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
                                                                       'procedure sp_calculate_formula_price',
                                                                       'CDC-003',
                                                                       vc_instrument_name || ', ' ||
-                                                                       vc_drid_name ||
-                                                                       ', Price Source: ' ||
-                                                                       cur_instrument_rows.price_source_name || ',' ||
-                                                                       ' Current Quotes available for Date: ' ||
-                                                                       to_char(vc_tbl(i)
-                                                                      .vd_avl_price_date,'dd-Mon-YYYY') || ',' ||
-                                                                       ' Required Quotes for Date: ' ||
-                                                                       to_char(vc_tbl(i)
-                                                                      .tradedate,'dd-Mon-YYYY'),
+                                                                      vc_drid_name ||
+                                                                      ', Price Source: ' ||
+                                                                      cur_instrument_rows.price_source_name || ',' ||
+                                                                      ' Current Quotes available for Date: ' ||
+                                                                      to_char(vc_tbl(i)
+                                                                              .vd_avl_price_date,
+                                                                              'dd-Mon-YYYY') || ',' ||
+                                                                      ' Required Quotes for Date: ' ||
+                                                                      to_char(vc_tbl(i)
+                                                                              .tradedate,
+                                                                              'dd-Mon-YYYY'),
                                                                       'Q1',
                                                                       null,
                                                                       sysdate,
@@ -1865,12 +1953,13 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
                                                                         'procedure sp_calculate_formula_price',
                                                                         'CDC-003',
                                                                         vc_instrument_name || ', ' ||
-                                                                         vc_drid_name ||
-                                                                         ', Price Source: ' ||
-                                                                         cur_instrument_rows.price_source_name || ',' ||
-                                                                         ' Required Quotes for Date: ' ||
-                                                                         to_char(vc_tbl(i)
-                                                                        .tradedate,'dd-Mon-YYYY'),
+                                                                        vc_drid_name ||
+                                                                        ', Price Source: ' ||
+                                                                        cur_instrument_rows.price_source_name || ',' ||
+                                                                        ' Required Quotes for Date: ' ||
+                                                                        to_char(vc_tbl(i)
+                                                                                .tradedate,
+                                                                                'dd-Mon-YYYY'),
                                                                         'Q2',
                                                                         null,
                                                                         sysdate,
@@ -1894,12 +1983,13 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
                                                                         'procedure sp_calculate_formula_price',
                                                                         'CDC-003',
                                                                         vc_instrument_name || ', ' ||
-                                                                         vc_drid_name ||
-                                                                         ', Price Source: ' ||
-                                                                         cur_instrument_rows.price_source_name || ',' ||
-                                                                         ' Required Quotes for Date: ' ||
-                                                                         to_char(vc_tbl(i)
-                                                                        .tradedate,'dd-Mon-YYYY'),
+                                                                        vc_drid_name ||
+                                                                        ', Price Source: ' ||
+                                                                        cur_instrument_rows.price_source_name || ',' ||
+                                                                        ' Required Quotes for Date: ' ||
+                                                                        to_char(vc_tbl(i)
+                                                                                .tradedate,
+                                                                                'dd-Mon-YYYY'),
                                                                         'Q3',
                                                                         null,
                                                                         sysdate,
@@ -1944,28 +2034,30 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
                   end loop;
                   /*PRICE FOR SKIP REPEAT                    */
                 elsif cur_instrument_rows.off_day_price = 'Skip' then
-                 vn_dummy_price:=0;
-                 vn_counter:=1;
+                  vn_dummy_price := 0;
+                  vn_counter     := 1;
                   for i in vc_tbl.first .. vc_tbl.last
                   loop
-                  if vc_tbl(i).isholiday = 'Y'  and vc_tbl(i).tradedate=pd_event_date then
-                   
-                  while vn_dummy_price = 0
-                  loop           
-                   vc_tbl(i).drid := vc_tbl(i - vn_counter).drid;
-                   vc_tbl(i).price := vc_tbl(i - vn_counter).price;
-                   vc_tbl(i).price_unit_id := vc_tbl(i - vn_counter)
-                                                .price_unit_id;
-                   vc_tbl(i).vd_avl_price_date := vc_tbl(i - vn_counter)
-                                                    .vd_avl_price_date;   
-                    vn_dummy_price:=  vc_tbl(i - vn_counter).price;
-                    if    vn_dummy_price is null then
-                    vn_dummy_price:=0;
-                    end if; 
-                    vn_counter:=vn_counter+1;                                                    
-                    end loop;                            
-                   
-                    elsif vc_tbl(i).isholiday = 'Y'  then
+                    if vc_tbl(i).isholiday = 'Y' and vc_tbl(i)
+                    .tradedate = pd_event_date then
+                    
+                      while vn_dummy_price = 0
+                      loop
+                        vc_tbl(i).drid := vc_tbl(i - vn_counter).drid;
+                        vc_tbl(i).price := vc_tbl(i - vn_counter).price;
+                        vc_tbl(i).price_unit_id := vc_tbl(i - vn_counter)
+                                                  .price_unit_id;
+                        vc_tbl(i).vd_avl_price_date := vc_tbl(i -
+                                                              vn_counter)
+                                                      .vd_avl_price_date;
+                        vn_dummy_price := vc_tbl(i - vn_counter).price;
+                        if vn_dummy_price is null then
+                          vn_dummy_price := 0;
+                        end if;
+                        vn_counter := vn_counter + 1;
+                      end loop;
+                    
+                    elsif vc_tbl(i).isholiday = 'Y' then
                       vc_tbl(i).drid := vc_tbl(1).drid;
                       vc_tbl(i).price := null;
                       vc_tbl(i).price_unit_id := vc_tbl(1).price_unit_id;
@@ -2007,19 +2099,6 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
                     end if;
                   end loop;
                 end if;
-                /*DISPLAYING THE TYPE*/
-                /*for i in vc_tbl.first .. vc_tbl.last
-                loop
-                  if vc_tbl(i).tradedate is not null then
-                    dbms_output.put_line(vc_tbl(i)
-                                         .tradedate || ' ,' || vc_tbl(i)
-                                         .instrumentid || ' ,' || vc_tbl(i).isholiday || ' , ' || vc_tbl(i)
-                                         .drid || ' ,' || vc_tbl(i)
-                                         .price || ', price date := ' ||
-                                         vc_tbl(i).vd_avl_price_date);
-                  end if;
-                end loop;*/
-                --while loop removed by siva on 30Mar2011, as it's not required to repeat
                 for i in vc_tbl.first .. vc_tbl.last
                 loop
                   if vc_tbl(i).tradedate >= vd_qp_start_date and vc_tbl(i)
@@ -2125,18 +2204,6 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
                   vn_row := vn_row + 1;
                 end if;
               end loop;
-              /*DISPLAYING THE TYPE*/
-              /*dbms_output.put_line('test output data');
-              for i in vc_tbl_out.first .. vc_tbl_out.last
-              loop
-                  dbms_output.put_line(vc_tbl_out(i).tradedate || ' ,' ||
-                                       vc_tbl_out(i).instrumentid || ' ,' ||
-                                       vc_tbl_out(i).isholiday || ' , ' ||
-                                       vc_tbl_out(i).drid || ' ,' ||
-                                       vc_tbl_out(i).price ||
-                                       ', price date := ' || vc_tbl_out(i).vd_avl_price_date);
-              
-              end loop;*/
               if vc_inst_basis_price_unit_id is null then
                 vc_inst_basis_price_unit_id := vc_instrument_price_unit_id;
               end if;
@@ -2210,9 +2277,11 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
           vc_final_qp_status_flag := vc_inst_tbl(i).price_qp_status;
         end if;
       end loop;
+    -- dbms_output.put_line('vc_final_price_status_flag start '|| vc_final_price_status_flag);      
       /*for displaying the price in day wise of the formula*/
       /* calculating the formula for the per day  wise
       calculating the price for the each day of the  instrument*/
+      vn_temp_day_price := null;
       begin
         for i in vc_inst_tbl(1).v_tbl_formula.first .. vc_inst_tbl(1)
                                                       .v_tbl_formula.last
@@ -2221,57 +2290,57 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
           vc_formula_exe := vc_formula;
           for vn_inst_total in 1 .. vc_inst_tbl.last
           loop
+            --    dbms_output.put_line('Day wise start 0 : '|| vc_formula_exe);
             vn_srt_psn := instr(vc_formula_exe, '$', 1);
             vn_end_psn := instr(vc_formula_exe, '$', 1, 2);
+            --  dbms_output.put_line('Day wise start 1 : '|| vc_formula_exe);
             if vn_srt_psn > 0 then
-              vc_formula_exe := substr(vc_formula_exe, 1, vn_srt_psn - 1) ||
-                                nvl(vc_inst_tbl(vn_inst_total)
-                                    .v_tbl_formula(i).price,
-                                    0) ||
-                                substr(vc_formula_exe, vn_end_psn + 1);
-            
+              if vc_inst_tbl(vn_inst_total).v_tbl_formula(i)
+              .price is null or vc_inst_tbl(vn_inst_total)
+              .v_tbl_formula(i).price = '' then
+                vn_temp_day_price := null;
+              else
+                vn_temp_day_price := vc_inst_tbl(vn_inst_total)
+                                    .v_tbl_formula(i).price;
+              end if;
+              if vn_temp_day_price is null then
+                vc_formula_exe := substr(vc_formula_exe, 1, vn_srt_psn - 1) ||
+                                  'null' ||
+                                  substr(vc_formula_exe, vn_end_psn + 1);
+              else
+                vc_formula_exe := substr(vc_formula_exe, 1, vn_srt_psn - 1) ||
+                                  vn_temp_day_price ||
+                                  substr(vc_formula_exe, vn_end_psn + 1);
+              end if;
             end if;
-            dbms_output.put_line(vc_formula_exe);
-            if vc_inst_tbl(vn_inst_total).v_tbl_formula(i)
-          .vd_avl_price_date = vc_inst_tbl(vn_inst_total).v_tbl_formula(i).tradedate then
-            vc_final_price_status_flag := 'Final';
-          else
-            vc_final_price_status_flag := 'Provisional';
-          end if;
-           dbms_output.put_line('vc_final_price_status_flag '|| vc_final_price_status_flag);
-          if vc_inst_tbl(vn_inst_total).v_tbl_formula(i).isholiday = 'N' then
-            if vc_setup_price_status_flag <> 'Provisional' then
-              vc_setup_price_status_flag := vc_final_price_status_flag;
-            end if;
-          end if;
+            --  dbms_output.put_line(vc_formula_exe);
+              if vc_inst_tbl(vn_inst_total).v_tbl_formula(i).vd_avl_price_date = vc_inst_tbl(vn_inst_total).v_tbl_formula(i).tradedate then
+                 if vc_inst_tbl(vn_inst_total).v_tbl_formula(i).isholiday = 'N' then
+                    if vc_day_final_price_status <> 'Provisional' then
+                      vc_day_final_price_status := 'Final';
+                    end if;
+                  end if;
+              else
+                if vc_inst_tbl(vn_inst_total).v_tbl_formula(i).isholiday = 'N' then
+                  if vc_day_final_price_status <> 'Provisional' then
+                    vc_day_final_price_status := 'Provisional';
+                  end if;
+                end if;
+              end if;
+          --   dbms_output.put_line('vc_day_final_price_status '|| vc_day_final_price_status);          
           end loop;
-          vn_daywise_price := fn_execute_internal_formula(vc_formula_exe);
-          /*          dbms_output.put_line('The Day    ' || i ||
-                                         '  formula operation is :- ' ||
-                                         vc_formula_exe || ' and its  value is :- ' ||
-                                         vn_daywise_price);
-          -- setting the day wise price into the formula_daywise type   */
-        
-          /*if vc_inst_tbl(1).v_tbl_formula(i)
-          .vd_avl_price_date = vc_inst_tbl(1).v_tbl_formula(i).tradedate then
-            vc_final_price_status_flag := 'Final';
+          --    dbms_output.put_line('Day wise : ' || vc_formula_exe);
+          if vc_inst_tbl(1).v_tbl_formula(i)
+          .exp_cur_id = 'Y' and vc_inst_tbl(1).off_day_price = 'Skip' then
+            vn_daywise_price := 0;
           else
-            vc_final_price_status_flag := 'Provisional';
+            vn_daywise_price := fn_execute_internal_formula(vc_formula_exe);
           end if;
-          if vc_inst_tbl(1).v_tbl_formula(i).isholiday = 'N' then
-            if vc_setup_price_status_flag <> 'Provisional' then
-              vc_setup_price_status_flag := vc_final_price_status_flag;
-            end if;
-          end if;*/
-          /* dbms_output.put_line('Trade Date   '||vc_inst_tbl(1) .v_tbl_formula(i).tradedate        
-           ||'  Available Price date   '||vc_inst_tbl(1) .v_tbl_formula(i).vd_avl_price_date
-          || '  Price is  '||vn_daywise_price
-          ||'Is holiday  '||vc_inst_tbl(1) .v_tbl_formula(i).isholiday ||  'vc_final_price_status_flag'|| vc_final_price_status_flag);*/
           vc_tbl_daywise(i) := tp_obj_formula(vc_inst_tbl(1)
                                               .v_tbl_formula(i).tradedate,
                                               null,
                                               vc_inst_tbl(1)
-                                              .v_tbl_formula(i).isholiday,
+                                              .v_tbl_formula(i).exp_cur_id, -- .isholiday, --siva: exp_cur_id column used to store the instrument level hoilday or not 
                                               null,
                                               vn_daywise_price, --price
                                               null,
@@ -2283,7 +2352,7 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
                                               .v_tbl_formula(i).price_unit_id,
                                               vc_inst_tbl(1)
                                               .v_tbl_formula(i).avg_fx_rate,
-                                              vc_final_price_status_flag,
+                                              vc_day_final_price_status,
                                               null,
                                               null,
                                               null,
@@ -2310,30 +2379,12 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
         end if;
       end loop;
       -- dbms_output.put_line('The fx formula is       ' || vc_fx_formula);
-      /* --to update the final fb_price_status and fb_price_qp_status
-      for i in vc_inst_tbl.first .. vc_inst_tbl.last
-      loop
-        if vc_final_price_status_flag <> 'Error' then
-          if vc_final_price_status_flag <> 'Provisional' then
-            vc_final_price_status_flag := vc_inst_tbl(i).price_status;
-          end if;
-        end if;
-        if vc_final_qp_status_flag <> 'Not Fixed' then
-          vc_final_qp_status_flag := vc_inst_tbl(i).price_qp_status;
-        end if;
-      end loop;*/
       --Runing the average price formula.
       if vc_final_price_status_flag <> 'Error' then
         begin
-          --vc_sql_temp := 'select  ( ' || vc_formula || ' )  from dual';
-          --        dbms_output.put_line('vc_sql_temp ' || vc_sql_temp);
-          -- execute immediate vc_sql_temp   into vn_average;
           vc_sql_temp := vc_formula;
-          vn_average  := fn_execute_internal_formula(vc_sql_temp);
-          /*dbms_output.put_line(' The  formula is  -- ' || vc_sql_temp ||
-          ' aand  the value for the instrumet in the month wise is ---  ' ||
-          vn_average);*/
-        
+          --dbms_output.put_line(' Final formula is ' || vc_sql_temp);
+          vn_average := fn_execute_internal_formula(vc_sql_temp);
         exception
           when others then
             vn_average := -1;
@@ -2356,7 +2407,7 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
       --updating t he object type.
       vobj_fb_tbl_setup(1).fb_price := vn_average;
       vobj_fb_tbl_setup(1).fb_price_log_id := vn_fb_log_id;
-      vobj_fb_tbl_setup(1).fb_price_staus := vc_setup_price_status_flag;
+      vobj_fb_tbl_setup(1).fb_price_staus := vc_final_price_status_flag;-- vc_final_price_status_flag variable
       vobj_fb_tbl_setup(1).fb_price_qp_status := vc_final_qp_status_flag;
       -- vc_inst_tbl(1).inst_avg_fx_rate := vn_fx_avg; --Storing the fx avg price.
     else
@@ -2367,7 +2418,7 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
       vobj_fb_tbl_setup(1).fb_price_qp_status := 'Not Fixed';
     end if;
     sp_insert_fb_log(vobj_fb_log);
-    /*dbms_output.put_line('Error log has ' || vobj_fb_log.count);*/
+    -- dbms_output.put_line('Error log has ' || vobj_fb_log.count);*/
     pc_fb_log_id      := vn_fb_log_id;
     pobj_out_fb_setup := fb_tbl_setup();
     pobj_out_fb_setup.extend;
@@ -2639,7 +2690,7 @@ create or replace package body "PKG_CDC_FORMULA_BUILDER" is
              pum_price_unit_master      pum1,
              pum_price_unit_master      pum2
        where /*ppu1.product_id = ppu2.product_id
-                                                                                                                                                                                                                                             and */
+                                                                                                                                                                                                                                                         and */
        ppu1.price_unit_id = p_from_price_unit_id
        and ppu2.price_unit_id = p_to_price_unit_id
        and pum1.price_unit_id(+) = ppu1.price_unit_id
