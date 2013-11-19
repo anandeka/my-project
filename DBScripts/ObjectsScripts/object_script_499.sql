@@ -1,0 +1,1 @@
+ALTER TABLE hph_holiday_pricing_header ADD (corporate_id VARCHAR(15),change_Type VARCHAR(15) );
