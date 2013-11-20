@@ -1,9 +1,9 @@
 create or replace view v_rpt_contract_vs_delivered as
 ---this view used in contracted vs delivered report
 with deductible_value as
-(select * from v_rpt_assay_deductible),
+(select  /*+ MATERIALIZE */  * from v_rpt_assay_deductible),
 pricing_assay_value as 
-(select * from v_rpt_pricing_assay pav)
+(select  /*+ MATERIALIZE */  * from v_rpt_pricing_assay pav)
 select 'Actual' section,
        akc.corporate_id,
        akc.corporate_name,
@@ -351,12 +351,12 @@ select 'Expected' section,
        round(sum(round((round(grd.qty, 4) -
                        (round(grd.qty, 4) * nvl(sded.deductibile_ratio, 0))) *
                        ucm_con.multiplication_factor,
-                       4) * (case
+                       4) * round(pqca.typical, 8)/*(case
                                when rm.ratio_name = '%' then
                                 round(pqca.typical, 8) / 100
                                else
                                 round(pqca.typical, 8)
-                             end)) /
+                             end)*/) /
              sum(round((round(grd.qty, 4) -
                        (round(grd.qty, 4) * nvl(sded.deductibile_ratio, 0))) *
                        ucm_con.multiplication_factor,
