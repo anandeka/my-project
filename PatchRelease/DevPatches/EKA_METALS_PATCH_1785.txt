@@ -1,0 +1,48 @@
+Patch No *              	:  EKA_METALS_PATCH_1785
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+
+Created on*        		:  21-Nov-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  89678
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+
+Revision: 150762
+Author: suresh.gottipati
+Date: 5:27:28 PM, Thursday, November 21, 2013
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyArrivalReport_Elements.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFeedConsumptionReport_Elements.rpt
+
+
+
