@@ -1,0 +1,66 @@
+Patch No *              	:  EKA_METALS_PATCH_1784
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Varaprasad
+
+Created on*        		:  21-Nov-2013
+
+Bug / Enhancement*		:  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 150708
+Author: varaprasad.b
+Date: 12:30:07, 21 November 2013
+Message:
+Bug #88728 fix.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/fn_get_supplier_representative.sql
+
+---------------------------------------------------------------------------------------------------
+
+Revision: 150712
+Author: varaprasad.b
+Date: 12:42:51, 21 November 2013
+Message:
+Bug #88728 fix.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_500.sql
+
+----------------------------------------------------------------------------------------------------
+
+Revision: 150715
+Author: varaprasad.b
+Date: 12:46:43, 21 November 2013
+Message:
+Bug #88728 fix.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_662.sql
+
+
+
