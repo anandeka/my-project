@@ -15,7 +15,11 @@ select t.corporate_id,
        sum(t.price_fixed_quantity)+sum(t.net_derivative_quantity) net_risk_quantity,
        --Bug 63346 fix end
        t.base_qty_unit_id,
-       t.base_qty_unit
+       t.base_qty_unit,
+       -- below columns should not used for any purpose, added due the spread risk dashbaord code refered these columns
+       null QUOTES_UNIT,
+       null BASE_CUR_ID,
+       null BASE_CUR_CODE
   from (select vph.corporate_id,
                vph.product_id,
                vph.productname product_name,
@@ -100,5 +104,5 @@ select t.corporate_id,
           t.instrument_id,
           t.instrument_name,
           t.base_qty_unit_id,
-          t.base_qty_unit 
+          t.base_qty_unit
 /

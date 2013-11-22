@@ -1,4 +1,4 @@
-create or replace view v_spread_report as 
+create or replace view v_spread_report as
 select corporate_id,
        instrument_id,
        instrument_name,
@@ -38,10 +38,10 @@ select corporate_id,
                f_get_quote_cash_3m(corporate_id,
                                    nine_days.work_day,
                                    third_wed.instrument_id,
-                                   'PP-9') date_cash,
+                                   'PP-112') date_cash,
                f_get_quote_cash_3m(corporate_id,nine_days.work_day,
                                    third_wed.instrument_id,
-                                   'PP-8') date_3m,
+                                   'PP-113') date_3m,
                f_get_quote_3rd_wed(corporate_id,month_1_date,
                                    nine_days.work_day,
                                    third_wed.instrument_id) month_1_quote,
@@ -166,4 +166,5 @@ select corporate_id,
                   and akc.corporate_id <> 'EKA-SYS'
                    ) third_wed,
                v_cdc_instrument_days nine_days
-         where third_wed.instrument_id = nine_days.instrument_id) ttt;
+         where third_wed.instrument_id = nine_days.instrument_id) ttt
+
