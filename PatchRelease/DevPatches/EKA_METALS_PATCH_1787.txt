@@ -1,0 +1,46 @@
+Patch No *              	:  EKA_METALS_PATCH_1787
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+
+Created on*        		:  22-Nov-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  89808,89807
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 150951
+Author: suresh.gottipati
+Date: 6:58:13 PM, Friday, November 22, 2013
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyTCRCOtherChargesDetailed.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyTCRCOtherChargesSummary.rpt
+
+
