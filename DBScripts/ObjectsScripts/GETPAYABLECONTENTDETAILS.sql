@@ -94,13 +94,13 @@ IS
             for pc_quality_rec in cr_pc_quality
             loop
                 
-                 PC_DETAILS:= PC_DETAILS ||''|| pc_quality_rec.quality_name ||chr(10000);    
+                 PC_DETAILS:= PC_DETAILS ||''|| pc_quality_rec.quality_name ||chr(10);    
             
                  for pc_rec in cr_pc
                  loop
                     
                     if (pc_quality_rec.quality_name = pc_rec.quality_name) then 
-                        PC_DETAILS:= PC_DETAILS ||''|| pc_rec.payable_content ||' '|| chr(10000);
+                        PC_DETAILS:= PC_DETAILS ||''|| pc_rec.payable_content ||' '|| chr(10);
                     end if;
                     
                  end loop;
