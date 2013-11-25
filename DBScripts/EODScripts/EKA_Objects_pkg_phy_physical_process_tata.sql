@@ -1,5 +1,5 @@
 create or replace package pkg_phy_physical_process is
-
+----pkg_phy_physical_process for tata specific
   gvc_previous_process_id varchar2(15);
 
   gvc_dbd_id varchar2(15);
@@ -55,7 +55,7 @@ create or replace package pkg_phy_physical_process is
 end; 
 /
 create or replace package body pkg_phy_physical_process is
-
+-- pkg_phy_physical_process for tata specific.....
   procedure sp_process_run(pc_corporate_id varchar2,
                            pd_trade_date   date,
                            pc_process_id   varchar2,
@@ -698,7 +698,7 @@ create or replace package body pkg_phy_physical_process is
       commit;
     
       --- tolling start                                                                
-      if pkg_process_status.sp_get(pc_corporate_id,
+     /* if pkg_process_status.sp_get(pc_corporate_id,
                                    pc_process,
                                    pd_trade_date) = 'Cancel' then
         goto cancel_process;
@@ -736,8 +736,18 @@ create or replace package body pkg_phy_physical_process is
                                                                     pc_process_id,
                                                                     pc_user_id,
                                                                     pc_process,
-                                                                    gvc_previous_process_id);
+                                                                    gvc_previous_process_id,
+                                                                    pc_dbd_id);
       commit;
+
+     pkg_phy_tolling_unrealized_pnl.sp_stok_unreal_ext_inv_in_conc(pc_corporate_id,
+                                                                   pd_trade_date,                                                                   
+                                                                   pc_process_id,
+                                                                   pc_user_id,
+                                                                   pc_process,
+                                                                   gvc_previous_process_id,
+                                                                   pc_dbd_id);
+*/
       -- tolling end             
       if pkg_process_status.sp_get(pc_corporate_id,
                                    pc_process,
@@ -3743,7 +3753,7 @@ commit;
     delete from isr2_isr_invoice where process_id = pc_process_id;
     delete from pcs_purchase_contract_status
     where process_id = pc_process_id;
-	delete from css_contract_status_summary
+    delete from css_contract_status_summary
     where process_id = pc_process_id;
     delete from csfm_cont_status_free_metal
     where process_id = pc_process_id;
