@@ -1,0 +1,44 @@
+Patch No *              	:  EKA_METALS_PATCH_1790
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar Reddy
+
+Created on*        		:  25-Nov-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  89366
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physical
+
+Sub-Module  			 :  Contract O/p doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 151047
+Author: rajeshwar.reddy
+Date: 17:27:58, 25 November 2013
+Message:
+bug fix:89366
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETPAYABLECONTENTDETAILS.sql
+
