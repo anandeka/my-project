@@ -28037,14 +28037,47 @@ for cc in(
       from gds_gmr_delta_status t
      where t.process_id = pc_process_id) loop
     update process_gmr gmr
-       set gmr.is_assay_updated_mtd    = cc.is_assay_updated_mtd,
-           gmr.is_assay_updated_ytd    = cc.is_assay_updated_ytd,
-           gmr.is_assay_updated_mtd_ar = cc.is_assay_updated_mtd_ar,
-           gmr.is_assay_updated_ytd_ar = cc.is_assay_updated_ytd_ar
+       set gmr.is_assay_updated_mtd    = case when gmr.is_assay_updated_mtd = 'N' then cc.is_assay_updated_mtd else gmr.is_assay_updated_mtd end,
+           gmr.is_assay_updated_ytd    = case when gmr.is_assay_updated_ytd = 'N' then cc.is_assay_updated_ytd else gmr.is_assay_updated_ytd end,
+           gmr.is_assay_updated_mtd_ar = case when gmr.is_assay_updated_mtd_ar = 'N' then cc.is_assay_updated_mtd_ar else gmr.is_assay_updated_mtd_ar end,
+           gmr.is_assay_updated_ytd_ar = case when gmr.is_assay_updated_ytd_ar = 'N' then cc.is_assay_updated_ytd_ar else gmr.is_assay_updated_ytd_ar end
      where gmr.process_id = pc_process_id
        and gmr.internal_gmr_ref_no = cc.internal_gmr_ref_no;
 end loop;
 commit;
+--- added suresh
+for cc in (select gmr1.internal_gmr_ref_no,
+                    gmr1.is_assay_updated_mtd_ar,
+                    gmr1.is_assay_updated_ytd_ar,
+                    gmr1.is_assay_updated_mtd,
+                    gmr1.is_assay_updated_ytd,
+                    gmr1.is_tc_changed_mtd,
+                    gmr1.is_pc_changed_mtd,
+                    gmr1.is_rc_changed_mtd,
+                    gmr1.is_tc_changed_ytd,
+                    gmr1.is_pc_changed_ytd,
+                    gmr1.is_rc_changed_ytd
+               from process_gmr gmr1
+              where gmr1.corporate_id = pc_corporate_id
+                and gmr1.process_id = pc_process_id
+                and gmr1.is_deleted = 'N')
+  loop
+    update gmr_goods_movement_record gmr
+       set gmr.is_assay_updated_mtd_ar = cc.is_assay_updated_mtd_ar,
+           gmr.is_assay_updated_ytd_ar = cc.is_assay_updated_ytd_ar,
+           gmr.is_assay_updated_mtd    = cc.is_assay_updated_mtd,
+           gmr.is_assay_updated_ytd    = cc.is_assay_updated_ytd,
+           gmr.is_tc_changed_mtd       = cc.is_tc_changed_mtd,
+           gmr.is_pc_changed_mtd       = cc.is_pc_changed_mtd,
+           gmr.is_rc_changed_mtd       = cc.is_rc_changed_mtd,
+           gmr.is_tc_changed_ytd       = cc.is_tc_changed_ytd,
+           gmr.is_pc_changed_ytd       = cc.is_pc_changed_ytd,
+           gmr.is_rc_changed_ytd       = cc.is_rc_changed_ytd
+     where gmr.corporate_id = pc_corporate_id
+       and gmr.process_id = pc_process_id
+       and gmr.internal_gmr_ref_no = cc.internal_gmr_ref_no;
+  end loop;
+  commit;
 vn_log_counter := vn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
                         pd_trade_date,
