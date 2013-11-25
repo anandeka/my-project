@@ -1,0 +1,45 @@
+Patch No *              	:  EKA_METALS_PATCH_1789
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Kumar Pagada
+
+Created on*        		:  25-Nov-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  89373
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physical
+
+Sub-Module  			 :  Physical
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 151012
+Author: sishir.pagada
+Date: 2:28:07 PM, Monday, November 25, 2013
+Message:
+Bug# 89373(BAM corporate fetching payable formulas from BCAB corporate even though the payable formula set up on corporate level)
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_56.sql
+
+
