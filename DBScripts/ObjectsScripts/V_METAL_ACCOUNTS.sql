@@ -72,6 +72,7 @@ select debt_temp.corporate_id,
                    and spq.is_active = 'Y'
                    and spq.is_stock_split = 'N'
                    and spq.qty_type = 'Returnable'
+                   and grd.stock_status = 'In Warehouse'
                    and grd.internal_grd_ref_no = spq.internal_grd_ref_no
                    and bvc_product.element_id = spq.element_id
                    and bvc_product.product_id = grd.product_id

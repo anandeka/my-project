@@ -88,6 +88,7 @@ AS
                         AND spq.is_active = 'Y'
                         AND spq.is_stock_split = 'N'
                         AND spq.qty_type = 'Returnable'
+						AND grd.stock_status = 'In Warehouse'
                         AND bvc_product.element_id = spq.element_id
                         AND bvc_product.product_id = grd.product_id
                         AND bvc_product.quality_id = grd.quality_id
