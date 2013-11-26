@@ -1,0 +1,50 @@
+Patch No *              	:  EKA_METALS_PATCH_1794
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+
+Created on*        		:  26-Nov-2013
+
+Bug / Enhancement*		:  Enhancement
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics/Tolling
+
+Sub-Module  			 :  Metal Debt
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 151133
+Author: anupkumar.agarwal
+Date: 2:25:54 PM, Tuesday, November 26, 2013
+Message:
+Bug 89926 - Logic Change on Metal Debt Creation
+
+Only After Landing The Metal Debt Will Be Shown Both At Summary And Transaction Level 
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_METAL_ACCOUNTS.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_METAL_ACCOUNTS_TRANSACTIONS.sql
+
+
+
+
