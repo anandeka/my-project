@@ -3,7 +3,7 @@ alter table HPH_HOLIDAY_PRICING_HEADER drop column HOLIDAY_DATE;
 alter table HPH_HOLIDAY_PRICING_HEADER drop column CHANGE_TYPE;
 
 alter table HPD_HOLIDAY_PRICING_DETAILS drop column HPH_ID;
-alter table HPD_HOLIDAY_PRICING_DETAILS add (HCL_ID varchar2(15) NOT NULL);
+alter table HPD_HOLIDAY_PRICING_DETAILS add (HCL_ID varchar2(15));
 
 CREATE TABLE hcl_holiday_calender_list
 (
