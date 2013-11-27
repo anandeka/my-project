@@ -14862,6 +14862,7 @@ insert into mas_metal_account_summary
                                and spq.is_active = 'Y'
                                and spq.is_stock_split = 'N'
                                and spq.qty_type = 'Returnable'
+                               and grd.stock_status = 'In Warehouse'
                                and grd.internal_grd_ref_no =
                                    spq.internal_grd_ref_no
                                and product_temp.attribute_id = spq.element_id
