@@ -1,0 +1,79 @@
+Patch No *              	:  EKA_METALS_PATCH_1797
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+
+Created on*        		:  28-Nov-2013
+
+Bug / Enhancement*		:  Enhancement
+
+Bug ID*            		:  Recon excel Reports
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 151373
+Author: suresh.gottipati
+Date: 5:19:03 PM, Thursday, November 28, 2013
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_668.sql
+
+
+
+Revision: 151374
+Author: suresh.gottipati
+Date: 5:20:28 PM, Thursday, November 28, 2013
+Message:
+Bug Fixes
+----
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AccuralReconAmountMTDDetailedReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AccuralReconAmountMTDSummaryReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AccuralReconAmountYTDDetailedReport.Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AccuralReconAmountYTDSummaryReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyArrivalAmountDetailedReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyArrivalAmountSummaryReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyArrivalQtyDetailedReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyArrivalQtySummaryReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyArrivalReport_Elements_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyClosingAmountDetailedReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyClosingAmountSummaryReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyClosingQtyDetailedReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyClosingQtySummaryReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFeedAmountDetailedReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFeedAmountSummaryReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFeedConsumptionReport_Elements_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFeedQtyDetailedReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyFeedQtySummaryReport_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyTCRCOtherChargesDetailed_Excel.rpt
+Added : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/MonthlyTCRCOtherChargesSummary_Excel.rpt
+
+
+
+
+
+
+
