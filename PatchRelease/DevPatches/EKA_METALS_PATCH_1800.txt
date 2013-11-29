@@ -1,0 +1,79 @@
+Patch No *              	:  EKA_METALS_PATCH_1800
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Varaprasad B
+
+Created on*        		:  28-Nov-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  89558,89591,89501,89587
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Reports
+Sub-Module  			 :  Reports
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 151481
+Author: varaprasad.b
+Date: 15:25:49, 29 November 2013
+Message:
+Bug # 89591,89587,89571,89558,89501 fixes ( Smelter location and decimal issues in output document.)
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AdvancePaymentDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/BulkPricingDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/CommercialFeeInvoice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/FinalInvoiceBaseMetals.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/FreeMetalInvoice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/InvoiceDocument_DFI.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/OCInvoiceDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PledgeInvoice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PriceFixationDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ProfomaDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ProvisionalInvoice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ProvisionalInvoiceBaseMetals.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseCreditNote.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseDebitCreditNote.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/PurchaseInvoiceBaseMetals.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ServiceInvoice.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/VatDocument.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/WeighNote.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/WeighNote_Purchase.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/WeighNote_Sales.rpt
+
+
+--------------------------------------------------------------------------------------------------------------------
+
+Revision: 151524
+Author: varaprasad.b
+Date: 17:19:13, 29 November 2013
+Message:
+For bugs #89591,89587,89571,89558 fixes.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/v_doc_invoice.sql
+
+
+
+
+
+
