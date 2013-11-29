@@ -7201,7 +7201,7 @@ create or replace package body pkg_phy_custom_reports is
          
          vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
                                                     cur_mar_price_rows.delivery_calender_id,
-                                                    vd_quotes_date);
+                                                    vd_3rd_wed_of_qp);
           end if;
           --end
         
@@ -7220,7 +7220,7 @@ create or replace package body pkg_phy_custom_reports is
               if vd_3rd_wed_of_qp is not null then
                 vobj_error_log.extend;
                 vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                     'procedure sp_calc_contract_price',
+                                                                     'procedure sp_contract_market_price',
                                                                      'PHY-002',
                                                                      'DR_ID missing for ' ||
                                                                      cur_mar_price_rows.instrument_name ||
@@ -7275,7 +7275,7 @@ create or replace package body pkg_phy_custom_reports is
                  and cdim.instrument_id = cur_mar_price_rows.instrument_id;
               vobj_error_log.extend;
               vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id, --
-                                                                   'procedure sp_calc_contract_price',
+                                                                   'procedure sp_contract_market_price',
                                                                    'PHY-002', --
                                                                    'Price missing for ' ||
                                                                    cur_mar_price_rows.instrument_name ||
@@ -7456,7 +7456,7 @@ create or replace package body pkg_phy_custom_reports is
          
          vd_3rd_wed_of_qp:= pkg_cdc_pre_check_process.fn_get_npd_substitute_day(pc_corporate_id,
                                                     cur_mar_gmr_price_rows.delivery_calender_id,
-                                                    vd_quotes_date);
+                                                    vd_3rd_wed_of_qp);
           end if;
           --end
       
@@ -7475,7 +7475,7 @@ create or replace package body pkg_phy_custom_reports is
             if vd_3rd_wed_of_qp is not null then
               vobj_error_log.extend;
               vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                   'procedure sp_calc_contract_price',
+                                                                   'procedure sp_gmr_market_price',
                                                                    'PHY-002',
                                                                    'DR_ID missing for ' ||
                                                                    cur_mar_gmr_price_rows.instrument_name ||
@@ -7532,7 +7532,7 @@ create or replace package body pkg_phy_custom_reports is
                    cur_mar_gmr_price_rows.instrument_id;
             vobj_error_log.extend;
             vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id, --
-                                                                 'procedure sp_calc_contract_price',
+                                                                 'procedure sp_gmr_market_price',
                                                                  'PHY-002', --
                                                                  'Price missing for ' ||
                                                                  cur_mar_gmr_price_rows.instrument_name ||
