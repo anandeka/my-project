@@ -1,0 +1,48 @@
+Patch No *              	:  EKA_METALS_PATCH_1802
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+
+Created on*        		:  02-Dec-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  89677
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  QP Docmunet
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 151678
+Author: anupkumar.agarwal
+Date: 6:46:29 PM, Monday, December 02, 2013
+Message:
+Bug 89677 - Issue in "QP Confirmation Document" output screen 
+
+For Issue#2 in bug 
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATE_QUOTA_PERIOD_DOCUMENT.sql
+
+
+
