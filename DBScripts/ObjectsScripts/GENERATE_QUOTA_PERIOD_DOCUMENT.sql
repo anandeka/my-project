@@ -134,7 +134,8 @@ BEGIN
           AND pocd.pocd_id = pofh.pocd_id
           AND pocd.qp_period_type <> 'Event'
           AND pocd.is_active = 'Y'
-          AND pocd.is_active = 'Y'
+          AND poch.is_active = 'Y'
+          AND pocd.is_any_day_pricing = 'N'
           AND pci.is_active = 'Y'
           AND pocd.pcbpd_id = ppfh.pcbpd_id
           AND pfqpp.ppfh_id = ppfh.ppfh_id
@@ -155,6 +156,7 @@ BEGIN
           AND pofh.is_active = 'Y'
           AND pofh.pocd_id = pocd.pocd_id
           AND pocd.is_active = 'Y'
+          AND pocd.is_any_day_pricing = 'N'
           AND pocd.qp_period_type = 'Event'
           AND pocd.poch_id = poch.poch_id
           AND poch.is_active = 'Y'
@@ -182,6 +184,7 @@ BEGIN
           AND poch.is_active = 'Y'
           AND poch.poch_id = pocd.poch_id
           AND pocd.is_active = 'Y'
+          AND pocd.is_any_day_pricing = 'N'
           AND pocd.qp_period_type = 'Event'
           AND pocd.pcbpd_id = ppfh.pcbpd_id
           AND ppfh.is_active = 'Y'
