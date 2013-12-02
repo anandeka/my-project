@@ -137,8 +137,8 @@ BEGIN
    END;
 
    BEGIN
-      SELECT pcdi.qty_min_operator, f_format_to_char (pcdi.qty_min_val, 4),
-             pcdi.qty_max_operator, f_format_to_char (pcdi.qty_max_val, 4),
+      SELECT pcdi.qty_min_operator, pcdi.qty_min_val,
+             pcdi.qty_max_operator, pcdi.qty_max_val,
              qum.qty_unit_desc
         INTO minqtyop, minqtyvalue,
              maxqtyop, maxqtyvalue,
