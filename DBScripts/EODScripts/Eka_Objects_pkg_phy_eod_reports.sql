@@ -3611,7 +3611,7 @@ create or replace package body pkg_phy_eod_reports is
        warehouse_profile_id,
        warehouse_name)
       select dgrd.internal_gmr_ref_no,
-             dgrd.internal_grd_ref_no,
+             dgrd.internal_dgrd_ref_no,
              gmr.internal_contract_ref_no,
              gmr.gmr_ref_no,
              gmr.corporate_id,
@@ -3682,7 +3682,7 @@ create or replace package body pkg_phy_eod_reports is
          and nvl(gmr.is_final_invoiced, 'N') = 'N'
          and gmr.is_pass_through = 'N'
        group by dgrd.internal_gmr_ref_no,
-                dgrd.internal_grd_ref_no,
+                dgrd.internal_dgrd_ref_no,
                 gmr.internal_contract_ref_no,
                 gmr.gmr_ref_no,
                 gmr.corporate_id,
