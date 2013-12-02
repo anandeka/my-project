@@ -46,7 +46,7 @@ CREATE OR REPLACE FUNCTION GETDELIVERYPERIODDETAILS(p_contractNo  VARCHAR2,
        AND PCDB.IS_ACTIVE = 'Y'
        AND PCDIOB.IS_ACTIVE = 'Y'
        AND PCDIOB.PCDI_ID = p_delivery_id;
-
+ 
   cursor cr_pricing IS
     Select PCBPH.PRICE_DESCRIPTION as PRICE_DESCRIPTION,
            PCBPH.ELEMENT_NAME      as ELEMENT_NAME,
@@ -89,7 +89,7 @@ begin
 
   begin
   
-    select 'Quota Period :' || (CASE
+    select 'Delivery Period :' || (CASE
              WHEN PCDI.DELIVERY_PERIOD_TYPE = 'Month' THEN
               PCDI.DELIVERY_FROM_MONTH || ' ' || PCDI.DELIVERY_FROM_YEAR ||
               ' To ' || PCDI.DELIVERY_TO_MONTH || ' ' ||
@@ -122,9 +122,9 @@ begin
 
   begin
     Select PCDI.QTY_MIN_OPERATOR,
-           f_format_to_char(PCDI.QTY_MIN_VAL, 4),
+           PCDI.QTY_MIN_VAL,
            PCDI.QTY_MAX_OPERATOR,
-           f_format_to_char(PCDI.QTY_MAX_VAL, 4),
+           PCDI.QTY_MAX_VAL,
            QUM.QTY_UNIT_DESC
       into minQtyOp, minQtyValue, maxQtyOp, maxQtyValue, itemQtyUnit
       From PCDI_PC_DELIVERY_ITEM PCDI, QUM_QUANTITY_UNIT_MASTER QUM
@@ -178,10 +178,8 @@ begin
       PaymentDueDate    := '';  
   end;
 
-  deliveryDescription := deliveryItem || chr(10) || quotaPeriod || chr(10) ||
-                         qualityDetails || chr(10) || quantityDetails ||
-                         incotermDetails || chr(10) || packingtype || ' ' || Optionality || chr(10) ||
-                         pricingDetails;
+  deliveryDescription := deliveryItem || chr(10) || qualityDetails  || CHR(10) || quantityDetails || CHR(10) ||  quotaPeriod || chr(10) ||
+                         incotermDetails || chr(10) || packingtype || ' ' || Optionality || chr(10) || pricingDetails;
 
   if (QPDeclarationDate is not null) then
     deliveryDescription := deliveryDescription || chr(10) ||
