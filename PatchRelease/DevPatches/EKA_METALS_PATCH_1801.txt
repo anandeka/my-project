@@ -1,0 +1,64 @@
+Patch No *              	:  EKA_METALS_PATCH_1801
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar Reddy B
+
+Created on*        		:  02-Dec-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  75741
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physical
+Sub-Module  			 :  contract o/p doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 151593
+Author: rajeshwar.reddy
+Date: 11:40:06, 02 December 2013
+Message:
+bug fix:75741
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETDELIVERYDETAILSWITHCOMFEE.sql
+
+Revision: 151592
+Author: rajeshwar.reddy
+Date: 11:38:12, 02 December 2013
+Message:
+bug fix:75741
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETDELIVERYPERIODDETAILS.sql
+
+Revision: 151597
+Author: suresh.gottipati
+Date: 11:59:21 AM, Monday, December 02, 2013
+Message:
+Bug Fixes
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/ContractPreview.rpt
+
+
+
+
+
+
