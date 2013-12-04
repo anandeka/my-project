@@ -36,7 +36,23 @@ AS
           gmr.free_material_status is_free_material, cp.pcdi_id pcdi_id,
           cp.delivery_item_ref_no AS delivery_item_ref_no,
           wrd.feeding_point_id, cp.contract_status, sfp.feeding_point_name,
-          axs.created_date, aku_create.login_name created_by
+          axs.created_date, aku_create.login_name created_by,
+          (CASE
+           WHEN (   gmr.latest_assay_type IS NOT NULL
+                 OR gmr.latest_assay_type = ''
+                )
+              THEN gmr.latest_assay_type
+           ELSE 'N/A'
+          END
+      	 )latest_assay_type,
+       (CASE
+           WHEN (   gmr.latest_invoice_type IS NOT NULL
+                 OR gmr.latest_invoice_type = ''
+                )
+              THEN gmr.latest_invoice_type
+           ELSE 'N/A'
+        END
+       ) latest_invoice_type
      FROM gmr_goods_movement_record gmr,
           gam_gmr_action_mapping gam,
           ak_corporate_user aku_create,
