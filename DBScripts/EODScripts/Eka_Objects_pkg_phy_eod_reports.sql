@@ -26955,7 +26955,7 @@ begin
           vc_penalty_weight_type := cur_pc_charge.penalty_weight_type;
           vn_typical_val         := cc.typical;
           --find the range where the typical falls in 
-          if (cur_pc_charge.position = 'Range Begining' and
+          /*if (cur_pc_charge.position = 'Range Begining' and
              cur_pc_charge.range_max_op = '<=' and
              vn_typical_val <= cur_pc_charge.range_max_value) or
              (cur_pc_charge.position = 'Range Begining' and
@@ -26986,7 +26986,7 @@ begin
              cur_pc_charge.range_min_op = '>=' and
              cur_pc_charge.range_max_op = '<=' and
              vn_typical_val >= cur_pc_charge.range_min_value and
-             vn_typical_val <= cur_pc_charge.range_max_value) then
+             vn_typical_val <= cur_pc_charge.range_max_value) then*/
             --Finding all the  assay range form the start range to  last range 
             --for the different Tier basics ,assording to the typicla value
             for cur_range in (select nvl(pcap.range_min_value, 0) min_range,
@@ -27024,7 +27024,7 @@ begin
               end if;
               vn_tier_penalty := vn_tier_penalty + vn_penalty_charge;
             end loop;
-          end if;
+         -- end if;
         elsif cur_pc_charge.penalty_basis = 'Payable Content' then
           -- Take the payable content qty from the table and 
           -- find the penalty But for the time being this feature is not applied
@@ -27035,6 +27035,13 @@ begin
         --Here no need of the typical value as penalty is on item level  
         vn_element_pc_charge := vn_tier_penalty; -- * vn_converted_qty;
       end if;
+      
+      if cur_pc_charge.penalty_charge_type = 'Variable' and cur_pc_charge.penalty_basis = 'Quantity' and
+           cur_pc_charge.slab_tier = 'Tier' then
+      exit;
+      end if;
+      
+      
     end loop;
     insert into gepc_gmr_element_pc_charges
       (process_id,
