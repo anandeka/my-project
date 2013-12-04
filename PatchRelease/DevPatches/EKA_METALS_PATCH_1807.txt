@@ -1,0 +1,46 @@
+Patch No *              	:  EKA_METALS_PATCH_1807
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Varaprasad B
+
+Created on*        		:  04-Dec-2013
+
+Bug / Enhancement*		:  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 151924
+Author: varaprasad.b
+Date: 11:45:57, 04 December 2013
+Message:
+updated to add latest invoice type column in GMR and GMRUL table.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_504.sql
+
+
+
