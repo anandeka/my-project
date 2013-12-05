@@ -1,0 +1,48 @@
+Patch No *              	:  EKA_METALS_PATCH_1810
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Agarwal
+
+Created on*        		:  05-Dec-2013
+
+Bug / Enhancement*		:  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  Logistics
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 152103
+Author: anupkumar.agarwal
+Date: 3:51:46 PM, Thursday, December 05, 2013
+Message:
+Added New Column In GMr And Gmrul 
+And Tolling Gmr View Changed 
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_TOLLING_GMR.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_505.sql
+
+
+
