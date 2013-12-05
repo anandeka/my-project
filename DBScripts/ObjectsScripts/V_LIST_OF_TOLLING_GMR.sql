@@ -1,3 +1,4 @@
+/* Formatted on 2013/12/05 15:47 (Formatter Plus v4.8.8) */
 CREATE OR REPLACE FORCE VIEW v_list_of_tolling_gmr
 AS
    SELECT gmr.corporate_id AS corporate_id,
@@ -38,21 +39,29 @@ AS
           wrd.feeding_point_id, cp.contract_status, sfp.feeding_point_name,
           axs.created_date, aku_create.login_name created_by,
           (CASE
-           WHEN (   gmr.latest_assay_type IS NOT NULL
-                 OR gmr.latest_assay_type = ''
-                )
-              THEN gmr.latest_assay_type
-           ELSE 'N/A'
-          END
-      	 )latest_assay_type,
-       (CASE
-           WHEN (   gmr.latest_invoice_type IS NOT NULL
-                 OR gmr.latest_invoice_type = ''
-                )
-              THEN gmr.latest_invoice_type
-           ELSE 'N/A'
-        END
-       ) latest_invoice_type
+              WHEN (   gmr.latest_assay_type IS NOT NULL
+                    OR gmr.latest_assay_type = ''
+                   )
+                 THEN gmr.latest_assay_type
+              ELSE 'N/A'
+           END
+          ) latest_assay_type,
+          (CASE
+              WHEN (   gmr.latest_invoice_type IS NOT NULL
+                    OR gmr.latest_invoice_type = ''
+                   )
+                 THEN gmr.latest_invoice_type
+              ELSE 'N/A'
+           END
+          ) latest_invoice_type,
+          (CASE
+              WHEN (   gmr.latest_pricing_status IS NOT NULL
+                    OR gmr.latest_pricing_status = ''
+                   )
+                 THEN gmr.latest_pricing_status
+              ELSE 'N/A'
+           END
+          ) latest_pricing_status
      FROM gmr_goods_movement_record gmr,
           gam_gmr_action_mapping gam,
           ak_corporate_user aku_create,
@@ -97,7 +106,7 @@ AS
               AND pcpd.internal_contract_ref_no = pcm.internal_contract_ref_no
               AND pci.is_active = 'Y'
               AND pcpq.is_active = 'Y'
-              AND pcm.contract_status IN ('In Position','Closed')
+              AND pcm.contract_status IN ('In Position', 'Closed')
               AND (   pci.is_called_off = 'Y'
                    OR pcdi.is_phy_optionality_present = 'N'
                   )
