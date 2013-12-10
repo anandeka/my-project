@@ -1,0 +1,48 @@
+Patch No *              	:  EKA_METALS_PATCH_1816
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anand P H
+
+Created on*        		:  10-Dec-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  85909
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  GMR
+
+Sub-Module  			 :  List of GMR
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 152548
+Author: anandp
+Date: 20:33:23, 10 December 2013
+Message:
+For bug no 85909
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_57.sql
+
+
+
+
+
