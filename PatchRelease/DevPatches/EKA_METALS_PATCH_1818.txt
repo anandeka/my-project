@@ -1,0 +1,46 @@
+Patch No *              	:  EKA_METALS_PATCH_1818
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar Reddy B
+
+Created on*        		:  11-Dec-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  75741
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physical
+
+Sub-Module  			 :  Contract o/p doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 152572
+Author: rajeshwar.reddy
+Date: 12:12:28, 11 December 2013
+Message:
+bug fix: 75741
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATECONTRACTOUTPUTDOC.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/PREPAREAMENDCONTRACTOUTPUTDOC.sql
+
+
