@@ -9,5 +9,4 @@ UPDATE pqca_pq_chemical_attributes pqca
                  pqca_pq_chemical_attributes pqca1
            WHERE ash.ash_id = asm.ash_id
              AND asm.asm_id = pqca1.asm_id
-             AND ash.is_active = 'Y'
-             and PQCA1.IS_DEDUCTIBLE is null)
+            and PQCA1.IS_DEDUCTIBLE is null)
