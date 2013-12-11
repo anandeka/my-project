@@ -568,16 +568,16 @@ BEGIN
              || CHR (10)
              || (CASE
                     WHEN pcpd.qty_type = 'Fixed'
-                       THEN    f_format_to_char (pcpd.qty_max_val, 4)
+                       THEN    pcpd.qty_max_val
                             || ' '
                             || qum.qty_unit_desc
                     ELSE    pcpd.qty_min_operator
                          || ' '
-                         || f_format_to_char (pcpd.qty_min_val, 4)
+                         || pcpd.qty_min_val
                          || ' '
                          || pcpd.qty_max_operator
                          || ' '
-                         || f_format_to_char (pcpd.qty_max_val, 4)
+                         || pcpd.qty_max_val
                          || ' '
                          || qum.qty_unit_desc
                  END
