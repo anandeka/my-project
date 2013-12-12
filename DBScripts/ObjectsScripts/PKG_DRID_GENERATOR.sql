@@ -1104,6 +1104,7 @@ create or replace package body "PKG_DRID_GENERATOR" is
         for cr_pp in cr_price_point_list
         loop
           pc_start_date := pc_trade_date;
+          dbms_output.put_line(cr_pp.price_point_name);
           begin
             select pm.period_type_name,
                    pm.period_type_id
@@ -2276,7 +2277,7 @@ create or replace package body "PKG_DRID_GENERATOR" is
     --  pc_prompt_date_name        varchar2(50);
     vc_drid           varchar2(50);
     vc_flag_dwm_prmot varchar2(20);
-
+    vc_price_point    varchar2(20);
   begin
     --pc_prompt_date_name := '18-Apr-2012';
     --  pc_instrument_id    := 'DIM-53';
@@ -2288,6 +2289,7 @@ create or replace package body "PKG_DRID_GENERATOR" is
       pd_month_prompt_start_date := vd_valid_trade_date;
       vc_prompt_del_id           := cr_instrument_rec.delivery_calender_id;
       vc_flag_dwm_prmot          := '';
+      vc_price_point             := null;
 --      dbms_output.put_line('Instrument name : ' ||  cr_instrument_rec.instrument_name);
    --   dbms_output.put_line('Trade Date : ' || vd_valid_trade_date);
       if cr_instrument_rec.is_manual_generate = 'Y' then
@@ -2310,8 +2312,8 @@ create or replace package body "PKG_DRID_GENERATOR" is
           -- ie: for month prompt or other prompt name use drid_name to get the promt id
           -- not a date input, use dr_id name to get the drid
           begin
-            select drm.dr_id,drm.prompt_date
-              into vc_drid,vd_prompt_date
+            select drm.dr_id,drm.prompt_date,drm.price_point_id
+              into vc_drid,vd_prompt_date,vc_price_point
               from drm_derivative_master drm
              where drm.instrument_id = vc_instrument_id
                and drm.dr_id_name = pc_prompt_date_name
@@ -2332,7 +2334,7 @@ create or replace package body "PKG_DRID_GENERATOR" is
           vc_drid := null;
       --    dbms_output.put_line('Inside valid prompt, prompt date is :  ' || vd_prompt_date || ' drid is null '||vc_drid);
         end if;
-        if vd_prompt_date is not null then
+        if vd_prompt_date is not null and vc_price_point is null then
           -- valid promot date passed to ;;
        --   vd_prompt_date := to_date(pc_prompt_date_name, 'dd-Mon-yyyy');
 --          dbms_output.put_line('Inside valid prompt check, prompt date is :  ' ||        vd_prompt_date);
