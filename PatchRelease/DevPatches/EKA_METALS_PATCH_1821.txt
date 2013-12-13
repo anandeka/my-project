@@ -1,0 +1,46 @@
+Patch No *              	:  EKA_METALS_PATCH_1821
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Kumar Pagada
+
+Created on*        		:  12-Dec-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  85909
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  GMR
+
+Sub-Module  			 :  GMR
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 152880
+Author: sishir.pagada
+Date: 10:25:19 PM, Friday, December 13, 2013
+Message:
+Bug 85909 - Changes in GMR Listing Screens
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_TOLLING_GMR.sql
+
+
+
