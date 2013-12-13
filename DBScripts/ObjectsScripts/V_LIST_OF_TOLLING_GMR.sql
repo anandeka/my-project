@@ -59,7 +59,7 @@ AS
                     OR gmr.latest_pricing_status = ''
                    )
                  THEN gmr.latest_pricing_status
-              ELSE 'N/A'
+              ELSE 'UnPriced'
            END
           ) latest_pricing_status
      FROM gmr_goods_movement_record gmr,
