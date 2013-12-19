@@ -1,0 +1,48 @@
+Patch No *              	:  EKA_METALS_PATCH_1822
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar Reddy B
+
+Created on*        		:  19-Dec-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  HolidayHandling
+
+Sub-Module  			 :  HolidayHandling
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 153280
+Author: rajeshwar.reddy
+Date: 12:24:35, 19 December 2013
+Message:
+HolidayHandling Sequences
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/CorporateScripts/CorporateScripts_138.sql
+
+
+
+
+
