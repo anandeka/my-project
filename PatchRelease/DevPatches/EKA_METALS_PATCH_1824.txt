@@ -1,0 +1,47 @@
+Patch No *              	:  EKA_METALS_PATCH_1824
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+
+Created on*        		:  20-Dec-2013
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  90703 
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Pricing
+
+Sub-Module  			 :  Pricing
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 153385
+Author: anupkumar.agarwal
+Date: 12:18:54 PM, Friday, December 20, 2013
+Message:
+Bug 90703 - Not able to generate the bulk pricing document for GMR-14102-BLD
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATE_BULK_PRICING_DOCUMENT.sql
+
+
+
+
