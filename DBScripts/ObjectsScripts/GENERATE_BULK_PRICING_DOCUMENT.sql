@@ -224,6 +224,7 @@ BEGIN
                      AND pad.city_id = cim.city_id(+)
                      AND pad.state_id = sm.state_id(+)
                      AND pad.address_type(+) = 'Main'
+		     		 AND pad.is_deleted ='N'
                      AND pcm.cp_person_in_charge_id = gab.gabid(+)
                      AND gmr.internal_gmr_ref_no = p_internal_gmr_ref_no;
    ELSIF v_is_pledge_gmr = 'Y'
@@ -434,6 +435,7 @@ BEGIN
                      AND pad.city_id = cim.city_id(+)
                      AND pad.state_id = sm.state_id(+)
                      AND pad.address_type(+) = 'Main'
+		     	     AND pad.is_deleted ='N'
                      AND pcm.cp_person_in_charge_id = gab.gabid(+)
                      AND gepd.internal_gmr_ref_no = p_internal_gmr_ref_no;
    END IF;
