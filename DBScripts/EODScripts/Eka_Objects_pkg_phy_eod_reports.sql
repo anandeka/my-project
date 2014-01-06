@@ -5702,6 +5702,35 @@ commit;
          and pa.process_id = pc_process_id;
     end loop;
     commit;
+    -- added Suresh For pledge GMr's prodcut and quality from supplier side gmr's
+     for cc1 in (select pa_pledge.supp_internal_gmr_ref_no,
+                     pa_supp.quality_id,
+                     pa_supp.quality_name,
+                     pa_supp.product_id,
+                     pa_supp.product_type
+                from pa_purchase_accural_gmr pa_pledge,
+                     pa_purchase_accural_gmr pa_supp
+               where pa_pledge.supp_internal_gmr_ref_no =
+                     pa_supp.internal_gmr_ref_no
+                 and pa_pledge.process_id = pa_supp.process_id
+                 and pa_pledge.process_id = pc_process_id
+                 and pa_pledge.is_pledge = 'Y'
+               group by pa_pledge.supp_internal_gmr_ref_no,
+                        pa_supp.quality_id,
+                        pa_supp.quality_name,
+                        pa_supp.product_id,
+                        pa_supp.product_type)
+  loop
+    update pa_purchase_accural_gmr pa
+       set pa.conc_product_id   = cc1.product_id,
+           pa.conc_product_name = cc1.product_type,
+           pa.conc_quality_id   = cc1.quality_id,
+           pa.conc_quality_name = cc1.quality_name
+     where pa.supp_internal_gmr_ref_no = cc1.supp_internal_gmr_ref_no
+       and pa.process_id = pc_process_id;
+  end loop;
+    commit;
+          
   
     vn_log_counter := vn_log_counter + 1;
     sp_eodeom_process_log(pc_corporate_id,
