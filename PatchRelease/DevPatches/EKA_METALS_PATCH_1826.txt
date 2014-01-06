@@ -1,0 +1,58 @@
+Patch No *              	:  EKA_METALS_PATCH_1826
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+
+Created on*        		:  06-Jan-2014
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  91102 
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD
+
+Sub-Module  			 :  EOD
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 154288
+Author: suresh.gottipati
+Date: 4:51:18 PM, Monday, January 06, 2014
+Message:
+91102
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/165_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/Eka_Objects_pkg_phy_eod_reports.sql
+
+
+Revision: 154290
+Author: suresh.gottipati
+Date: 4:52:57 PM, Monday, January 06, 2014
+Message:
+91102
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AccuralReconAmountMTDDetailedReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AccuralReconAmountMTDSummaryReport.rpt
+
+
+
+
