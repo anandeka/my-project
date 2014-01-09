@@ -3,7 +3,7 @@ SET DEFINE OFF;
 Insert into SE_SEARCH_ENTITY
    (SE_ID, SEARCH_ENTITY_NAME, LINK_URL)
  Values
-   ('SE-7', 'Mining Contract', '/metals/loadListOfMiningContracts.action?gridId=MIN_LOC&retainFilterValue=Y');
+   ('SE-7', 'Tolling Contract', '/metals/loadListOfMiningContracts.action?gridId=MIN_LOC&retainFilterValue=Y');
 
 
 Insert into SEA_SEARCH_ENTITY_ATTRIBUTE
@@ -30,7 +30,6 @@ Insert into SEA_SEARCH_ENTITY_ATTRIBUTE
     NULL);
 
 
-
 Insert into SE_SEARCH_ENTITY
    (SE_ID, SEARCH_ENTITY_NAME, LINK_URL)
  Values
@@ -44,5 +43,19 @@ Insert into SEA_SEARCH_ENTITY_ATTRIBUTE
    ('SEA-19', 'SE-8', 'gmrRefNo={#}', 'GMR Ref. No.', NULL, 
     NULL);
     
+
+Insert into SE_SEARCH_ENTITY
+   (SE_ID, SEARCH_ENTITY_NAME, LINK_URL)
+ Values
+   ('SE-9', 'Tolling Contract Items', '/metals/loadListOfMiningContractItem.action?gridId=MLOCI&retainFilterValue=Y');
+
+
+Insert into SEA_SEARCH_ENTITY_ATTRIBUTE
+   (SEA_ID, SE_ID, SEA_NAME, DEAULT_DISPLAY_NAME, EXAMPLE_STRING, 
+    TAG_CONFIG)
+ Values
+   ('SEA-21', 'SE-9', 'refNoType=contractItemRefNo&refNo={#}', 'Item Ref.No.', NULL, 
+    NULL);
+ 
     
 COMMIT;
