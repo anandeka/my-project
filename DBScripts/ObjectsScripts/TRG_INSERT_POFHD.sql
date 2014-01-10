@@ -24,7 +24,12 @@ begin
              pocd_price_option_calloff_dtls pocd,
              pcbpd_pc_base_price_detail     pcbpd,
              ppfh_phy_price_formula_header  ppfh,
-             ppfd_phy_price_formula_details ppfd
+             (select ppfd.ppfh_id,
+                     ppfd.instrument_id
+                from ppfd_phy_price_formula_details ppfd
+               where ppfd.is_active = 'Y'
+               group by ppfd.ppfh_id,
+                        ppfd.instrument_id) ppfd      
        where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
          and pcdi.pcdi_id = poch.pcdi_id
          and pcm.contract_status = 'In Position'
@@ -38,8 +43,7 @@ begin
          and pcbpd.is_active = 'Y'
          and ppfh.pcbpd_id = pcbpd.pcbpd_id
          and ppfd.ppfh_id = ppfh.ppfh_id
-         and ppfh.is_active = 'Y'
-         and ppfd.is_active = 'Y';
+         and ppfh.is_active = 'Y';
     exception
       when no_data_found then
         vd_instrument_id      := null;
