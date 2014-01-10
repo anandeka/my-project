@@ -58,7 +58,7 @@ AS
                             spq.internal_grd_ref_no stock_id,
                             grd.internal_stock_ref_no stock_ref_no,
                             spq.internal_gmr_ref_no internal_gmr_ref_no,
-                            gmr.gmr_ref_no gmr_ref_no, spq.activity_action_id,
+                            gmr.gmr_ref_no gmr_ref_no, axs.action_id activity_action_id,
                             spq.supplier_id, '' to_supplier_id,
                             bvc_product.base_product_id product_id,
                             bvc_product.base_product_name product_name,
@@ -88,7 +88,7 @@ AS
                         AND spq.is_active = 'Y'
                         AND spq.is_stock_split = 'N'
                         AND spq.qty_type = 'Returnable'
-						AND grd.stock_status = 'In Warehouse'
+                        AND grd.stock_status = 'In Warehouse'
                         AND bvc_product.element_id = spq.element_id
                         AND bvc_product.product_id = grd.product_id
                         AND bvc_product.quality_id = grd.quality_id
