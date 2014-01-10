@@ -1,0 +1,44 @@
+Patch No *              	:  EKA_METALS_PATCH_1828
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Agarwal
+
+Created on*        		:  10-Jan-2014
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  90197
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 154719
+Author: anupkumar.agarwal
+Date: 3:36:14 PM, Friday, January 10, 2014
+Message:
+Bug 90197 - Activity Type column is not getting updated with the latest activity
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_METAL_ACCOUNTS_TRANSACTIONS.sql
+
