@@ -100,7 +100,7 @@ create or replace package pkg_phy_eod_reports is
                                           pc_process_id   varchar2,
                                           pc_process      varchar2,
                                           pc_user_id      varchar2);
-end;
+end; 
 /
 create or replace package body pkg_phy_eod_reports is
   procedure sp_calc_daily_trade_pnl
@@ -19696,10 +19696,10 @@ insert into ar_arrival_report
          grd_to_gmr_qty_factor,
          sum(gmr_qty),
          arrival_or_delivery,
-         internal_contract_ref_no,
-         contract_ref_no,
-         cp_id,
-         cp_name
+         max(internal_contract_ref_no)internal_contract_ref_no,
+         max(contract_ref_no)contract_ref_no,
+         max(cp_id)cp_id,
+         max(cp_name)cp_name
     from (select aro_current.corporate_id,
                  aro_current.corporate_name,
                  aro_current.gmr_ref_no,
@@ -19856,11 +19856,7 @@ insert into ar_arrival_report
             pay_cur_code,
             pay_cur_decimal,
             grd_to_gmr_qty_factor,
-            arrival_or_delivery,
-            internal_contract_ref_no,
-            contract_ref_no,
-            cp_id,
-            cp_name;
+            arrival_or_delivery;
   commit;
   
 insert into are_arrival_report_element
@@ -20287,10 +20283,10 @@ insert into are_arrival_report_element
          grd_to_gmr_qty_factor,
          SUM(gmr_qty),
          arrival_or_delivery,
-         internal_contract_ref_no,
-         contract_ref_no,
-         cp_id,
-         cp_name
+         max(internal_contract_ref_no)internal_contract_ref_no,
+         max(contract_ref_no)contract_ref_no,
+         max(cp_id)cp_id,
+         max(cp_name)cp_name
     from (select aro_current.corporate_id,
                  aro_current.corporate_name,
                  aro_current.gmr_ref_no,
@@ -20449,11 +20445,7 @@ insert into are_arrival_report_element
             pay_cur_code,
             pay_cur_decimal,
             grd_to_gmr_qty_factor,
-            arrival_or_delivery,
-            internal_contract_ref_no,
-            contract_ref_no,
-            cp_id,
-            cp_name;
+            arrival_or_delivery;
 
 
 insert into are_arrival_report_element
@@ -22718,10 +22710,10 @@ sp_eodeom_process_log(pc_corporate_id,
            feeding_point_name,
            sum(other_charges_amt),
            sum(freight_container_charge_amt),
-           internal_contract_ref_no,
-           contract_ref_no,
-           cp_id,
-           cp_name
+           max(internal_contract_ref_no)internal_contract_ref_no,
+           max(contract_ref_no)contract_ref_no,
+           max(cp_id)cp_id,
+           max(cp_name)cp_name
       from fcot_fco_temp t
      where t.corporate_id = pc_corporate_id
      group by corporate_id,
@@ -22746,11 +22738,7 @@ sp_eodeom_process_log(pc_corporate_id,
               is_new,
               mtd_ytd,
               feeding_point_id,
-              feeding_point_name,
-              internal_contract_ref_no,
-              contract_ref_no,
-              cp_id,
-              cp_name;
+              feeding_point_name ;
 
   commit;
   gvn_log_counter := gvn_log_counter + 1;
@@ -23344,10 +23332,10 @@ sp_eodeom_process_log(pc_corporate_id,
            feeding_point_name,
            sum(other_charges_amt),
            sum(freight_container_charge_amt),
-           internal_contract_ref_no,
-           contract_ref_no,
-           cp_id,
-           cp_name
+           max(internal_contract_ref_no)internal_contract_ref_no,
+           max(contract_ref_no)contract_ref_no,
+           max(cp_id)cp_id,
+           max(cp_name)cp_name
       from fcot_fco_temp t
      where t.corporate_id = pc_corporate_id
      group by corporate_id,
@@ -23372,11 +23360,7 @@ sp_eodeom_process_log(pc_corporate_id,
               is_new,
               mtd_ytd,
               feeding_point_id,
-              feeding_point_name,
-              internal_contract_ref_no,
-              contract_ref_no,
-              cp_id,
-              cp_name;
+              feeding_point_name;
 
   commit;
   gvn_log_counter := gvn_log_counter + 1;
