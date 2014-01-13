@@ -1,0 +1,55 @@
+Patch No *              	:  EKA_METALS_PATCH_1829
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar Reddy
+
+Created on*        		:  13-Jan-2014
+
+Bug / Enhancement*		:  DataCorrection
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 154838
+Author: rajeshwar.reddy
+Date: 19:24:42, 13 January 2014
+Message:
+Set isActive flag to 'Y' in AssaySublotMapping.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_60.sql
+
+Revision: 154839
+Author: rajeshwar.reddy
+Date: 19:27:11, 13 January 2014
+Message:
+added supplier_representative in WnS output doc.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_676.sql
+
+
+
+
