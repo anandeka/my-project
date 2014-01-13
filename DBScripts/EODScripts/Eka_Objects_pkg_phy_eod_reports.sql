@@ -27871,6 +27871,53 @@ vn_log_counter := vn_log_counter + 1;
                         pd_trade_date,
                         pc_process_id,
                         vn_log_counter,
+                        'MTD Other Charges Delta 1 Over');  
+    for cur_oc_delta in (select curr.internal_gmr_ref_no
+                           from (select iocd.internal_gmr_ref_no,
+                                        sum(iocd.charge_rate) charge_rate
+                                   from iocd_ioc_details iocd
+                                  where iocd.process_id = pc_process_id
+                                  group by iocd.internal_gmr_ref_no) curr,
+                                (select iocd.internal_gmr_ref_no,
+                                        sum(iocd.charge_rate) charge_rate
+                                   from iocd_ioc_details iocd
+                                  where iocd.process_id = vc_previous_eom_id
+                                  group by iocd.internal_gmr_ref_no) prev
+                          where curr.internal_gmr_ref_no =
+                                prev.internal_gmr_ref_no(+)
+                            and nvl(curr.charge_rate, 0) <>
+                                nvl(prev.charge_rate, 0)
+                            and exists
+                          (select *
+                                   from temp_gmr_arrival_ytdmtd ar
+                                  where ar.internal_gmr_ref_no =
+                                        curr.internal_gmr_ref_no
+                                    and ar.mtd_ytd = 'MTD'
+                                    and ar.corporate_id = pc_corporate_id))
+    loop
+      update gds_gmr_delta_status gmr
+         set gmr.is_assay_updated_mtd_ar = 'Y', gmr.is_oc_changed_mtd = 'Y'
+       where gmr.process_id = pc_process_id
+         and gmr.internal_gmr_ref_no = cur_oc_delta.internal_gmr_ref_no
+         and gmr.is_new_mtd_ar = 'N';
+      -- Marking for MFT GMR 
+      update gds_gmr_delta_status gmr
+         set gmr.is_assay_updated_mtd = 'Y', gmr.is_oc_changed_mtd = 'Y'
+       where gmr.process_id = pc_process_id
+         and gmr.is_new_mtd_ar = 'N'
+         and gmr.internal_gmr_ref_no in
+             (select tgmr.internal_gmr_ref_no
+                from temp_gmr_supp_gmr tgmr
+               where tgmr.supp_internal_gmr_ref_no =
+                     cur_oc_delta.internal_gmr_ref_no
+                 and tgmr.corporate_id = pc_corporate_id);
+    end loop;
+    commit;
+vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
                         'MTD Other Charges Delta Over'); 
 
 --
