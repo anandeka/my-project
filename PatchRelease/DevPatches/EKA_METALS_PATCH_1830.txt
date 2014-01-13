@@ -1,0 +1,49 @@
+Patch No *              	:  EKA_METALS_PATCH_1830
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Kumar Pagada
+
+Created on*        		:  13-Jan-2014
+
+Bug / Enhancement*		:  Data Correction
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD
+==================================================================
+Revision: 154873
+Author: sishir.pagada
+Date: 9:49:04 PM, Monday, January 13, 2014
+Message:
+Updating is_fx_exposure_amount = 'N' if it is null
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_61.sql
+
+
+
+
+
+
