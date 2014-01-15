@@ -1,0 +1,50 @@
+Patch No *              	:  EKA_METALS_PATCH_1831
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Kumar Pagada
+
+Created on*        		:  15-Jan-2014
+
+Bug / Enhancement*		:  Data Correction
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 154914
+Author: sishir.pagada
+Date: 4:30:06 PM, Wednesday, January 15, 2014
+Message:
+Due to "Save Allocation" double click issue the allocated qty in PFD is available even if the allocated qty is 0 in GPAD. Due do which user can not cancel the Price Fixation. This data correction will make PFD allocated qty to 0.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_62.sql
+
+
+
+
+
+
+
