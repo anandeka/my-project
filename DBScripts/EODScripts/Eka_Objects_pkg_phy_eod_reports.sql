@@ -27339,22 +27339,23 @@ vn_log_counter := vn_log_counter + 1;
                         vn_log_counter,
                         'update gmr is_assay_updated_mtd tc starts');                      
 begin
-    for cur_assay_mtd in (
-select getc.internal_gmr_ref_no
-  from getc_gmr_element_tc_charges getc,
-       getc_gmr_element_tc_charges getc_prev
- where getc.internal_gmr_ref_no = getc_prev.internal_gmr_ref_no
-   and getc.process_id = pc_process_id
-   and getc_prev.process_id = vc_previous_eom_id
-                             and exists
-                           (select *
-                                    from temp_gmr_arrival_ytdmtd ar
-                                   where ar.internal_gmr_ref_no =
-                                         getc.internal_gmr_ref_no
-                                     and ar.mtd_ytd = 'MTD'
-                                     and ar.corporate_id = pc_corporate_id)
-                           group by getc.internal_gmr_ref_no                           
-having sum(getc.tc_amt) <> sum(getc_prev.tc_amt))
+    for cur_assay_mtd in (select t.internal_gmr_ref_no
+  from (select getc.internal_gmr_ref_no,
+               sum((case
+                     when getc.process_id = pc_process_id then
+                      1
+                     else
+                      -1
+                   end) * (getc.tc_amt)) delta_amt
+          from getc_gmr_element_tc_charges getc
+         where getc.process_id in (pc_process_id, vc_previous_eom_id)
+         group by getc.internal_gmr_ref_no) t
+ where t.delta_amt <> 0
+   and exists (select *
+          from temp_gmr_arrival_ytdmtd ar
+         where ar.internal_gmr_ref_no = t.internal_gmr_ref_no
+           and ar.mtd_ytd = 'MTD'
+           and ar.corporate_id = pc_corporate_id))
                             
     loop
       update process_gmr gmr
@@ -27389,21 +27390,23 @@ vn_log_counter := vn_log_counter + 1;
 -- MTD Assay Update Based on Penalty Value Change                         
 --                        
 begin
-    for cur_assay_mtd in (
-      select gepc.internal_gmr_ref_no
-        from gepc_gmr_element_pc_charges gepc,
-             gepc_gmr_element_pc_charges gepc_prev
-       where gepc.internal_gmr_ref_no = gepc_prev.internal_gmr_ref_no
-         and gepc.process_id = pc_process_id
-         and gepc_prev.process_id = vc_previous_eom_id
-         and exists
-       (select *
-                from temp_gmr_arrival_ytdmtd ar
-               where ar.internal_gmr_ref_no = gepc.internal_gmr_ref_no
-                 and ar.mtd_ytd = 'MTD'
-                 and ar.corporate_id = pc_corporate_id)
-       group by gepc.internal_gmr_ref_no
-      having sum(gepc.pc_amt) <> sum(gepc_prev.pc_amt))
+    for cur_assay_mtd in (select t.internal_gmr_ref_no
+  from (select gepc.internal_gmr_ref_no,
+               sum((case
+                     when gepc.process_id = pc_process_id then
+                      1
+                     else
+                      -1
+                   end) * (gepc.pc_amt)) delta_amt
+          from gepc_gmr_element_pc_charges gepc
+         where gepc.process_id in (pc_process_id, vc_previous_eom_id)
+         group by gepc.internal_gmr_ref_no) t
+ where t.delta_amt <> 0
+   and exists (select *
+          from temp_gmr_arrival_ytdmtd ar
+         where ar.internal_gmr_ref_no = t.internal_gmr_ref_no
+           and ar.mtd_ytd = 'MTD'
+           and ar.corporate_id = pc_corporate_id))
                             
     loop
       update process_gmr gmr
@@ -27423,19 +27426,7 @@ begin
                from temp_gmr_supp_gmr tgmr
               where tgmr.supp_internal_gmr_ref_no = cur_assay_mtd.internal_gmr_ref_no
               and tgmr.corporate_id = pc_corporate_id);
-            /*(select gmr.internal_gmr_ref_no
-               from gmr_goods_movement_record gmr,
-                    process_grd   grd
-              where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-                and grd.status = 'Active'
-                and grd.tolling_stock_type = 'Clone Stock'
-                and gmr.tolling_service_type = 'P'
-                and gmr.is_pass_through = 'Y'
-                and gmr.is_deleted = 'N'
-                and gmr.process_id = pc_process_id
-                and grd.process_id = pc_process_id
-                and grd.supp_internal_gmr_ref_no =
-                    cur_assay_mtd.internal_gmr_ref_no);*/
+            
     end loop;
   end;
 commit;
@@ -27449,23 +27440,23 @@ vn_log_counter := vn_log_counter + 1;
 -- MTD Assay Update Based on RC Value Change                         
 --                        
 begin
-    for cur_assay_mtd in (
-select gerc.internal_gmr_ref_no
-  from gerc_gmr_element_rc_charges gerc,
-       gerc_gmr_element_rc_charges gerc_prev
- where gerc.internal_gmr_ref_no = gerc_prev.internal_gmr_ref_no
-   and gerc.process_id = pc_process_id
-   and gerc_prev.process_id = vc_previous_eom_id
-                             and exists
-                           (select *
-                                    from temp_gmr_arrival_ytdmtd ar
-                                   where ar.internal_gmr_ref_no =
-                                         gerc.internal_gmr_ref_no
-                                     and ar.mtd_ytd = 'MTD'
-                                     and ar.corporate_id = pc_corporate_id)
-                           group by gerc.internal_gmr_ref_no                           
-having sum(gerc.rc_amt) <> sum(gerc_prev.rc_amt))
-                            
+    for cur_assay_mtd in (select t.internal_gmr_ref_no
+  from (select gerc.internal_gmr_ref_no,
+               sum((case
+                     when gerc.process_id = pc_process_id then
+                      1
+                     else
+                      -1
+                   end) * (gerc.rc_amt)) delta_amt
+          from gerc_gmr_element_rc_charges gerc
+         where gerc.process_id in (pc_process_id, vc_previous_eom_id)
+         group by gerc.internal_gmr_ref_no) t
+ where t.delta_amt <> 0
+   and exists (select *
+          from temp_gmr_arrival_ytdmtd ar
+         where ar.internal_gmr_ref_no = t.internal_gmr_ref_no
+           and ar.mtd_ytd = 'MTD'
+           and ar.corporate_id = pc_corporate_id))                            
     loop
       update process_gmr gmr
          set gmr.is_assay_updated_mtd_ar = 'Y', gmr.is_rc_changed_mtd = 'Y'
@@ -27484,20 +27475,7 @@ having sum(gerc.rc_amt) <> sum(gerc_prev.rc_amt))
                from temp_gmr_supp_gmr tgmr
               where tgmr.supp_internal_gmr_ref_no = cur_assay_mtd.internal_gmr_ref_no
               and tgmr.corporate_id = pc_corporate_id);
-/*        
-            (select gmr.internal_gmr_ref_no
-               from gmr_goods_movement_record gmr,
-                    process_grd   grd
-              where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-                and grd.status = 'Active'
-                and grd.tolling_stock_type = 'Clone Stock'
-                and gmr.tolling_service_type = 'P'
-                and gmr.is_pass_through = 'Y'
-                and gmr.is_deleted = 'N'
-                and gmr.process_id = pc_process_id
-                and grd.process_id = pc_process_id
-                and grd.supp_internal_gmr_ref_no =
-                    cur_assay_mtd.internal_gmr_ref_no);*/
+
     end loop;
   end;
 commit;
@@ -27513,21 +27491,23 @@ vn_log_counter := vn_log_counter + 1;
 -- YTD Assay Update Based on TC Value change
 --
   begin
-    for cur_assay_ytd in (select getc.internal_gmr_ref_no
-  from getc_gmr_element_tc_charges getc,
-       getc_gmr_element_tc_charges getc_prev
- where getc.internal_gmr_ref_no = getc_prev.internal_gmr_ref_no
-   and getc.process_id = pc_process_id
-   and getc_prev.process_id = vc_previous_year_eom_id
-                             and exists
-                           (select *
-                                    from temp_gmr_arrival_ytdmtd ar
-                                   where ar.internal_gmr_ref_no =
-                                         getc.internal_gmr_ref_no
-                                     and ar.mtd_ytd = 'YTD'
-                                     and ar.corporate_id = pc_corporate_id)
-                           group by getc.internal_gmr_ref_no                           
-having sum(getc.tc_amt) <> sum(getc_prev.tc_amt))
+    for cur_assay_ytd in (select t.internal_gmr_ref_no
+  from (select getc.internal_gmr_ref_no,
+               sum((case
+                     when getc.process_id = pc_process_id then
+                      1
+                     else
+                      -1
+                   end) * (getc.tc_amt)) delta_amt
+          from getc_gmr_element_tc_charges getc
+         where getc.process_id in (pc_process_id,  vc_previous_year_eom_id)
+         group by getc.internal_gmr_ref_no) t
+ where t.delta_amt <> 0
+   and exists (select *
+          from temp_gmr_arrival_ytdmtd ar
+         where ar.internal_gmr_ref_no = t.internal_gmr_ref_no
+           and ar.mtd_ytd = 'YTD'
+           and ar.corporate_id = pc_corporate_id))
     loop
       update process_gmr gmr
          set gmr.is_assay_updated_ytd_ar = 'Y', gmr.is_tc_changed_ytd = 'Y'
@@ -27547,19 +27527,6 @@ commit;
                from temp_gmr_supp_gmr tgmr
               where tgmr.supp_internal_gmr_ref_no = cur_assay_ytd.internal_gmr_ref_no
               and tgmr.corporate_id = pc_corporate_id);
-         
-        /* ( select gmr.internal_gmr_ref_no
-      from gmr_goods_movement_record      gmr,
-           process_grd        grd
-     where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-       and grd.status = 'Active'
-       and grd.tolling_stock_type = 'Clone Stock'
-       and gmr.tolling_service_type = 'P'
-       and gmr.is_pass_through = 'Y'
-       and gmr.is_deleted = 'N'
-       and gmr.process_id = pc_process_id
-       and grd.process_id = pc_process_id
-       and grd.supp_internal_gmr_ref_no = cur_assay_ytd.internal_gmr_ref_no);*/
     end loop;
   end;
   commit;
@@ -27573,21 +27540,24 @@ vn_log_counter := vn_log_counter + 1;
 -- YTD Assay Update Based on Penalty Value change
 --
   begin
-    for cur_assay_ytd in (select gepc.internal_gmr_ref_no
-  from gepc_gmr_element_pc_charges gepc,
-       gepc_gmr_element_pc_charges gepc_prev
- where gepc.internal_gmr_ref_no = gepc_prev.internal_gmr_ref_no
-   and gepc.process_id = pc_process_id
-   and gepc_prev.process_id = vc_previous_year_eom_id
-                             and exists
-                           (select *
-                                    from temp_gmr_arrival_ytdmtd ar
-                                   where ar.internal_gmr_ref_no =
-                                         gepc.internal_gmr_ref_no
-                                     and ar.mtd_ytd = 'YTD'
-                                     and ar.corporate_id = pc_corporate_id)
-                           group by gepc.internal_gmr_ref_no                           
-having sum(gepc.pc_amt) <> sum(gepc_prev.pc_amt))
+    for cur_assay_ytd in ( 
+ select t.internal_gmr_ref_no
+   from (select gepc.internal_gmr_ref_no,
+                sum((case
+                      when gepc.process_id = pc_process_id then
+                       1
+                      else
+                       -1
+                    end) * (gepc.pc_amt)) delta_amt
+           from gepc_gmr_element_pc_charges gepc
+          where gepc.process_id in (pc_process_id,  vc_previous_year_eom_id)
+          group by gepc.internal_gmr_ref_no) t
+  where t.delta_amt <> 0
+    and exists (select *
+           from temp_gmr_arrival_ytdmtd ar
+          where ar.internal_gmr_ref_no = t.internal_gmr_ref_no
+            and ar.mtd_ytd = 'YTD'
+            and ar.corporate_id = pc_corporate_id))
     loop
       update process_gmr gmr
          set gmr.is_assay_updated_ytd_ar = 'Y', gmr.is_pc_changed_ytd = 'Y'
@@ -27607,19 +27577,7 @@ having sum(gepc.pc_amt) <> sum(gepc_prev.pc_amt))
                from temp_gmr_supp_gmr tgmr
               where tgmr.supp_internal_gmr_ref_no = cur_assay_ytd.internal_gmr_ref_no
               and tgmr.corporate_id = pc_corporate_id);
-         commit;
-         /*( select gmr.internal_gmr_ref_no
-      from gmr_goods_movement_record      gmr,
-           process_grd        grd
-     where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-       and grd.status = 'Active'
-       and grd.tolling_stock_type = 'Clone Stock'
-       and gmr.tolling_service_type = 'P'
-       and gmr.is_pass_through = 'Y'
-       and gmr.is_deleted = 'N'
-       and gmr.process_id = pc_process_id
-       and grd.process_id = pc_process_id
-       and grd.supp_internal_gmr_ref_no = cur_assay_ytd.internal_gmr_ref_no);*/
+         commit;        
     end loop;
   end;
   commit;
@@ -27633,21 +27591,23 @@ vn_log_counter := vn_log_counter + 1;
                         vn_log_counter,
                         'update gmr is_assay_updated_ytd rc starts');    
   begin
-    for cur_assay_ytd in (select gerc.internal_gmr_ref_no
-  from gerc_gmr_element_rc_charges gerc,
-       gerc_gmr_element_rc_charges gerc_prev
- where gerc.internal_gmr_ref_no = gerc_prev.internal_gmr_ref_no
-   and gerc.process_id = pc_process_id
-   and gerc_prev.process_id = vc_previous_year_eom_id
-                             and exists
-                           (select *
-                                    from temp_gmr_arrival_ytdmtd ar
-                                   where ar.internal_gmr_ref_no =
-                                         gerc.internal_gmr_ref_no
-                                     and ar.mtd_ytd = 'YTD'
-                                     and ar.corporate_id = pc_corporate_id)
-                           group by gerc.internal_gmr_ref_no                           
-having sum(gerc.rc_amt) <> sum(gerc_prev.rc_amt))
+    for cur_assay_ytd in (select t.internal_gmr_ref_no
+  from (select gerc.internal_gmr_ref_no,
+               sum((case
+                     when gerc.process_id = pc_process_id then
+                      1
+                     else
+                      -1
+                   end) * (gerc.rc_amt)) delta_amt
+          from gerc_gmr_element_rc_charges gerc
+         where gerc.process_id in (pc_process_id,  vc_previous_year_eom_id)
+         group by gerc.internal_gmr_ref_no) t
+ where t.delta_amt <> 0
+   and exists (select *
+          from temp_gmr_arrival_ytdmtd ar
+         where ar.internal_gmr_ref_no = t.internal_gmr_ref_no
+           and ar.mtd_ytd = 'YTD'
+           and ar.corporate_id = pc_corporate_id))
     loop
       update process_gmr gmr
          set gmr.is_assay_updated_ytd_ar = 'Y', gmr.is_rc_changed_ytd = 'Y'
@@ -27665,20 +27625,7 @@ having sum(gerc.rc_amt) <> sum(gerc_prev.rc_amt))
           (select tgmr.internal_gmr_ref_no
                from temp_gmr_supp_gmr tgmr
               where tgmr.supp_internal_gmr_ref_no = cur_assay_ytd.internal_gmr_ref_no
-              and tgmr.corporate_id = pc_corporate_id);
-         
-         /*( select gmr.internal_gmr_ref_no
-      from gmr_goods_movement_record      gmr,
-           process_grd        grd
-     where gmr.internal_gmr_ref_no = grd.internal_gmr_ref_no
-       and grd.status = 'Active'
-       and grd.tolling_stock_type = 'Clone Stock'
-       and gmr.tolling_service_type = 'P'
-       and gmr.is_pass_through = 'Y'
-       and gmr.is_deleted = 'N'
-       and gmr.process_id = pc_process_id
-       and grd.process_id = pc_process_id
-       and grd.supp_internal_gmr_ref_no = cur_assay_ytd.internal_gmr_ref_no);*/
+              and tgmr.corporate_id = pc_corporate_id);     
     end loop;
   end;
   commit; 
@@ -27687,27 +27634,8 @@ vn_log_counter := vn_log_counter + 1;
                         pd_trade_date,
                         pc_process_id,
                         vn_log_counter,
-                        'Assay Update delta update to gmr from  process gmr');  
- /*update gmr_goods_movement_record gmr
-    set (gmr.is_assay_updated_mtd_ar, gmr.is_assay_updated_ytd_ar, gmr.is_assay_updated_mtd, 
-    gmr.is_assay_updated_ytd, gmr.is_tc_changed_mtd, gmr.is_pc_changed_mtd, gmr.is_rc_changed_mtd, 
-    gmr.is_tc_changed_ytd, gmr.is_pc_changed_ytd, gmr.is_rc_changed_ytd) = (select gmr1.is_assay_updated_mtd_ar,
-                                               gmr1.is_assay_updated_ytd_ar,
-                                               gmr1.is_assay_updated_mtd,
-                                               gmr1.is_assay_updated_ytd,
-                                               gmr1.is_tc_changed_mtd,
-                                               gmr1.is_pc_changed_mtd,
-                                               gmr1.is_rc_changed_mtd,
-                                               gmr1.is_tc_changed_ytd,
-                                               gmr1.is_pc_changed_ytd,
-                                               gmr1.is_rc_changed_ytd
-                                          from process_gmr gmr1
-                                         where gmr1.corporate_id =
-                                               pc_corporate_id
-                                           and gmr1.internal_gmr_ref_no =
-                                               gmr.internal_gmr_ref_no)
-  where gmr.corporate_id = pc_corporate_id
-    and gmr.process_id = pc_process_id;*/
+                        'Assay Update delta update to gmr from  process gmr'); 
+ 
 vn_log_counter := vn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
                         pd_trade_date,
@@ -27786,25 +27714,26 @@ vn_log_counter := vn_log_counter + 1;
 --
 -- Updation of Dry or Wet Quantity for Stock
 --
-for cur_qty_mtd in (select grd.internal_gmr_ref_no
-               from grd_goods_record_detail grd,
-                    grd_goods_record_detail grd_prev
-              where grd.internal_gmr_ref_no = grd_prev.internal_gmr_ref_no
-                and grd.process_id = pc_process_id
-                and grd_prev.process_id = vc_previous_eom_id
-                and grd.is_deleted = 'N'
-                and grd.status = 'Active'
-                and grd_prev.is_deleted = 'N'
-                and grd_prev.status = 'Active'
-                and grd.tolling_stock_type = 'None Tolling'
-                and exists
-              (select *
-                       from temp_gmr_arrival_ytdmtd ar
-                      where ar.internal_gmr_ref_no = grd.internal_gmr_ref_no
-                        and ar.mtd_ytd = 'MTD'
-                        and ar.corporate_id = pc_corporate_id)
-              group by grd.internal_gmr_ref_no
-             having((sum(grd.qty) <> sum(grd_prev.qty)) or (sum(grd.dry_qty) <> sum(grd_prev.dry_qty))))
+for cur_qty_mtd in (select t.internal_gmr_ref_no
+  from (select grd.internal_gmr_ref_no,
+               sum((case
+                     when grd.process_id = pc_process_id then
+                      1
+                     else
+                      -1
+                   end) * (grd.qty)) delta_amt
+          from grd_goods_record_detail grd
+         where grd.process_id in (pc_process_id, vc_previous_eom_id)
+           and grd.is_deleted = 'N'
+           and grd.status = 'Active'
+           and grd.tolling_stock_type = 'None Tolling'
+         group by grd.internal_gmr_ref_no) t
+ where t.delta_amt <> 0      
+   and exists (select *
+          from temp_gmr_arrival_ytdmtd ar
+         where ar.internal_gmr_ref_no = t.internal_gmr_ref_no
+           and ar.mtd_ytd = 'MTD'
+           and ar.corporate_id = pc_corporate_id))
   loop
    update gds_gmr_delta_status gmr
       set gmr.is_assay_updated_mtd_ar = 'Y', gmr.is_qty_changed_mtd = 'Y'
@@ -27834,38 +27763,8 @@ vn_log_counter := vn_log_counter + 1;
 --
 -- Other charges Delta
 --
-For cur_oc_delta In(
-    select iocd.internal_gmr_ref_no
-      from iocd_ioc_details iocd,
-           iocd_ioc_details iocd_prev
-     where iocd.process_id = pc_process_id
-       and iocd.internal_gmr_ref_no = iocd_prev.internal_gmr_ref_no
-       and iocd_prev.process_id = vc_previous_eom_id
-       and exists
-     (select *
-              from temp_gmr_arrival_ytdmtd ar
-             where ar.internal_gmr_ref_no = iocd.internal_gmr_ref_no
-               and ar.mtd_ytd = 'MTD'
-               and ar.corporate_id = pc_corporate_id)
-     group by iocd.internal_gmr_ref_no
-    having sum(iocd.charge_rate) <> sum(iocd_prev.charge_rate)) loop
-     update gds_gmr_delta_status gmr
-             set gmr.is_assay_updated_mtd_ar = 'Y', gmr.is_oc_changed_mtd = 'Y'
-           where gmr.process_id = pc_process_id
-             and gmr.internal_gmr_ref_no = cur_oc_delta.internal_gmr_ref_no
-             and gmr.is_new_mtd_ar = 'N';
-         -- Marking for MFT GMR 
-         update gds_gmr_delta_status gmr
-            set gmr.is_assay_updated_mtd = 'Y', gmr.is_oc_changed_mtd = 'Y'
-          where gmr.process_id = pc_process_id
-            and gmr.is_new_mtd_ar = 'N'
-            and gmr.internal_gmr_ref_no in
-            (select tgmr.internal_gmr_ref_no
-                   from temp_gmr_supp_gmr tgmr
-                  where tgmr.supp_internal_gmr_ref_no = cur_oc_delta.internal_gmr_ref_no
-                  and tgmr.corporate_id = pc_corporate_id);
-End Loop;
-COMMIT;
+
+
 vn_log_counter := vn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
                         pd_trade_date,
@@ -27968,25 +27867,26 @@ vn_log_counter := vn_log_counter + 1;
 --
 -- Updation of Dry or Wet Quantity for Stock
 --
-for cur_qty_ytd in (select grd.internal_gmr_ref_no
-               from grd_goods_record_detail grd,
-                    grd_goods_record_detail grd_prev
-              where grd.internal_gmr_ref_no = grd_prev.internal_gmr_ref_no
-                and grd.process_id = pc_process_id
-                and grd_prev.process_id = vc_previous_year_eom_id
-                and grd.is_deleted = 'N'
-                and grd.status = 'Active'
-                and grd_prev.is_deleted = 'N'
-                and grd_prev.status = 'Active'
-                and grd.tolling_stock_type = 'None Tolling'
-                and exists
-              (select *
-                       from temp_gmr_arrival_ytdmtd ar
-                      where ar.internal_gmr_ref_no = grd.internal_gmr_ref_no
-                        and ar.mtd_ytd = 'YTD'
-                        and ar.corporate_id = pc_corporate_id)
-              group by grd.internal_gmr_ref_no
-             having((sum(grd.qty) <> sum(grd_prev.qty)) or (sum(grd.dry_qty) <> sum(grd_prev.dry_qty))))
+for cur_qty_ytd in (select t.internal_gmr_ref_no
+  from (select grd.internal_gmr_ref_no,
+               sum((case
+                     when grd.process_id = pc_process_id then
+                      1
+                     else
+                      -1
+                   end) * (grd.qty)) delta_amt
+          from grd_goods_record_detail grd
+         where grd.process_id in (pc_process_id, vc_previous_year_eom_id)
+           and grd.is_deleted = 'N'
+           and grd.status = 'Active'
+           and grd.tolling_stock_type = 'None Tolling'
+         group by grd.internal_gmr_ref_no) t
+ where t.delta_amt <> 0
+   and exists (select *
+          from temp_gmr_arrival_ytdmtd ar
+         where ar.internal_gmr_ref_no = t.internal_gmr_ref_no
+           and ar.mtd_ytd = 'YTD'
+           and ar.corporate_id = pc_corporate_id))
   loop
    update gds_gmr_delta_status gmr
          set gmr.is_assay_updated_ytd_ar = 'Y', gmr.is_qty_changed_ytd = 'Y'
@@ -28015,21 +27915,25 @@ vn_log_counter := vn_log_counter + 1;
 --
 -- Other charges Delta
 --
-  For cur_oc_delta In(
-  select iocd.internal_gmr_ref_no
-  from iocd_ioc_details iocd,
-       iocd_ioc_details iocd_prev
- where iocd.process_id = pc_process_id
-   and iocd.internal_gmr_ref_no = iocd_prev.internal_gmr_ref_no
-   and iocd_prev.process_id = vc_previous_year_eom_id
-                and exists
-              (select *
-                       from temp_gmr_arrival_ytdmtd ar
-                      where ar.internal_gmr_ref_no = iocd.internal_gmr_ref_no
-                        and ar.mtd_ytd = 'YTD'
-                        and ar.corporate_id = pc_corporate_id)
-group by iocd.internal_gmr_ref_no
-Having sum(iocd.charge_rate) <> sum(iocd_prev.charge_rate)) Loop
+  For cur_oc_delta In(select curr.internal_gmr_ref_no
+  from (select iocd.internal_gmr_ref_no,
+               sum(iocd.charge_rate) charge_rate
+          from iocd_ioc_details iocd
+         where iocd.process_id = pc_process_id
+         group by iocd.internal_gmr_ref_no) curr,
+       (select iocd.internal_gmr_ref_no,
+               sum(iocd.charge_rate) charge_rate
+          from iocd_ioc_details iocd
+         where iocd.process_id = vc_previous_year_eom_id
+         group by iocd.internal_gmr_ref_no) prev
+ where curr.internal_gmr_ref_no = prev.internal_gmr_ref_no(+)
+   and nvl(curr.charge_rate, 0) <> nvl(prev.charge_rate, 0)
+   and exists
+ (select *
+          from temp_gmr_arrival_ytdmtd ar
+         where ar.internal_gmr_ref_no = curr.internal_gmr_ref_no
+           and ar.mtd_ytd = 'YTD'
+           and ar.corporate_id = pc_corporate_id)) Loop
  update gds_gmr_delta_status gmr
          set gmr.is_assay_updated_ytd_ar = 'Y', gmr.is_oc_changed_ytd = 'Y'
        where gmr.process_id = pc_process_id
