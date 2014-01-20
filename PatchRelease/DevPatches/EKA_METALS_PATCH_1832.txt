@@ -1,0 +1,49 @@
+Patch No *              	:  EKA_METALS_PATCH_1832
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Varaprasad B
+
+Created on*        		:  20-Jan-2014
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  91866
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 155353
+Author: varaprasad.b
+Date: 17:13:18, 20 January 2014
+Message:
+Fix for invoice output document issue (tc charges).
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_677.sql
+
+
+
+
+
+
