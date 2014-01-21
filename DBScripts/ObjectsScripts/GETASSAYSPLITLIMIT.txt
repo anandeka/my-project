@@ -1,0 +1,71 @@
+CREATE OR REPLACE FUNCTION GETASSAYSPLITLIMIT (pcarid NUMBER)
+   RETURN CLOB
+IS
+   assay_exchange   CLOB := '';
+
+   CURSOR cr_assay_exchange
+   IS
+      SELECT (CASE
+                 WHEN pcar.final_assay_basis_id = 'Assay Exchange'
+                    THEN    pcar.comparision
+                         || ' '
+                         || CASE
+                               WHEN pcar.comparision = 'Apply Spliting Limit'
+                               AND pcar.split_limit_basis = 'Fixed'
+                                  THEN    RTRIM
+                                               (TO_CHAR (pcar.split_limit,
+                                                         'FM999990D909999999'
+                                                        ),
+                                                '.'
+                                               )
+                                       || rm.ratio_name
+                               WHEN pcar.comparision = 'Apply Spliting Limit'
+                               AND pcar.split_limit_basis =
+                                                         'Assay Content Based'
+                                  THEN    RTRIM
+                                             (TO_CHAR
+                                                     (pcaesl.applicable_value,
+                                                      'FM999990D909999999'
+                                                     ),
+                                              '.'
+                                             )
+                                       || rm.ratio_name
+                                       || ', if range falls in '
+                                       || pcaesl.assay_min_op
+                                       || ' '
+                                       || RTRIM
+                                             (TO_CHAR (pcaesl.assay_min_value,
+                                                       'FM999990D909999999'
+                                                      ),
+                                              '.'
+                                             )
+                                       || ' to '
+                                       || pcaesl.assay_max_op
+                                       || ' '
+                                       || RTRIM
+                                             (TO_CHAR (pcaesl.assay_max_value,
+                                                       'FM999990D909999999'
+                                                      ),
+                                              '.'
+                                             )
+                                       || rm.ratio_name
+                            END
+              END
+             ) AS assayexchange
+        FROM pcar_pc_assaying_rules pcar,
+             pcaesl_assay_elem_split_limits pcaesl,
+             rm_ratio_master rm
+       WHERE pcar.pcar_id = pcaesl.pcar_id(+)
+         AND rm.ratio_id = pcar.split_limit_unit_id
+         AND pcar.is_active = 'Y'
+         AND pcaesl.is_active(+) = 'Y'
+         AND pcar.pcar_id = pcarid;
+BEGIN
+   FOR assay_exchange_rec IN cr_assay_exchange
+   LOOP
+      assay_exchange := assay_exchange  || assay_exchange_rec.assayexchange || chr(10);
+   END LOOP;
+
+   RETURN assay_exchange;
+END;
+/
