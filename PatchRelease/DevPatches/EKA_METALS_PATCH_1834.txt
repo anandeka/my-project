@@ -1,0 +1,49 @@
+Patch No *              	:  EKA_METALS_PATCH_1834
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Varaprasad B
+
+Created on*        		:  21-Jan-2014
+
+Bug / Enhancement*		:  N/A
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 155430
+Author: varaprasad.b
+Date: 14:50:57, 21 January 2014
+Message:
+Updated to display zero payables in invoice output document.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_678.sql
+
+
+
+
+
+
