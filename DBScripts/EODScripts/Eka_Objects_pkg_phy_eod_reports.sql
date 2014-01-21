@@ -2444,14 +2444,14 @@ create or replace package body pkg_phy_eod_reports is
                           pc_process_id,
                           vn_log_counter,
                           'Insert patd_pa_temp_data 3 over Sales');
-    --
+   /* --
     -- Call Other Charges Calcualtion
     --
     sp_calc_invoice_other_charges(pc_corporate_id,
                                  pd_trade_date,
                                  pc_process_id,
                                  'EOM',
-                                 null);
+                                 null);*/
     
     vn_log_counter := vn_log_counter + 1;
     sp_eodeom_process_log(pc_corporate_id,
@@ -27263,6 +27263,21 @@ vn_log_counter := vn_log_counter + 1;
     when no_data_found then
       vc_previous_year_eom_id := null;
   end;
+  vn_log_counter := vn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        vn_log_counter,
+                        'populate invoice other charges');  
+    --
+    -- Call Other Charges Calcualtion
+    --
+    sp_calc_invoice_other_charges(pc_corporate_id,
+                                 pd_trade_date,
+                                 pc_process_id,
+                                 pc_process,
+                                 pc_user_id);
+commit;                                   
 vn_log_counter := vn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
                         pd_trade_date,
@@ -27646,7 +27661,7 @@ vn_log_counter := vn_log_counter + 1;
 sp_gather_stats('gmr_goods_movement_record');
 sp_gather_stats('process_gmr');            
 
- for cc in (select gmr1.internal_gmr_ref_no,
+for cc in (select gmr1.internal_gmr_ref_no,
                     gmr1.is_assay_updated_mtd_ar,
                     gmr1.is_assay_updated_ytd_ar,
                     gmr1.is_assay_updated_mtd,
