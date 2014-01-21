@@ -1,0 +1,72 @@
+Patch No *              	:  EKA_METALS_PATCH_1835
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Kumar Pagada
+
+Created on*        		:  21-Jan-2014
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  91778
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physicals
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 155544
+Author: sishir.pagada
+Date: 9:18:59 PM, Tuesday, January 21, 2014
+Message:
+Bug# 91778
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETASSAYSPLITLIMIT.txt
+
+
+=======================================================================
+Revision: 155545
+Author: sishir.pagada
+Date: 9:21:30 PM, Tuesday, January 21, 2014
+Message:
+Bug# 91778
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATECONTRACTOUTPUTDOC.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETASSAYINRULES.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETCCDETAILS.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETCHEMICALATTRIBUTES.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETDELIVERYPERIODDETAILS.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETPAYABLECONTENTDETAILS.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETPRICINGFORMULADETAILS.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETRCDETAILS.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETRETURNABLECONTENTDETAILS.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETTCDETAILS.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETTOLPAYABLECONTENTDETAILS.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/PREPAREAMENDCONTRACTOUTPUTDOC.sql
+
+
+
+
+
+
+
+
