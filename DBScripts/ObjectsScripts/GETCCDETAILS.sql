@@ -22,7 +22,7 @@ IS
               || pcmac.charge
               || ' '
               || cm.cur_code
-              || ' , '
+              || '/'
               || pcmac.charge_rate_basis
              ) AS cc
         FROM pcmac_pcm_addn_charges pcmac,

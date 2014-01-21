@@ -1,8 +1,9 @@
 CREATE OR REPLACE FUNCTION GETDELIVERYPERIODDETAILS(p_contractNo  VARCHAR2,
-                                                    p_delivery_id VARCHAR2)
+                                                    p_delivery_id VARCHAR2, istollingcontract VARCHAR2,
+                                                    product_group_type VARCHAR2)
   return CLOB is
   deliveryDescription CLOB := '';
-  deliveryItem        VARCHAR2(4000) := '';
+  --deliveryItem        VARCHAR2(4000) := '';
   quotaPeriod         VARCHAR2(4000) := '';
   qualityDetails      VARCHAR2(4000) := '';
   quantityDetails     VARCHAR2(4000) := '';
@@ -17,7 +18,15 @@ CREATE OR REPLACE FUNCTION GETDELIVERYPERIODDETAILS(p_contractNo  VARCHAR2,
   minQtyValue         NUMBER(25, 10);
   maxQtyValue         NUMBER(25, 10);
   itemQtyUnit         VARCHAR2(50);
-  packingtype           VARCHAR2 (4000) := 'Packing Type:';
+  packingtype         VARCHAR2 (4000) := '';
+  payableContent      VARCHAR2(4000) := '';
+  pcDetails           VARCHAR2(4000) := '';
+  returnableContent   VARCHAR2(4000) := '';
+  returnableDetails   VARCHAR2(4000) := '';
+  treatmentCharge     VARCHAR2(4000) := '';
+  tcDetails           VARCHAR2(4000) := 'Treatment Charges: ';
+  refiningCharge      VARCHAR2(4000) := '';
+  rcDetails           VARCHAR2(4000) := 'Refining Charges: ';
 
   cursor cr_incoterm IS
     Select 'Incoterm ' || ITM.INCOTERM || ' - ' || CIM.CITY_NAME || (case
@@ -48,7 +57,7 @@ CREATE OR REPLACE FUNCTION GETDELIVERYPERIODDETAILS(p_contractNo  VARCHAR2,
        AND PCDIOB.PCDI_ID = p_delivery_id;
  
   cursor cr_pricing IS
-    Select PCBPH.PRICE_DESCRIPTION as PRICE_DESCRIPTION,
+     Select --PCBPH.PRICE_DESCRIPTION as PRICE_DESCRIPTION,
            PCBPH.ELEMENT_NAME      as ELEMENT_NAME,
            PCBPH.PCBPH_ID          as PCBPH_ID
       From PCDIPE_DI_PRICING_ELEMENTS PCDIPE,
@@ -57,26 +66,61 @@ CREATE OR REPLACE FUNCTION GETDELIVERYPERIODDETAILS(p_contractNo  VARCHAR2,
        AND PCDIPE.IS_ACTIVE = 'Y'
        AND PCBPH.IS_ACTIVE = 'Y'
        AND PCDIPE.PCDI_ID = p_delivery_id
-     ORDER BY PCDIPE.PCBPH_ID;
+     ORDER BY PCBPH.ELEMENT_NAME;
+     
+cursor cr_payble_content IS
+SELECT   pcpch.pcpch_id AS pcpchid
+    FROM pcpch_pc_payble_content_header pcpch,
+         dipch_di_payablecontent_header dipch
+   WHERE dipch.pcdi_id = p_delivery_id
+     AND dipch.pcpch_id = pcpch.pcpch_id
+     AND dipch.is_active = 'Y'
+     AND pcpch.is_active = 'Y';
+
+cursor cr_treatment_charge IS
+SELECT   pcth.pcth_id AS pcthid
+    FROM dith_di_treatment_header dith,
+         pcth_pc_treatment_header pcth,
+         ted_treatment_element_details ted
+   WHERE dith.pcth_id = pcth.pcth_id
+     AND pcth.pcth_id = ted.pcth_id
+     AND pcth.is_active = 'Y'
+     AND dith.is_active = 'Y'
+     AND ted.is_active = 'Y'
+     AND dith.pcdi_id = p_delivery_id
+ORDER BY ted.element_name;
+
+cursor cr_refining_charge IS
+SELECT   pcrh.pcrh_id AS pcrhid
+    FROM dirh_di_refining_header dirh,
+         pcrh_pc_refining_header pcrh,
+         red_refining_element_details red
+   WHERE dirh.pcrh_id = pcrh.pcrh_id
+     AND pcrh.pcrh_id = red.pcrh_id
+     AND pcrh.is_active = 'Y'
+     AND dirh.is_active = 'Y'
+     AND red.is_active = 'Y'
+     AND dirh.pcdi_id = p_delivery_id
+ORDER BY red.element_name;
+   
 
 begin
 
-  begin
-    select 'Delivery Item No :' || PCM.CONTRACT_REF_NO || '-' ||
-           PCDI.DELIVERY_ITEM_NO
-      into deliveryItem
-      from PCDI_PC_DELIVERY_ITEM PCDI, PCM_PHYSICAL_CONTRACT_MAIN PCM
-     Where PCM.INTERNAL_CONTRACT_REF_NO = PCDI.INTERNAL_CONTRACT_REF_NO
-       and PCDI.PCDI_ID = p_delivery_id;
+  --begin
+ --   select 'Delivery Item No :' || PCM.CONTRACT_REF_NO || '-' ||
+  --         PCDI.DELIVERY_ITEM_NO
+  --    into deliveryItem
+  --    from PCDI_PC_DELIVERY_ITEM PCDI, PCM_PHYSICAL_CONTRACT_MAIN PCM
+  --   Where PCM.INTERNAL_CONTRACT_REF_NO = PCDI.INTERNAL_CONTRACT_REF_NO
+  --     and PCDI.PCDI_ID = p_delivery_id;
   
-  exception
-    when no_data_found then
-      deliveryItem := '';
-  end;
+ -- exception
+ --   when no_data_found then
+ --     deliveryItem := '';
+ -- end;
   
   BEGIN
-      SELECT    'Packing Type :'
-               || pcdi.packing_type
+      SELECT pcdi.packing_type
         INTO packingtype
         FROM pcdi_pc_delivery_item pcdi, pcm_physical_contract_main pcm
        WHERE pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
@@ -151,18 +195,58 @@ begin
 
   for pricing_rec in cr_pricing loop
   
-    pricingDetails := pricingDetails || chr(10);
+    pricingDetails := pricingDetails || chr(10) ;
     if (pricing_rec.ELEMENT_NAME is not null) then
-      pricingDetails := pricingDetails || pricing_rec.ELEMENT_NAME || ' :';
+      pricingDetails := pricingDetails || pricing_rec.ELEMENT_NAME;
     end if;
-    pricingDetails := pricingDetails || pricing_rec.PRICE_DESCRIPTION;
-  
+    
+    --pricingDetails := pricingDetails || pricing_rec.PRICE_DESCRIPTION;
+          
     formulaDetails := getpricingformuladetails(pricing_rec.PCBPH_ID);
     if (formulaDetails is not null) then
-      pricingDetails := pricingDetails || chr(10) || formulaDetails || chr(10);
+      pricingDetails := pricingDetails || chr(10) || formulaDetails;
     end if;
   
   end loop;
+  
+  IF (product_group_type = 'CONCENTRATES')
+   THEN
+  for payble_content_rec in cr_payble_content loop
+     IF(istollingcontract = 'N')
+      THEN
+        pcDetails := getpayablecontentdetails(payble_content_rec.pcpchid);
+      else
+        pcDetails := gettolpayablecontentdetails(payble_content_rec.pcpchid);
+        returnableDetails := getreturnablecontentdetails(payble_content_rec.pcpchid);
+      end if;
+    
+    if (pcDetails is not null) then
+      payableContent := chr(10) || 'Payable Content: ' || chr(10) || pcDetails ;
+    end if;
+     if (returnableContent is not null) then
+      returnableContent := 'Returnable Content: ' || chr(10) || returnableDetails || chr(10);
+    end if;
+    
+    
+  end loop;
+  
+  for tc_rec in cr_treatment_charge loop
+    treatmentCharge := getTCDetails(tc_rec.pcthid);
+    if (treatmentCharge is not null) then
+    tcDetails := tcDetails || chr(10) || treatmentCharge ;
+    end if;
+    
+  end loop;
+  
+   for rc_rec in cr_refining_charge loop
+    
+    refiningCharge := getRCDetails(rc_rec.pcrhid);
+    if (refiningCharge is not null) then
+    rcDetails := rcDetails || chr(10) || refiningCharge ;
+    end if;
+    
+  end loop;
+  end if;
 
   begin
     Select nvl(to_char(PCDI.QP_DECLARATION_DATE, 'DD-Mon-YYYY'), ''),
@@ -178,8 +262,15 @@ begin
       PaymentDueDate    := '';  
   end;
 
-  deliveryDescription := deliveryItem || chr(10) || qualityDetails  || CHR(10) || quantityDetails || CHR(10) ||  quotaPeriod || chr(10) ||
-                         incotermDetails || chr(10) || packingtype || ' ' || Optionality || chr(10) || pricingDetails;
+  deliveryDescription := qualityDetails  || CHR(10) || quantityDetails || CHR(10) ||  quotaPeriod || chr(10) ||
+                         incotermDetails || chr(10);
+         
+  if (packingtype is not null) then                
+  deliveryDescription := deliveryDescription || 'Packing Type: '||packingtype || chr(10);
+  end if;
+  
+  deliveryDescription := deliveryDescription || Optionality || chr(10) || pricingDetails ||
+                         payableContent  || tcDetails || chr(10) || rcDetails || chr(10);
 
   if (QPDeclarationDate is not null) then
     deliveryDescription := deliveryDescription || chr(10) ||

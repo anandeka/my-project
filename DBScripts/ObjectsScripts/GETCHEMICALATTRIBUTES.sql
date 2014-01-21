@@ -27,8 +27,8 @@ IS
          AND PQCA.IS_ACTIVE = 'Y'
          AND asm.ash_id = p_ashid
          ORDER BY pqca.is_elem_for_pricing DESC,
-         pqca.is_deductible DESC,
-         aml.attribute_name;
+         --pqca.is_deductible DESC,
+         aml.attribute_name ASC;
 
    qualitydescription   VARCHAR2 (4000) := '';
 BEGIN

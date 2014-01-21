@@ -1,10 +1,14 @@
 CREATE OR REPLACE FUNCTION GETASSAYINRULES (pContractNo number)
    RETURN CLOB
 IS
-    
+    ASSAY_RULES            CLOB :='';
+    umpires_list           VARCHAR2 (500) := ''; 
+    elementname            VARCHAR2 (50);
+    finalassay             VARCHAR2 (1000);
+    finalizemethod         VARCHAR2 (10000);
+
     cursor cr_assay_quality          
     IS
-    
     SELECT distinct qat.quality_name           
     FROM pcar_pc_assaying_rules pcar,
          arqd_assay_quality_details arqd,
@@ -19,8 +23,18 @@ IS
      AND pcar.is_active = 'Y'
      AND pcm.internal_contract_ref_no = pContractNo;
      
+    cursor cr_assay_header          
+    IS
+    SELECT pcar.pcar_id       
+    FROM pcar_pc_assaying_rules pcar,
+         pcm_physical_contract_main pcm
+    WHERE pcar.internal_contract_ref_no = pcm.internal_contract_ref_no
+     AND pcar.is_active = 'Y'
+     AND pcm.internal_contract_ref_no = pContractNo
+     order by pcar.element_name;
+
     
-    cursor cr_ar          
+   /* cursor cr_ar          
     IS
 
     SELECT qat.quality_name ,
@@ -35,7 +49,7 @@ IS
                         when PCAR.COMPARISION = 'Apply Spliting Limit' and PCAR.SPLIT_LIMIT_BASIS = 'Assay Content Based'
                             then rtrim(TO_CHAR (PCAESL.APPLICABLE_VALUE, 'FM999990D909999999'),'.')  || RM.RATIO_NAME || ' ,if range falls in   '|| PCAESL.ASSAY_MIN_OP || ' ' || rtrim(TO_CHAR(PCAESL.ASSAY_MIN_VALUE, 'FM999990D909999999'),'.') || ' to ' || PCAESL.ASSAY_MAX_OP || ' ' || rtrim(TO_CHAR(PCAESL.ASSAY_MAX_VALUE, 'FM999990D909999999'),'.') || RM.RATIO_NAME                     
                     end
-         end) ) as final_assay       
+         end) ) as final_assay
     FROM pcar_pc_assaying_rules pcar,
          pcaesl_assay_elem_split_limits pcaesl,
          arqd_assay_quality_details arqd,
@@ -57,7 +71,7 @@ IS
      AND pcaesl.is_active(+) = 'Y'
      AND arqd.is_active = 'Y'
      AND pcm.internal_contract_ref_no = pContractNo
-     order by AML.ATTRIBUTE_NAME;
+     order by AML.ATTRIBUTE_NAME;*/
    
     cursor cr_umpire
     is
@@ -78,11 +92,9 @@ IS
     and PAD.ADDRESS_TYPE = 'Main'
     and PCU.IS_ACTIVE = 'Y'
     AND pcm.internal_contract_ref_no = pContractNo;
-   
-   ASSAY_RULES   CLOB :=''; 
-   umpires_list  VARCHAR2 (500) := ''; 
+
    begin
-            for assay_quality_rec in cr_assay_quality
+            /*for assay_quality_rec in cr_assay_quality
             loop
                 
                  ASSAY_RULES:= ASSAY_RULES ||''|| assay_quality_rec.quality_name ||chr(10);    
@@ -90,23 +102,47 @@ IS
                  for ar_rec in cr_ar
                  loop
                     
-                    if (assay_quality_rec.quality_name = ar_rec.quality_name) then 
+                         if (assay_quality_rec.quality_name = ar_rec.quality_name) then 
                         ASSAY_RULES:= ASSAY_RULES || ar_rec.final_assay || chr(10);
-                       
                     end if;
                     
                  end loop;
             
-            end loop;
-           
+            end loop;*/
             
-            for umpire in cr_umpire
+          for assay_quality_rec in cr_assay_quality
+            loop
+            
+            ASSAY_RULES:= ASSAY_RULES ||''|| assay_quality_rec.quality_name || chr(10);
+            
+            for assay_header_rec in cr_assay_header
+            loop
+            
+            SELECT pcar.element_name
+                INTO elementname
+                FROM pcar_pc_assaying_rules pcar
+                WHERE pcar.pcar_id = assay_header_rec.pcar_id
+                AND pcar.is_active = 'Y';
+
+            SELECT pcar.final_assay_basis_id
+                INTO finalassay
+                FROM pcar_pc_assaying_rules pcar
+                WHERE pcar.pcar_id = assay_header_rec.pcar_id
+                AND pcar.is_active = 'Y';
+         
+            ASSAY_RULES := ASSAY_RULES || elementname || ':' || chr(10)
+                         || 'Final Assay: Will be finalized based on ' || finalassay || chr(10)
+                        || 'Method: ' || chr(10) || GETASSAYSPLITLIMIT(assay_header_rec.pcar_id) || chr(10);
+            end loop;
+          end loop;
+            
+           for umpire in cr_umpire
             loop
                 if (umpire.umpire_rule is not null) then
-                     ASSAY_RULES:= ASSAY_RULES || chr(10) || 'Umpire Rule :'|| umpire.umpire_rule;
+                     ASSAY_RULES:= ASSAY_RULES || 'Umpire Rule: '|| umpire.umpire_rule;
                 end if;
                 if (umpire.umpire_cost is not null) then
-                     ASSAY_RULES:= ASSAY_RULES || chr(10) || 'Umpiring Cost :'|| umpire.umpire_cost;
+                     ASSAY_RULES:= ASSAY_RULES || chr(10) || 'Umpiring Cost: '|| umpire.umpire_cost;
                 end if;
                             
             end loop;

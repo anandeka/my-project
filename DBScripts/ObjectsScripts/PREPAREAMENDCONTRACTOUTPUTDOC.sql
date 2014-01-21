@@ -38,7 +38,8 @@ IS
    p_doc_type                 VARCHAR2 (15)   := '';
    old_doc_id                 VARCHAR2 (15)   := '';
    timeofdelivery varchar2(30);
-
+   istollingcontract          VARCHAR2 (1)    := '';
+   
    CURSOR cr_delivery
    IS
       SELECT   pcdi.pcdi_id pcdi_id,
@@ -60,13 +61,14 @@ BEGIN
              ak.corporate_id, pcm.purchase_sales, phd.companyname,
              pcm.cp_id, pcm.product_group_type,
              TO_CHAR (par.amendment_date, 'dd-Mon-YYYY'),
-             pcm.partnership_type
+             pcm.partnership_type, pcm.is_tolling_contract
         INTO issuedate, contractrefno,
              cpcontractrefno, corporatename,
              corporateid, contracttype, counterparty,
              cpid, product_group_type,
              amendmentdate,
-             executiontype
+             executiontype,
+             istollingcontract
         FROM pcm_physical_contract_main pcm,
              ak_corporate ak,
              phd_profileheaderdetails phd,
@@ -522,7 +524,9 @@ END;
                    'Delivery Item:' || delivery_rec.delivery_item_ref_no,
                    'Y', NULL, NULL,
                    getdeliveryperioddetails (p_contractno,
-                                             delivery_rec.pcdi_id
+                                             delivery_rec.pcdi_id,
+                                             istollingcontract,
+                                             product_group_type
                                             ),
                    NULL, NULL, 'N',
                    'N', 'N', 'FULL',

@@ -732,7 +732,8 @@ BEGIN
                    'Delivery Item:' || delivery_rec.delivery_item_ref_no,
                    'Y', NULL, NULL,
                    getdeliveryperioddetails (p_contractno,
-                                             delivery_rec.pcdi_id
+                                             delivery_rec.pcdi_id,istollingcontract,
+                                             product_group_type
                                             ),
                    NULL, NULL, 'N',
                    'N', 'N', 'FULL',
@@ -785,7 +786,8 @@ BEGIN
                );
 
    BEGIN
-      SELECT    cm.cur_code
+      SELECT 'Currency: '
+             || cm.cur_code
              || ' ,'
              || pym.payterm_long_name
              || (CASE
@@ -827,12 +829,12 @@ BEGIN
 
    IF (product_group_type = 'CONCENTRATES')
    THEN
-   IF(istollingcontract = 'N')
+    /*IF(istollingcontract = 'N')
    THEN
       display_order := display_order + 1;
 
-      INSERT INTO cod_contract_output_detail
-                  (doc_id, display_order, field_layout_id, section_name,
+     INSERT INTO cod_contract_output_detail
+                 (doc_id, display_order, field_layout_id, section_name,
                    field_name, is_print_reqd, pre_content_text_id,
                    post_content_text_id, contract_content, pre_content_text,
                    post_content_text, is_custom_section, is_footer_section,
@@ -880,7 +882,7 @@ BEGIN
     END IF;
     
 
-      display_order := display_order + 1;
+      /*display_order := display_order + 1;
 
       INSERT INTO cod_contract_output_detail
                   (doc_id, display_order, field_layout_id, section_name,
@@ -910,7 +912,7 @@ BEGIN
                    NULL, getrcdetails (p_contractno), NULL,
                    NULL, 'N', 'N',
                    'N', 'FULL', 'N'
-                  );
+                  );*/
 
       display_order := display_order + 1;
 

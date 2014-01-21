@@ -1,11 +1,11 @@
-CREATE OR REPLACE FUNCTION getTCDetails (pContractNo number)
+CREATE OR REPLACE FUNCTION getTCDetails (pcthid number)
    RETURN VARCHAR2
 IS
 
     cursor cr_tc_quality          
     IS
     
-    SELECT distinct qat.quality_name           
+    /*SELECT distinct qat.quality_name           
     FROM pcth_pc_treatment_header pcth,
          tqd_treatment_quality_details tqd,
          pcm_physical_contract_main pcm,
@@ -17,8 +17,18 @@ IS
      AND pcpq.quality_template_id = qat.quality_id
      AND tqd.is_active = 'Y'
      AND pcth.is_active = 'Y'
-     AND pcm.internal_contract_ref_no = pContractNo;
+     AND pcm.internal_contract_ref_no = pContractNo;*/
      
+     SELECT DISTINCT qat.quality_name
+           FROM pcth_pc_treatment_header pcth,
+                tqd_treatment_quality_details tqd,
+                pcpq_pc_product_quality pcpq,
+                qat_quality_attributes qat
+          WHERE tqd.pcth_id = pcthid
+            AND pcpq.pcpq_id = tqd.pcpq_id
+            AND pcpq.quality_template_id = qat.quality_id
+            AND tqd.is_active = 'Y'
+            AND pcth.is_active = 'Y';
      
     cursor cr_tc          
     IS
@@ -45,7 +55,7 @@ IS
        ted_treatment_element_details ted,
        tqd_treatment_quality_details tqd,
        pcetc_pc_elem_treatment_charge pcetc,
-       pcm_physical_contract_main pcm,
+       --pcm_physical_contract_main pcm,
        ppu_product_price_units ppu,
        pum_price_unit_master pum,
        aml_attribute_master_list aml,
@@ -56,7 +66,8 @@ IS
        pum_price_unit_master pum_header
  WHERE pcth.pcth_id = ted.pcth_id
    AND pcth.pcth_id = pcetc.pcth_id
-   AND pcth.internal_contract_ref_no = pcm.internal_contract_ref_no
+   AND pcth.pcth_id = pcthid
+   --AND pcth.internal_contract_ref_no = pcm.internal_contract_ref_no
    AND tqd.pcth_id = pcth.pcth_id
    AND pcpq.pcpq_id = tqd.pcpq_id
    AND pcpq.quality_template_id = qat.quality_id
@@ -71,7 +82,8 @@ IS
    AND pcth.is_active = 'Y'
    AND ted.is_active = 'Y'
    AND tqd.is_active = 'Y'
-   AND pcm.internal_contract_ref_no =pContractNo;
+   --AND pcm.internal_contract_ref_no =pContractNo;
+  ORDER BY aml.attribute_name;
  
    TC_DETAILS   VARCHAR2(4000) :='';     
    begin

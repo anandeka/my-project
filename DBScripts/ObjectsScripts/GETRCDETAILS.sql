@@ -1,11 +1,11 @@
-CREATE OR REPLACE FUNCTION getRCDetails (pContractNo number)
+CREATE OR REPLACE FUNCTION getRCDetails (pcrhid number)
    RETURN VARCHAR2
 IS  
     
     cursor cr_rc_quality          
     IS
     
-    SELECT distinct qat.quality_name           
+    /*SELECT distinct qat.quality_name           
     FROM PCRH_PC_REFINING_HEADER pcrh,
          RQD_REFINING_QUALITY_DETAILS rqd,
          pcm_physical_contract_main pcm,
@@ -17,7 +17,21 @@ IS
      AND pcpq.quality_template_id = qat.quality_id
      AND rqd.is_active = 'Y'
      and PCRH.IS_ACTIVE = 'Y'
-     AND pcm.internal_contract_ref_no = pContractNo;
+     AND pcm.internal_contract_ref_no = pContractNo;*/
+     
+     SELECT DISTINCT qat.quality_name
+           FROM pcrh_pc_refining_header pcrh,
+                rqd_refining_quality_details rqd,
+                pcpq_pc_product_quality pcpq,
+                qat_quality_attributes qat
+          WHERE rqd.pcrh_id = pcrhid
+            AND pcpq.pcpq_id = rqd.pcpq_id
+            AND pcpq.quality_template_id = qat.quality_id
+            AND rqd.is_active = 'Y'
+            AND pcrh.is_active = 'Y'
+            AND pcpq.is_active = 'Y'
+            AND qat.is_active = 'Y'
+            AND qat.is_deleted = 'N';
 
     cursor cr_rc          
     IS
@@ -44,7 +58,7 @@ IS
        RED_REFINING_ELEMENT_DETAILS red,
        RQD_REFINING_QUALITY_DETAILS rqd,
        PCERC_PC_ELEM_REFINING_CHARGE pcerc,
-       pcm_physical_contract_main pcm,
+       --pcm_physical_contract_main pcm,
        ppu_product_price_units ppu,
        pum_price_unit_master pum,
        aml_attribute_master_list aml,
@@ -55,7 +69,8 @@ IS
        pum_price_unit_master pum_header
  WHERE pcrh.pcrh_id = red.pcrh_id
    AND pcrh.pcrh_id = pcerc.pcrh_id
-   AND pcrh.internal_contract_ref_no = pcm.internal_contract_ref_no
+   AND pcrh.pcrh_id = pcrhid
+   --AND pcrh.internal_contract_ref_no = pcm.internal_contract_ref_no
    AND rqd.pcrh_id = pcrh.pcrh_id
    AND pcpq.pcpq_id = rqd.pcpq_id
    AND pcpq.quality_template_id = qat.quality_id
@@ -70,7 +85,7 @@ IS
    AND pcrh.is_active = 'Y'
    AND red.is_active = 'Y'
    AND rqd.is_active = 'Y'
-   AND PCM.INTERNAL_CONTRACT_REF_NO =pContractNo 
+   --AND PCM.INTERNAL_CONTRACT_REF_NO =pContractNo 
    ORDER BY aml.attribute_name;
  
    RC_DETAILS   VARCHAR2(4000) :='';  
@@ -94,3 +109,6 @@ IS
             return  RC_DETAILS;
     end;
 /
+
+
+
