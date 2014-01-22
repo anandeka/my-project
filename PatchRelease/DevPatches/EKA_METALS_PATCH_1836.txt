@@ -1,0 +1,53 @@
+Patch No *              	:  EKA_METALS_PATCH_1836
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Subhash Sharma
+
+Created on*        		:  22-Jan-2014
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  91370
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physicals
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 155606
+Author: subhash.sharma
+Date: 3:31:57 PM, Wednesday, January 22, 2014
+Message:
+Bug# 91370
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_679.sql
+
+
+
+
+
+
+
+
+
+
