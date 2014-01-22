@@ -2,7 +2,7 @@ CREATE OR REPLACE FUNCTION GETASSAYINRULES (pContractNo number)
    RETURN CLOB
 IS
     ASSAY_RULES            CLOB :='';
-    umpires_list           VARCHAR2 (500) := ''; 
+    umpires_list           VARCHAR2 (4000) := ''; 
     elementname            VARCHAR2 (50);
     finalassay             VARCHAR2 (1000);
     finalizemethod         VARCHAR2 (10000);

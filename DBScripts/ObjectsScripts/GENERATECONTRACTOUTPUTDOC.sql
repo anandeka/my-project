@@ -1122,24 +1122,68 @@ BEGIN
                );
            
     Begin
-    SELECT   DECODE
-            (pcdi.delivery_period_type,'Date', (TO_CHAR (MIN (pcdi.delivery_from_date), 'MON-yyyy')
-                      || ' To '
-                      || TO_CHAR (MAX (pcdi.delivery_from_date), 'MON-yyyy') ), 'Month', (TO_CHAR
-                             ((MIN(TO_DATE (   '01-'
-                                           || DECODE (pcdi.delivery_from_month,NULL, 'Jan',pcdi.delivery_from_month)
-                                           || '-'
-                                           || DECODE (pcdi.delivery_from_year,NULL, '2011',pcdi.delivery_from_year)))),'MON-yyyy')
-                       || ' To '
-                       || TO_CHAR ((MAX(TO_DATE ('01-' || DECODE(pcdi.delivery_from_month,NULL, 'Jan',pcdi.delivery_from_month)
-                                           || '-'
-                                           || DECODE (pcdi.delivery_from_year,NULL, '2011',pcdi.delivery_from_year) ))),'MON-yyyy'))) timeofdelivery
-      into   timeofdelivery                                   
+    SELECT   (   MIN
+                (DECODE
+                    (pcdi.delivery_period_type,
+                     'Date', (TO_CHAR (MIN (pcdi.delivery_from_date),
+                                       'MON-yyyy'
+                                      )),
+                     'Month', (TO_CHAR
+                                  ((MIN
+                                       (TO_DATE
+                                           (   '01-'
+                                            || DECODE
+                                                    (pcdi.delivery_from_month,
+                                                     NULL, 'Jan',
+                                                     pcdi.delivery_from_month
+                                                    )
+                                            || '-'
+                                            || DECODE
+                                                     (pcdi.delivery_from_year,
+                                                      NULL, '2011',
+                                                      pcdi.delivery_from_year
+                                                     )
+                                           )
+                                       )
+                                   ),
+                                   'MON-yyyy'
+                                  )
+                      )
+                    )
+                )
+          || ' To '
+          || MAX
+                (DECODE
+                    (pcdi.delivery_period_type,
+                     'Month', (TO_CHAR
+                                  ((MAX
+                                       (TO_DATE
+                                           (   '01-'
+                                            || DECODE
+                                                    (pcdi.delivery_from_month,
+                                                     NULL, 'Jan',
+                                                     pcdi.delivery_to_month
+                                                    )
+                                            || '-'
+                                            || DECODE
+                                                     (pcdi.delivery_from_year,
+                                                      NULL, '2011',
+                                                      pcdi.delivery_from_year
+                                                     )
+                                           )
+                                       )
+                                   ),
+                                   'MON-yyyy'
+                                  )
+                      )
+                    )
+                )
+         ) INTO timeofdelivery
     FROM pcdi_pc_delivery_item pcdi, pcm_physical_contract_main pcm
-   WHERE pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
+    WHERE pcdi.internal_contract_ref_no = pcm.internal_contract_ref_no
      AND pcm.internal_contract_ref_no = p_contractno
      AND pcdi.is_active = 'Y'
-GROUP BY pcdi.delivery_period_type;
+    GROUP BY pcdi.delivery_period_type;
     end;
     
    display_order := display_order + 1;
