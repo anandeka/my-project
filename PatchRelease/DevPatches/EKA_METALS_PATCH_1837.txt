@@ -1,0 +1,60 @@
+Patch No *              	:  EKA_METALS_PATCH_1837
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Kumar Pagada
+Created on*        		:  22-Jan-2014
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  92101
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physicals
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 155690
+Author: sishir.pagada
+Date: 8:29:20 PM, Wednesday, January 22, 2014
+Message:
+Bug# 92101
+
+Issue Fixed: 
+1. Time of Delivery Query was returning multiple records.
+2. Umpire List size was too small. Made it to 4000 varchar.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GENERATECONTRACTOUTPUTDOC.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETASSAYINRULES.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/PREPAREAMENDCONTRACTOUTPUTDOC.sql
+
+
+
+
+
+
+
+
+
+
+
+
