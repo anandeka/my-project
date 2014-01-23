@@ -1,0 +1,55 @@
+Patch No *              	:  EKA_METALS_PATCH_1838
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar Reddy B
+Created on*        		:  23-Jan-2014
+
+Bug / Enhancement*		:  DataCorrection
+
+Bug ID*            		:  N/A
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Assay
+
+Sub-Module  			 :  N/A
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 155720
+Author: rajeshwar.reddy
+Date: 12:33:36, 23 January 2014
+Message:
+Self assay Data correction for GMRs 2380 and GMR-10608-BLD
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_63.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
