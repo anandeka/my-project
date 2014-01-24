@@ -14489,7 +14489,7 @@ sp_precheck_process_log(pc_corporate_id,
                           pc_dbd_id,
                           gvn_log_counter,
                           'End of GMR Arrival Status Update');
-  for cur_pcdi in (select pcdi.pcdi_id,
+  /*for cur_pcdi in (select pcdi.pcdi_id,
                           pcpd.product_id,
                           pdm.product_desc
                      from pcdi_pc_delivery_item      pcdi,
@@ -14513,7 +14513,7 @@ sp_precheck_process_log(pc_corporate_id,
      where grd.pcdi_id = cur_pcdi.pcdi_id
       and grd.status ='Active'
       and grd.dbd_id = gvc_dbd_id
-      and grd.corporate_id = pc_corporate_id ;
+      and grd.corporate_id = pc_corporate_id;
  update dgrd_delivered_grd dgrd
        set dgrd.conc_product_id   = cur_pcdi.product_id,
            dgrd.conc_product_name = cur_pcdi.product_desc
@@ -14526,8 +14526,54 @@ sp_precheck_process_log(pc_corporate_id,
           vn_row_cnt := 0;
         end if;
         
-  end loop;       
-commit;       
+  end loop;*/
+  update process_grd grd
+   set (grd.conc_product_id, grd.conc_product_name) = (select pcpd.product_id,
+                                                              pdm.product_desc
+                                                         from pcdi_pc_delivery_item      pcdi,
+                                                              pcpd_pc_product_definition pcpd,
+                                                              pdm_productmaster          pdm
+                                                        where pcdi.internal_contract_ref_no =
+                                                              pcpd.internal_contract_ref_no
+                                                          and pcpd.product_id =
+                                                              pdm.product_id
+                                                          and pcdi.dbd_id =pc_dbd_id
+                                                          and pcpd.dbd_id =pc_dbd_id
+                                                          and pcpd.input_output =
+                                                              'Input'
+                                                          and pcpd.is_active = 'Y'
+                                                          and pcdi.is_active = 'Y'
+                                                          and pcdi.pcdi_id =
+                                                              grd.pcdi_id
+                                                        group by pcdi.pcdi_id,
+                                                                 pcpd.product_id,
+                                                                 pdm.product_desc)
+ where grd.dbd_id = pc_dbd_id
+   and grd.corporate_id = pc_corporate_id;
+ commit;
+ update dgrd_delivered_grd dgrd
+   set (dgrd.conc_product_id, dgrd.conc_product_name) = (select pcpd.product_id,
+                                                                pdm.product_desc
+                                                           from pcdi_pc_delivery_item      pcdi,
+                                                                pcpd_pc_product_definition pcpd,
+                                                                pdm_productmaster          pdm
+                                                          where pcdi.internal_contract_ref_no =
+                                                                pcpd.internal_contract_ref_no
+                                                            and pcpd.product_id =
+                                                                pdm.product_id
+                                                            and pcdi.dbd_id =pc_dbd_id
+                                                            and pcpd.dbd_id =pc_dbd_id
+                                                            and pcpd.input_output = 'Input'
+                                                            and pcpd.is_active = 'Y'
+                                                            and pcdi.is_active = 'Y'
+                                                            and pcdi.pcdi_id =
+                                                                dgrd.pcdi_id
+                                                          group by pcdi.pcdi_id,
+                                                                   pcpd.product_id,
+                                                                   pdm.product_desc)
+ where dgrd.dbd_id = pc_dbd_id
+   and dgrd.status = 'Active';
+commit;   
 gvn_log_counter :=  gvn_log_counter + 1;
  sp_precheck_process_log(pc_corporate_id,
                           pd_trade_date,
@@ -14890,10 +14936,8 @@ sp_precheck_process_log(pc_corporate_id,
                           'End of tgg_temp_grd_gmr Insert'); 
 
 update process_grd grd
-       set grd.supp_gmr_ref_no = (select t1.supp_gmr_ref_no
-                                    from tgg_temp_grd_gmr t1
-                                   where t1.supp_internal_gmr_ref_no =
-                                         grd.supp_internal_gmr_ref_no
+       set grd.supp_gmr_ref_no = (select t1.supp_gmr_ref_no from tgg_temp_grd_gmr t1
+                                   where t1.supp_internal_gmr_ref_no = grd.supp_internal_gmr_ref_no
                                          and t1.corporate_id = pc_corporate_id)
      where grd.corporate_id = pc_corporate_id;
 commit;
@@ -15030,7 +15074,7 @@ sp_precheck_process_log(pc_corporate_id,
                           pc_dbd_id,
                           gvn_log_counter,
                           'End of GMR.FEEDING_POINT_ID  Update'); 
---sp_gather_stats('process_grd');
+sp_gather_stats('process_grd');
 --sp_gather_stats('process_gmr');
 --sp_gather_stats('process_spq');
                           

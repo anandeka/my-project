@@ -41,7 +41,7 @@ create or replace package pkg_phy_cog_price is
                                      pc_process      varchar2,
                                      pc_user_id      varchar2);
 
-end;
+end; 
 /
 create or replace package body pkg_phy_cog_price is
   procedure sp_base_contract_cog_price(pc_corporate_id varchar2,
@@ -2347,6 +2347,7 @@ create or replace package body pkg_phy_cog_price is
              gpq_gmr_payable_qty       gpq,
              ged_gmr_exchange_detail   tt
        where gmr.gmr_type = 'CONCENTRATES'
+         and gmr.contract_type <> 'Tolling'
          and gpq.process_id = pc_process_id
          and tt.element_id = gpq.element_id
          and tt.internal_gmr_ref_no = gpq.internal_gmr_ref_no
@@ -4682,5 +4683,5 @@ create or replace package body pkg_phy_cog_price is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
-end;
+end; 
 /

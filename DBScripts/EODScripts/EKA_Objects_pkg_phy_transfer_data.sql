@@ -42,7 +42,7 @@ create or replace package pkg_phy_transfer_data is
                                    pc_user_id      varchar2,
                                    pc_process      varchar2);
 
-end pkg_phy_transfer_data;
+end pkg_phy_transfer_data; 
 /
 create or replace package body pkg_phy_transfer_data is
 
@@ -4812,8 +4812,16 @@ create or replace package body pkg_phy_transfer_data is
     vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
     vn_eel_error_count number := 1;
     vn_no              number;
+    vn_logno           number;
   begin
-    vn_no := 1;
+   vn_logno := 1;
+   vn_no := 1;
+   vn_logno := vn_logno + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'invd_inventory_detail transfer started..');
     insert into invd_inventory_detail
       (inv_detail_id,
        inv_id,
@@ -4868,6 +4876,12 @@ create or replace package body pkg_phy_transfer_data is
          and axs.eff_date <= pd_trade_date;
     commit;
     vn_no := 2;
+   vn_logno := vn_logno + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'invm_inventory_master populate started..');
     insert into invm_inventory_master
       (internal_inv_id,
        inv_ref_no,
@@ -4935,6 +4949,12 @@ create or replace package body pkg_phy_transfer_data is
          and invm.internal_dgrd_ref_no is null;
     commit;
     vn_no := 3;
+   vn_logno := vn_logno + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'is_invoice_summary transfer started..');    
     insert into is_invoice_summary
       (internal_invoice_ref_no,
        invoice_type,
@@ -5063,6 +5083,12 @@ create or replace package body pkg_phy_transfer_data is
          and is1.corporate_id = pc_corporate_id;
     commit;
     vn_no := 4;
+   vn_logno := vn_logno + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'update invoiced cancelled today..');       
     /*update is_invoice_summary is1
       set is1.is_cancelled_today = 'Y'
     where is1.is_active = 'N'
@@ -5084,6 +5110,12 @@ create or replace package body pkg_phy_transfer_data is
                and is2.is_active = 'Y');
     commit;
     vn_no := 5;
+   vn_logno := vn_logno + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'update new invoice today..');      
     update is_invoice_summary is1
        set is1.is_invoice_new = 'Y'
      where is1.dbd_id = pc_dbd_id
@@ -5103,6 +5135,12 @@ create or replace package body pkg_phy_transfer_data is
             where is2.dbd_id = gvc_previous_dbd_id);*/
     vn_no := 6;
     commit;
+   vn_logno := vn_logno + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'update modified invoice today..');  
     for cc in (select is1.internal_invoice_ref_no,
                       is1.corporate_id,
                       is1.payment_due_date,
@@ -5125,6 +5163,13 @@ create or replace package body pkg_phy_transfer_data is
     end loop;
     vn_no := 7;
     commit;
+   vn_logno := vn_logno + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'transfer plege gmr elements..');  
+    
     delete from gepd_gmr_element_pledge_detail
      where corporate_id = pc_corporate_id;
     commit;
@@ -5175,6 +5220,12 @@ create or replace package body pkg_phy_transfer_data is
        where gepd.corporate_id = pc_corporate_id
          and gepd.activity_date <= pd_trade_date;
     commit;
+   vn_logno := vn_logno + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'transfer pcmac_pcm_addn_charges..');      
     delete from pcmac_pcm_addn_charges pcmac
      where pcmac.corporate_id = pc_corporate_id;
     insert into pcmac_pcm_addn_charges
@@ -5225,6 +5276,12 @@ create or replace package body pkg_phy_transfer_data is
        where pcm.corporate_id = pc_corporate_id
          and pcm.internal_contract_ref_no = pcmac.int_contract_ref_no;
     commit;
+   vn_logno := vn_logno + 1;
+   sp_precheck_process_log(pc_corporate_id,
+                            pd_trade_date,
+                            pc_dbd_id,
+                            vn_logno,
+                            'Physical table data transfer completed...');    
   exception
     when others then
       sp_precheck_process_log(pc_corporate_id,
@@ -5251,5 +5308,5 @@ create or replace package body pkg_phy_transfer_data is
     
   end;
 
-end pkg_phy_transfer_data;
+end pkg_phy_transfer_data; 
 /
