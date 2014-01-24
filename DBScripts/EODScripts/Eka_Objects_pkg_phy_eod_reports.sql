@@ -27947,11 +27947,15 @@ vn_log_counter := vn_log_counter + 1;
 for cur_price in(
     select cgcp.internal_gmr_ref_no
       from cgcp_conc_gmr_cog_price cgcp,
-           cgcp_conc_gmr_cog_price cgcp_prev
+           cgcp_conc_gmr_cog_price cgcp_prev,
+           process_gmr             gmr
      where cgcp.process_id = pc_process_id
        and cgcp.internal_gmr_ref_no = cgcp_prev.internal_gmr_ref_no
        and cgcp.element_id = cgcp_prev.element_id
        and cgcp_prev.process_id = vc_previous_eom_id
+       and cgcp.internal_gmr_ref_no=gmr.internal_gmr_ref_no
+       and gmr.corporate_id=pc_corporate_id
+       and ((gmr.is_final_invoiced='N') or (gmr.is_final_invoiced='Y' and gmr.is_new_final_invoice='Y'))
        and exists
      (select *
               from temp_gmr_arrival_ytdmtd ar
@@ -28085,11 +28089,15 @@ vn_log_counter := vn_log_counter + 1;
 For cur_price In(
     select cgcp.internal_gmr_ref_no
       from cgcp_conc_gmr_cog_price cgcp,
-           cgcp_conc_gmr_cog_price cgcp_prev
+           cgcp_conc_gmr_cog_price cgcp_prev,
+           process_gmr             gmr
      where cgcp.process_id = pc_process_id
        and cgcp.internal_gmr_ref_no = cgcp_prev.internal_gmr_ref_no
-       and cgcp.element_id = cgcp_prev.element_id
+       and cgcp.element_id = cgcp_prev.element_id     
        and cgcp_prev.process_id = vc_previous_year_eom_id
+       and cgcp.internal_gmr_ref_no=gmr.internal_gmr_ref_no
+       and gmr.corporate_id=pc_corporate_id 
+       and ((gmr.is_final_invoiced='N') or (gmr.is_final_invoiced='Y' and gmr.is_new_final_invoice='Y'))
        and exists
      (select *
               from temp_gmr_arrival_ytdmtd ar

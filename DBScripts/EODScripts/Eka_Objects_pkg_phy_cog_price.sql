@@ -4332,6 +4332,7 @@ create or replace package body pkg_phy_cog_price is
         from spq_stock_payable_qty spq
        where spq.is_active = 'Y'
          and spq.is_stock_split = 'N'
+         and spq.payable_qty>0
          and spq.process_id = pc_process_id
          and not exists
        (select *
