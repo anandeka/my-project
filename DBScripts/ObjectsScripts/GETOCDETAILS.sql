@@ -18,7 +18,7 @@ IS
              (   pcmac.charge_type
               || ' , '
               || 'Charge'
-              || ' : '
+              || ': '
               || pcmac.charge_type
               || '  '
               || (CASE

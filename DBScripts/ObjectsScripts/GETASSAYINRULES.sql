@@ -6,10 +6,13 @@ IS
     elementname            VARCHAR2 (50);
     finalassay             VARCHAR2 (1000);
     finalizemethod         VARCHAR2 (10000);
-
+    qualityname            VARCHAR2 (50) := '';
+    assay_details          CLOB :='';
+    
+   
     cursor cr_assay_quality          
     IS
-    SELECT distinct qat.quality_name           
+    SELECT distinct qat.quality_name as qualityname         
     FROM pcar_pc_assaying_rules pcar,
          arqd_assay_quality_details arqd,
          pcm_physical_contract_main pcm,
@@ -25,13 +28,19 @@ IS
      
     cursor cr_assay_header          
     IS
-    SELECT pcar.pcar_id       
-    FROM pcar_pc_assaying_rules pcar,
-         pcm_physical_contract_main pcm
-    WHERE pcar.internal_contract_ref_no = pcm.internal_contract_ref_no
-     AND pcar.is_active = 'Y'
-     AND pcm.internal_contract_ref_no = pContractNo
-     order by pcar.element_name;
+    SELECT qat.quality_name AS qualityname, pcar.pcar_id AS pcarid
+  FROM pcar_pc_assaying_rules pcar,
+       arqd_assay_quality_details arqd,
+       pcm_physical_contract_main pcm,
+       pcpq_pc_product_quality pcpq,
+       qat_quality_attributes qat
+ WHERE pcar.internal_contract_ref_no = pcm.internal_contract_ref_no
+   AND arqd.pcar_id = pcar.pcar_id
+   AND pcpq.pcpq_id = arqd.pcpq_id
+   AND pcpq.quality_template_id = qat.quality_id
+   AND arqd.is_active = 'Y'
+   AND pcar.is_active = 'Y'
+   AND pcm.internal_contract_ref_no = pContractNo;
 
     
    /* cursor cr_ar          
@@ -112,28 +121,40 @@ IS
             
           for assay_quality_rec in cr_assay_quality
             loop
-            
-            ASSAY_RULES:= ASSAY_RULES ||''|| assay_quality_rec.quality_name || chr(10);
-            
+
             for assay_header_rec in cr_assay_header
             loop
             
+            if(assay_quality_rec.qualityname= assay_header_rec.qualityname)
+              then
+              qualityname := assay_quality_rec.qualityname;
+              
             SELECT pcar.element_name
                 INTO elementname
                 FROM pcar_pc_assaying_rules pcar
-                WHERE pcar.pcar_id = assay_header_rec.pcar_id
+                WHERE pcar.pcar_id = assay_header_rec.pcarid
                 AND pcar.is_active = 'Y';
 
             SELECT pcar.final_assay_basis_id
                 INTO finalassay
                 FROM pcar_pc_assaying_rules pcar
-                WHERE pcar.pcar_id = assay_header_rec.pcar_id
+                WHERE pcar.pcar_id = assay_header_rec.pcarid
                 AND pcar.is_active = 'Y';
-         
-            ASSAY_RULES := ASSAY_RULES || elementname || ':' || chr(10)
-                         || 'Final Assay: Will be finalized based on ' || finalassay || chr(10)
-                        || 'Method: ' || chr(10) || GETASSAYSPLITLIMIT(assay_header_rec.pcar_id) || chr(10);
+                   
+            assay_details:= assay_details || elementname || ':' || chr(10)
+                         || 'Final Assay: Will be finalized based on ' || finalassay || chr(10);
+                         
+             if(finalassay = 'Assay Exchange')    
+             then          
+                     assay_details := assay_details || 'Method: ' || GETASSAYSPLITLIMIT(assay_header_rec.pcarid)|| chr(10);
+              end if;
+              
+              end if;
             end loop;
+            
+            ASSAY_RULES:= ASSAY_RULES || qualityname || chr(10) || assay_details ;
+            
+            assay_details:='';
           end loop;
             
            for umpire in cr_umpire
@@ -155,7 +176,7 @@ IS
             end loop;
             
             if (umpires_list is not null) then
-                     ASSAY_RULES:= ASSAY_RULES || chr(10) || 'Umpires :'|| umpires_list;
+                     ASSAY_RULES:= ASSAY_RULES || chr(10) || 'Umpires: '|| umpires_list;
             end if;        
    
             return  ASSAY_RULES;

@@ -47,7 +47,7 @@ IS
    cancellationdate           VARCHAR2 (50);
    cancellationreason         VARCHAR2 (4000);
    contractstatus             VARCHAR2 (20);
-   timeofdelivery varchar2(30);
+   timeofdelivery             varchar2(30);
 
    CURSOR cr_delivery
    IS
@@ -68,7 +68,8 @@ BEGIN
       
         SELECT TO_CHAR (pcm.issue_date, 'dd-Mon-YYYY'), pcm.contract_ref_no,
                NVL (pcm.cp_contract_ref_no, 'NA'), (pad.address_name || ' ' || pad.address),
-               ak.corporate_id, pcm.purchase_sales, phd.companyname, pcm.cp_id,
+               ak.corporate_id, pcm.purchase_sales, AK.CORPORATE_NAME,--phd.companyname,
+               pcm.cp_id,
                pcm.product_group_type, pcm.partnership_type, pcm.is_tolling_contract,
                pcm.is_commercial_fee_applied,
                TO_CHAR (pcm.cancellation_date, 'dd-Mon-YYYY'), pcm.reason_to_cancel,
@@ -147,6 +148,24 @@ BEGIN
                 NULL, 'N', 'N',
                 'N', 'FULL', 'N'
                );
+               
+               
+  display_order := display_order + 1;
+  
+  INSERT INTO cod_contract_output_detail
+               (doc_id, display_order, field_layout_id, section_name,
+                field_name, is_print_reqd, pre_content_text_id,
+                post_content_text_id, contract_content, pre_content_text,
+                post_content_text, is_custom_section, is_footer_section,
+                is_amend_section, print_type, is_changed
+               )
+        VALUES (docid, display_order, NULL, contractsection,
+                'Document Ref No', 'Y', NULL,
+                NULL, p_docrefno, NULL,
+                NULL, 'N', 'N',
+                'N', 'FULL', 'N'
+               );
+  
 
 --  IF(istollingcontract = 'Y')
 --   THEN
@@ -394,7 +413,7 @@ BEGIN
                )
         VALUES (docid, display_order, NULL, contractsection,
                 'Seller', 'Y', NULL,
-                NULL, seller || CHR (10) || cpaddress, NULL,
+                NULL, seller,  NULL,
                 NULL, 'N', 'N',
                 'N', 'FULL', 'N'
                );
@@ -570,6 +589,8 @@ BEGIN
                     WHEN pcpd.qty_type = 'Fixed'
                        THEN    pcpd.qty_max_val
                             || ' '
+                            || pcpd.unit_of_measure
+                            || ' '
                             || qum.qty_unit_desc
                     ELSE    pcpd.qty_min_operator
                          || ' '
@@ -579,7 +600,10 @@ BEGIN
                          || ' '
                          || pcpd.qty_max_val
                          || ' '
+                         || pcpd.unit_of_measure
+                         || ' '
                          || qum.qty_unit_desc
+                         
                  END
                 )
         INTO productdef
@@ -788,7 +812,7 @@ BEGIN
    BEGIN
       SELECT 'Currency: '
              || cm.cur_code
-             || ' ,'
+             || ', '
              || pym.payterm_long_name
              || (CASE
                     WHEN pcm.provisional_pymt_pctg IS NULL
@@ -912,7 +936,7 @@ BEGIN
                    NULL, getrcdetails (p_contractno), NULL,
                    NULL, 'N', 'N',
                    'N', 'FULL', 'N'
-                  );*/
+                  );
 
       display_order := display_order + 1;
 
@@ -931,7 +955,7 @@ BEGIN
                   );
                   
 
-        display_order := display_order + 1;
+       display_order := display_order + 1;
 
         INSERT INTO cod_contract_output_detail
                   (doc_id, display_order, field_layout_id, section_name,
@@ -977,7 +1001,7 @@ BEGIN
                    NULL, getocdetails (p_contractno), NULL,
                    NULL, 'N', 'N',
                    'N', 'FULL', 'N'
-                  );
+                  );*/
 
       display_order := display_order + 1;
 
@@ -1104,8 +1128,8 @@ BEGIN
                 NULL, 'N', 'N',
                 'N', 'FULL', 'N'
                );
-
-   display_order := display_order + 1;
+     
+display_order := display_order + 1;
 
    INSERT INTO cod_contract_output_detail
                (doc_id, display_order, field_layout_id, section_name,
@@ -1119,9 +1143,8 @@ BEGIN
                 NULL, getcontractdocuments (p_contractno), NULL,
                 NULL, 'N', 'N',
                 'N', 'FULL', 'N'
-               );
-           
-    Begin
+               );          
+ Begin
     SELECT   (   MIN
                 (DECODE
                     (pcdi.delivery_period_type,
@@ -1200,6 +1223,6 @@ BEGIN
                 NULL, timeOfDelivery, NULL,
                 NULL, 'N', 'N',
                 'N', 'FULL', 'N'
-               );      
+               );
 END;
 /

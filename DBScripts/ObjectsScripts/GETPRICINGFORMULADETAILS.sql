@@ -2,13 +2,15 @@ CREATE OR REPLACE FUNCTION GETPRICINGFORMULADETAILS(p_pcbph_id VARCHAR2)
    RETURN VARCHAR2
 IS
    formuladescription   VARCHAR2 (4000) := '';
-   qtytobepriced        VARCHAR2 (100) := '';
+   qtytobepriced        VARCHAR2 (100)  := '';
    market               VARCHAR2 (4000) := '';
    quotationalperiod    VARCHAR2 (4000) := '';
    fx                   VARCHAR2 (4000) := '';
+   fixedprice            VARCHAR2 (100)  := '';
   
   cursor cr_price_detail_id is
-   SELECT pcbpd.pcbpd_id as pcbpdid
+   SELECT pcbpd.pcbpd_id as pcbpdid,
+          PCBPD.PRICE_BASIS as pricebasis
      FROM pcbpd_pc_base_price_detail pcbpd
     WHERE pcbpd.pcbph_id = p_pcbph_id
       AND pcbpd.is_active = 'Y';
@@ -26,6 +28,25 @@ FOR price_detail_cur IN cr_price_detail_id
     
     formuladescription:= formuladescription || qtytobepriced || CHR(10);
     
+    if(price_detail_cur.pricebasis = 'Fixed')
+    then
+       BEGIN
+        SELECT 'Price: ' || PCBPD.PRICE_VALUE || ' ' || PUM.PRICE_UNIT_NAME
+            INTO fixedprice
+            FROM pcbpd_pc_base_price_detail pcbpd,
+                 ppu_product_price_units ppu,
+                 pum_price_unit_master pum
+            WHERE pcbpd.pcbpd_id = price_detail_cur.pcbpdid
+            AND pcbpd.price_unit_id = ppu.internal_price_unit_id(+)
+            AND ppu.price_unit_id = pum.price_unit_id(+)
+            AND pcbpd.is_active = 'Y';
+        END;
+        
+       
+        formuladescription:= formuladescription || fixedprice || chr(10);
+        else 
+   
+        
     begin 
         SELECT 'Market: ' || (CASE
            WHEN pcbpd.price_basis = 'Formula' OR pcbpd.price_basis = 'Index'
@@ -154,7 +175,7 @@ FOR price_detail_cur IN cr_price_detail_id
     end;
     
     formuladescription:= formuladescription || quotationalperiod || chr(10);
-    
+    end if;
     SELECT    'Fx: '
        || (CASE
               WHEN pffxd.fx_rate_type = 'Fixed'

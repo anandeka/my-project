@@ -5,9 +5,9 @@ return CLOB is
 
     cursor cr_quality 
     IS
-          Select QAT.QUALITY_NAME ||':'|| (CASE
+          Select QAT.QUALITY_NAME ||': '|| (CASE
               WHEN PCPQ.QTY_TYPE ='Fixed'
-                 THEN PCPQ.QTY_MAX_VAL || ' '|| QUM.QTY_UNIT_DESC 
+                 THEN PCPQ.QTY_MAX_VAL || ' ' || PCPQ.UNIT_OF_MEASURE ||' '|| QUM.QTY_UNIT_DESC 
               ELSE PCPQ.QTY_MIN_OP ||' '||  PCPQ.QTY_MIN_VAL ||' '||  PCPQ.QTY_MAX_OP ||' '||  PCPQ.QTY_MAX_VAL || ' '|| QUM.QTY_UNIT_DESC 
               END
               ) quality_details,ORM.ORIGIN_NAME as origin_name,
@@ -28,7 +28,8 @@ return CLOB is
      AND QAT.PRODUCT_ORIGIN_ID = POM.PRODUCT_ORIGIN_ID(+)
      AND POM.ORIGIN_ID = ORM.ORIGIN_ID(+)
      AND PCPQ.IS_ACTIVE = 'Y'
-     AND PCPD.INTERNAL_CONTRACT_REF_NO =p_contractNo;   
+     AND PCPD.INTERNAL_CONTRACT_REF_NO =p_contractNo
+     order by QAT.QUALITY_NAME;   
     
     qualityDescription CLOB :='';  
     begin
@@ -41,15 +42,15 @@ return CLOB is
             end if;
                         
             if (quality_rec.origin_name is not null) then
-                qualityDescription:=qualityDescription ||'Origin :' || quality_rec.origin_name || chr(10);
+                qualityDescription:=qualityDescription ||'Origin: ' || quality_rec.origin_name || chr(10);
             end if;
             
             if (quality_rec.CHEM_ATTR is not null) then
-                qualityDescription:=qualityDescription ||'Typical Assays :' || chr(10)|| quality_rec.CHEM_ATTR ;
+                qualityDescription:=qualityDescription ||'Typical Assays:' || chr(10)|| quality_rec.CHEM_ATTR ;
             end if;
             
             if (quality_rec.PHY_ATTR is not null) then
-                qualityDescription:=qualityDescription ||'Physical Specifications :'|| chr(10)|| quality_rec.PHY_ATTR;
+                qualityDescription:=qualityDescription || chr(10) ||'Physical Specifications: '|| chr(10)|| quality_rec.PHY_ATTR;
             end if;
            
             end loop;

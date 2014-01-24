@@ -4,7 +4,7 @@ IS
    CURSOR cr_chemattr
    IS
       SELECT (   aml.attribute_name
-              || ' :'
+              || ':  '
               || rtrim(TO_CHAR (pqca.min_value, 'FM999990D909999999'),'.')
               || ' - '
               || rtrim(TO_CHAR (pqca.max_value, 'FM999990D909999999'), '.')

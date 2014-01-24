@@ -1,38 +1,13 @@
 CREATE OR REPLACE FUNCTION getTCDetails (pcthid number)
    RETURN VARCHAR2
 IS
-
-    cursor cr_tc_quality          
-    IS
-    
-    /*SELECT distinct qat.quality_name           
-    FROM pcth_pc_treatment_header pcth,
-         tqd_treatment_quality_details tqd,
-         pcm_physical_contract_main pcm,
-         pcpq_pc_product_quality pcpq,
-         qat_quality_attributes qat      
-    WHERE pcth.internal_contract_ref_no = pcm.internal_contract_ref_no
-     AND tqd.pcth_id = pcth.pcth_id
-     AND pcpq.pcpq_id = tqd.pcpq_id
-     AND pcpq.quality_template_id = qat.quality_id
-     AND tqd.is_active = 'Y'
-     AND pcth.is_active = 'Y'
-     AND pcm.internal_contract_ref_no = pContractNo;*/
-     
-     SELECT DISTINCT qat.quality_name
-           FROM pcth_pc_treatment_header pcth,
-                tqd_treatment_quality_details tqd,
-                pcpq_pc_product_quality pcpq,
-                qat_quality_attributes qat
-          WHERE tqd.pcth_id = pcthid
-            AND pcpq.pcpq_id = tqd.pcpq_id
-            AND pcpq.quality_template_id = qat.quality_id
-            AND tqd.is_active = 'Y'
-            AND pcth.is_active = 'Y';
+     TC_DETAILS             VARCHAR2(4000) :='';  
+     treatmentchargedetails VARCHAR(4000):= '';
+     elementname             VARCHAR(50):= '';
      
     cursor cr_tc          
     IS
-    SELECT qat.quality_name , ((aml.attribute_name ||' : ' || pcth.range_type) ||' '||        
+    SELECT ted.element_name as elementname, (pcth.range_type ||' '||        
         (CASE 
           WHEN pcetc.range_min_op is null
               THEN ' ' || pcetc.range_max_op || ' ' || pcetc.range_max_value || ' ' || RM.RATIO_NAME || PUM_HEADER.PRICE_UNIT_NAME
@@ -50,12 +25,11 @@ IS
               ELSE 'Increase ' ||  f_format_to_char(PCETC.ESC_DESC_VALUE,2) || ' ' || CM.CUR_CODE || ' per ' ||  f_format_to_char(pcetc.treatment_charge,2) || ' ' ||  pum.price_unit_name
             END 
           ELSE  f_format_to_char(pcetc.treatment_charge,2) || ' ' ||  pum.price_unit_name || ' of ' || pcetc.weight_type || ' weight'
-        END))  as TC 
+        END))  as tc 
   FROM pcth_pc_treatment_header pcth,
        ted_treatment_element_details ted,
        tqd_treatment_quality_details tqd,
        pcetc_pc_elem_treatment_charge pcetc,
-       --pcm_physical_contract_main pcm,
        ppu_product_price_units ppu,
        pum_price_unit_master pum,
        aml_attribute_master_list aml,
@@ -67,7 +41,6 @@ IS
  WHERE pcth.pcth_id = ted.pcth_id
    AND pcth.pcth_id = pcetc.pcth_id
    AND pcth.pcth_id = pcthid
-   --AND pcth.internal_contract_ref_no = pcm.internal_contract_ref_no
    AND tqd.pcth_id = pcth.pcth_id
    AND pcpq.pcpq_id = tqd.pcpq_id
    AND pcpq.quality_template_id = qat.quality_id
@@ -82,27 +55,33 @@ IS
    AND pcth.is_active = 'Y'
    AND ted.is_active = 'Y'
    AND tqd.is_active = 'Y'
-   --AND pcm.internal_contract_ref_no =pContractNo;
   ORDER BY aml.attribute_name;
- 
-   TC_DETAILS   VARCHAR2(4000) :='';     
-   begin
-            for tc_quality_rec in cr_tc_quality
-            loop
-                
-                 TC_DETAILS:= TC_DETAILS ||''|| tc_quality_rec.quality_name ||chr(10);    
-            
-                 for tc_rec in cr_tc
-                 loop
-                    
-                    if (tc_quality_rec.quality_name = tc_rec.quality_name) then 
-                        TC_DETAILS:= TC_DETAILS ||''|| tc_rec.TC || chr(10);
-                    end if;
-                    
-                 end loop;
-            
-            end loop;
-           
-            return  TC_DETAILS;
+
+cursor cr_element          
+    IS
+ SELECT  aml.attribute_name as elementname
+        FROM pcth_pc_treatment_header pcth,
+         ted_treatment_element_details ted,
+         aml_attribute_master_list aml
+    WHERE pcth.pcth_id = ted.pcth_id
+     AND pcth.pcth_id = pcthid
+     AND ted.element_id = aml.attribute_id
+     AND pcth.is_active = 'Y'
+     AND ted.is_active = 'Y'
+    ORDER BY aml.attribute_name;
+      
+  Begin
+   
+   for element_rec in cr_element loop
+     for tc_rec in cr_tc loop
+      if(element_rec.elementname = tc_rec.elementname) then
+      treatmentchargedetails :=  treatmentchargedetails || tc_rec.elementname || ': '|| tc_rec.tc || chr(10);
+      end if;
+     end loop; 
+   end loop;
+   
+      TC_DETAILS := TC_DETAILS || treatmentchargedetails;
+     
+     return  TC_DETAILS;
     end;
 /
