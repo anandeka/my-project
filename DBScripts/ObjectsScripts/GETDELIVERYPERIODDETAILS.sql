@@ -474,7 +474,7 @@ begin
   end if;
   
   if (othercharge is not null) then 
-   deliveryDescription := deliveryDescription || chr(10) || 'Other Charges: '|| othercharge;
+   deliveryDescription := deliveryDescription || chr(10) || 'Other Charges: '|| chr(10) ||othercharge;
   end if;
   
   if (QPDeclarationDate is not null) then

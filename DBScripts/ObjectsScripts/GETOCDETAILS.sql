@@ -39,7 +39,7 @@ IS
                                  THEN    pcmac.charge
                                       || ' '
                                       || cm.cur_code
-                                      || ' '
+                                      || '/ '
                                       || pcmac.charge_rate_basis
                                       || ' '
                                       || qum.qty_unit
