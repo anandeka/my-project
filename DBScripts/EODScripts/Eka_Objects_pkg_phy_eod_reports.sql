@@ -15162,7 +15162,7 @@ begin
    and gmr.is_internal_movement = 'N'
    and pqca.is_elem_for_pricing = 'N'
    and grd.tolling_stock_type = 'Clone Stock'
-   and pqca.typical<>0
+   --and pqca.typical<>0
    and gmr.process_id = pc_process_id
    and grd.process_id = pc_process_id
    and gmr.corporate_id = pc_corporate_id
@@ -20693,7 +20693,7 @@ insert into aro_ar_original_report
          pay_cur_code,
          pay_cur_decimal,
          arrival_or_delivery,
-         freight_container_charge_amt,
+         sum(freight_container_charge_amt),
          contract_ref_no,
          internal_contract_ref_no,
          cp_id,
@@ -20721,7 +20721,6 @@ insert into aro_ar_original_report
             pay_cur_code,
             pay_cur_decimal,
             arrival_or_delivery,
-            freight_container_charge_amt,
             contract_ref_no,
             internal_contract_ref_no,
             cp_id,
