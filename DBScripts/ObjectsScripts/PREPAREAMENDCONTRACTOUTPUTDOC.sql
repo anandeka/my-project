@@ -534,7 +534,7 @@ END;
                   );
    END LOOP;
 
- display_order := display_order + 1;
+ /*display_order := display_order + 1;
 
    INSERT INTO acd_amend_contract_details
           (doc_id, display_order, field_layout_id, section_name,
@@ -552,7 +552,7 @@ END;
            NULL, NULL, 'N',
            'N', 'N', 'FULL',
            'N'
-          );
+          );*/
    BEGIN
       SELECT pcm.del_schedule_comments
         INTO deliveryschedulecomments

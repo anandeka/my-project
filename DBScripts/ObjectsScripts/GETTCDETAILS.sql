@@ -28,22 +28,16 @@ IS
         END))  as tc 
   FROM pcth_pc_treatment_header pcth,
        ted_treatment_element_details ted,
-       tqd_treatment_quality_details tqd,
        pcetc_pc_elem_treatment_charge pcetc,
        ppu_product_price_units ppu,
        pum_price_unit_master pum,
        aml_attribute_master_list aml,
-       pcpq_pc_product_quality pcpq,
-       qat_quality_attributes qat,
        CM_CURRENCY_MASTER cm,RM_RATIO_MASTER rm,
        ppu_product_price_units ppu_header,
        pum_price_unit_master pum_header
  WHERE pcth.pcth_id = ted.pcth_id
    AND pcth.pcth_id = pcetc.pcth_id
    AND pcth.pcth_id = pcthid
-   AND tqd.pcth_id = pcth.pcth_id
-   AND pcpq.pcpq_id = tqd.pcpq_id
-   AND pcpq.quality_template_id = qat.quality_id
    AND ted.element_id = aml.attribute_id
    AND PCTH.PRICE_UNIT_ID = ppu_header.internal_price_unit_id(+)
    AND ppu_header.price_unit_id = pum_header.price_unit_id(+)
@@ -54,7 +48,6 @@ IS
    AND pcetc.is_active = 'Y'
    AND pcth.is_active = 'Y'
    AND ted.is_active = 'Y'
-   AND tqd.is_active = 'Y'
   ORDER BY aml.attribute_name;
 
 cursor cr_element          

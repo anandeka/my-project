@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION "GETQUALITYLOCATIONPREMUIM" (
-   p_internal_contract_ref_no   NUMBER
+   pcdiid   NUMBER
 )
    RETURN VARCHAR2
 IS
@@ -35,7 +35,8 @@ IS
          AND pffxd.is_active = 'Y'
          AND pcdb.is_active = 'Y'
          AND pcdiob.is_active = 'Y'
-         AND pcdb.internal_contract_ref_no = p_internal_contract_ref_no;
+         AND pcdiob.pcdi_id = pcdiid;
+         --AND pcdb.internal_contract_ref_no = p_internal_contract_ref_no;
 
    CURSOR cr_qualitypremium
    IS
@@ -53,7 +54,8 @@ IS
                       pcpdqd_pd_quality_details pcpdqd,
                       ppu_product_price_units ppu,
                       pum_price_unit_master pum,
-                      pffxd_phy_formula_fx_details pffxd
+                      pffxd_phy_formula_fx_details pffxd,
+                      pcdiqd_di_quality_details pcdiqd
                 WHERE pcpdqd.pcqpd_id = pcqpd.pcqpd_id
                   AND pcqpd.premium_disc_unit_id = ppu.internal_price_unit_id
                   AND ppu.price_unit_id = pum.price_unit_id
@@ -61,8 +63,11 @@ IS
                   AND pcqpd.is_active = 'Y'
                   AND pcpdqd.is_active = 'Y'
                   AND pffxd.is_active = 'Y'
-                  AND pcqpd.internal_contract_ref_no =
-                                                    p_internal_contract_ref_no;
+                  --AND pcqpd.internal_contract_ref_no =
+                  --                                  p_internal_contract_ref_no;
+                  AND pcdiqd.is_active ='Y'
+                  AND pcdiqd.pcdi_id = pcdiid
+                  AND pcdiqd.pcpq_id = pcpdqd.pcpq_id;
 
    quality_premium    VARCHAR2 (500)  := '';
    incoterm_premium   VARCHAR2 (500)  := '';

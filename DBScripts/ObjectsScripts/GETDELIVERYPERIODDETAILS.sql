@@ -41,6 +41,7 @@ CREATE OR REPLACE FUNCTION GETDELIVERYPERIODDETAILS(p_contractNo  VARCHAR2,
   penalty             VARCHAR2(4000) := '';
   penaltyquality      VARCHAR2(4000) := '';
   unitofmeasure       VARCHAR2(50);
+  premium             VARCHAR2(4000) := '';
 
   cursor cr_incoterm IS
     Select 'Incoterm ' || ITM.INCOTERM || ' - ' || CIM.CITY_NAME || (case
@@ -420,6 +421,7 @@ begin
   smallotcharge := getslcdetails (p_contractno);
   containercharge := getccdetails (p_contractno);
   othercharge := getocdetails (p_contractno);
+  premium := getqualitylocationpremuim(p_delivery_id);
   
 
   begin
@@ -475,6 +477,10 @@ begin
   
   if (othercharge is not null) then 
    deliveryDescription := deliveryDescription || chr(10) || 'Other Charges: '|| chr(10) ||othercharge;
+  end if;
+  
+  if (premium is not null) then 
+   deliveryDescription := deliveryDescription || chr(10) || 'Premium: '|| chr(10) ||premium;
   end if;
   
   if (QPDeclarationDate is not null) then
