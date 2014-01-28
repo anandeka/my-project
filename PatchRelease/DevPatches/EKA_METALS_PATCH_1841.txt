@@ -46,6 +46,19 @@ Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETTCDETAILS.
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/PREPAREAMENDCONTRACTOUTPUTDOC.sql
 
 
+=============================================
+
+Revision: 156332
+Author: sishir.pagada
+Date: 6:42:51 PM, Tuesday, January 28, 2014
+Message:
+Bug# 91778
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETDELIVERYPERIODDETAILS.sql
+
+
+
+
 
 
 
