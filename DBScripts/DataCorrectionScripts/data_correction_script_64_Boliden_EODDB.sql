@@ -185,7 +185,7 @@ begin
                 pay_cur_id,
                 pay_cur_code,
                 pay_cur_decimal,
-                arrival_or_delivery,               
+                arrival_or_delivery,
                 contract_ref_no,
                 internal_contract_ref_no,
                 cp_id,
