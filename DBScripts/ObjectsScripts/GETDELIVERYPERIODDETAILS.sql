@@ -360,7 +360,7 @@ begin
   -- payableContent := payableContent || chr(10) || pcquality || chr(10) || pcDetails;
    
    --Returnable Content
-   IF(istollingcontract = 'N') then
+   IF(istollingcontract = 'Y') then
     for retuanable_quality_rec in cr_retuanable_quality loop
      for returnable_content_rec in cr_returnable_content loop
              if(retuanable_quality_rec.qualityname  = returnable_content_rec.qualityname) then  
