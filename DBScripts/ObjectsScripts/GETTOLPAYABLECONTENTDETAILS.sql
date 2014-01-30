@@ -1,8 +1,8 @@
-CREATE OR REPLACE FUNCTION "GETRETURNABLECONTENTDETAILS" (pcpchid number)
-   RETURN VARCHAR2
+CREATE OR REPLACE FUNCTION "GETTOLPAYABLECONTENTDETAILS" (
+   pcpchid   NUMBER
+)
+   RETURN CLOB
 IS
-
-
    pc_details       CLOB            := '';
    elementname      VARCHAR2 (100)  := '';
    payablecontent   VARCHAR2 (4000) := '';
@@ -39,10 +39,7 @@ IS
                            || ' '
                            || pum.price_unit_name
                 END
-               ) AS refiningcharges,
-               (pcpch.due_date_days
-                   || ' days from '
-                   || pcpch.due_date_activity) AS due_date
+               ) AS refiningcharges
           FROM pcpch_pc_payble_content_header pcpch,
                pcepc_pc_elem_payable_content pcepc,
                rm_ratio_master rm,
@@ -102,17 +99,10 @@ BEGIN
          payablecontent :=
                payablecontent
             || 'Refining Charge: '
-            || rec_quantity.refiningcharges;
+            || rec_quantity.refiningcharges
+            || chr(10);
       END IF;
-      
-      if (rec_quantity.due_date is not null) 
-      then
-      payablecontent := payablecontent 
-                || 'Due Date: ' 
-                || rec_quantity.due_date 
-                || chr(10);
-                         
-      end if;
+                   
    END LOOP;
 
    pc_details :=
@@ -122,8 +112,6 @@ BEGIN
       || CHR (10)
       || payablecontent
       || CHR (10);
- 
-       
-    return  PC_DETAILS;
-    end;
+   RETURN pc_details;
+END;
 /

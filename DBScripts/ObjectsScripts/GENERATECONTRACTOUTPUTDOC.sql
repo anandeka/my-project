@@ -623,7 +623,7 @@ BEGIN
     IF(istollingcontract = 'Y')
     THEN
     inputoutputproduct := 'Product and Quantity';
-    inputoutputquality := 'Qualities';
+    inputoutputquality := 'Quality/Qualities';
     ELSE
     inputoutputproduct := 'Product and Quantity';
     inputoutputquality := 'Quality/Qualities';

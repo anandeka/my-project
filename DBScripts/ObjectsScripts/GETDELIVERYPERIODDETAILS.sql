@@ -369,7 +369,7 @@ begin
                 end if;
              
      end loop;
-             returnableContent := returnableContent || chr(10) || pcquality ||chr(10) || returnableDetails;
+             returnableContent := returnableContent || chr(10) || returnablequality ||chr(10) || returnableDetails;
              returnableDetails := '';
              returnablequality := '';
     end loop;
