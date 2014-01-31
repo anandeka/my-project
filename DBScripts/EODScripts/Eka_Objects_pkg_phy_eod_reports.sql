@@ -137,10 +137,10 @@ create or replace package body pkg_phy_eod_reports is
     vn_base_currency_decimals number;
   begin
     -------- to get the previous eod reference number and date
-    sp_write_log(pc_corporate_id,
+   /* sp_write_log(pc_corporate_id,
                  pd_trade_date,
                  'sp_calc_trade_pnl',
-                 'one');
+                 'one');*/
     vc_process := pc_process;
     begin
       select max(t.trade_date) prev_trade_date,
@@ -161,10 +161,10 @@ create or replace package body pkg_phy_eod_reports is
         vd_prev_eod_date   := to_date('01-Jan-2000', 'dd-Mon-yyyy');
     end;
     -------- to get the previous eom reference number and date
-    sp_write_log(pc_corporate_id,
+    /*sp_write_log(pc_corporate_id,
                  pd_trade_date,
                  'sp_calc_trade_pnl',
-                 'two');
+                 'two');*/
     begin
       select tdc.trade_date,
              tdc.process_id
@@ -184,10 +184,10 @@ create or replace package body pkg_phy_eod_reports is
         vd_prev_eom_date   := to_date('01-Jan-2000', 'dd-Mon-yyyy');
     end;
     -- to get the accounding period start year date
-    sp_write_log(pc_corporate_id,
+   /* sp_write_log(pc_corporate_id,
                  pd_trade_date,
                  'sp_calc_trade_pnl',
-                 'three');
+                 'three');*/
     begin
       select start_date
         into vd_acc_start_date
@@ -199,10 +199,10 @@ create or replace package body pkg_phy_eod_reports is
         vd_acc_start_date := null;
     end;
     -- get the decimals for the base currency
-    sp_write_log(pc_corporate_id,
+   /* sp_write_log(pc_corporate_id,
                  pd_trade_date,
                  'sp_calc_trade_pnl',
-                 'threeeeeeee');
+                 'threeeeeeee');*/
     begin
       select nvl(decimals, 2)
         into vn_base_currency_decimals
@@ -217,10 +217,10 @@ create or replace package body pkg_phy_eod_reports is
     -----------------------------------------------------------------------------------------
     ------------------record unrealized contracts details------------------------------------
     -----------------------------------------------------------------------------------------
-    sp_write_log(pc_corporate_id,
+   /* sp_write_log(pc_corporate_id,
                  pd_trade_date,
                  'sp_calc_trade_pnl',
-                 'Before Insert into Trade PNL.....');
+                 'Before Insert into Trade PNL.....');*/
     insert into tpd_trade_pnl_daily
       (corporate_id,
        corporate_name,
@@ -2653,12 +2653,12 @@ create or replace package body pkg_phy_eod_reports is
              cur_pur_accural_temp_rows.internal_grd_ref_no
          and t.element_id = cur_pur_accural_temp_rows.element_id
          and t.process_id = pc_process_id;
-      if vn_counter = 100 then
+      if vn_counter = 1000 then
         commit;
-        sp_write_log(pc_corporate_id,
+       /* sp_write_log(pc_corporate_id,
                      pd_trade_date,
                      'PA TC',
-                     'finished inserting 100');
+                     'finished inserting 100');*/
         vn_counter := 0;
       end if;
     
@@ -2708,12 +2708,12 @@ create or replace package body pkg_phy_eod_reports is
              cur_pur_accural_temp_rows.internal_grd_ref_no
          and t.element_id = cur_pur_accural_temp_rows.element_id
          and t.process_id = pc_process_id;
-      if vn_counter = 100 then
+      if vn_counter = 1000 then
         commit;
-        sp_write_log(pc_corporate_id,
+        /*sp_write_log(pc_corporate_id,
                      pd_trade_date,
                      'PA RC',
-                     'finished inserting 100');
+                     'finished inserting 100');*/
         vn_counter := 0;
       end if;
     end loop;
@@ -2766,12 +2766,12 @@ create or replace package body pkg_phy_eod_reports is
         when others then
           vn_gmr_penality_charge := 0;
       end;
-      if vn_counter = 100 then
+      if vn_counter = 1000 then
         commit;
-        sp_write_log(pc_corporate_id,
+       /* sp_write_log(pc_corporate_id,
                      pd_trade_date,
                      'PA Penalty',
-                     'finished inserting 100');
+                     'finished inserting 100');*/
         vn_counter := 0;
       end if;
     end loop;
@@ -15709,7 +15709,7 @@ update process_gmr gmr
    where gmr.process_id = pc_process_id
      and gmr.is_deleted = 'N'
      and exists 
-   (select *
+   (select gmr_prev.internal_gmr_ref_no
             from gmr_goods_movement_record gmr_prev, agmr_action_gmr agmr
            where gmr_prev.process_id = vc_previous_eom_id
              and gmr_prev.internal_gmr_ref_no = gmr.internal_gmr_ref_no
@@ -16809,27 +16809,22 @@ procedure sp_insert_temp_gmr(pc_corporate_id varchar2,
                              pd_trade_date   date,
                              pc_process_id   varchar2) as
 begin
-  gvn_log_counter := gvn_log_counter + 1;
+ /* gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
                         pd_trade_date,
                         pc_process_id,
                         gvn_log_counter,
                         'inside sp_insert_temp_gmr stats started');
   sp_gather_stats('pcepc_pc_elem_payable_content');
- -- sp_gather_stats('ak_corporate');
   sp_gather_stats('aml_attribute_master_list');
   sp_gather_stats('ash_assay_header');
   sp_gather_stats('asm_assay_sublot_mapping');
---  sp_gather_stats('cim_citymaster');
- -- sp_gather_stats('cm_currency_master');
   commit;
   sp_gather_stats('process_gmr');
   sp_gather_stats('process_grd');
   sp_gather_stats('dgrd_delivered_grd');
   sp_gather_stats('dipq_delivery_item_payable_qty');
-  --sp_gather_stats('gmr_goods_movement_record');
   sp_gather_stats('gph_gmr_penalty_header');
- -- sp_gather_stats('grd_goods_record_detail');
   sp_gather_stats('grh_gmr_refining_header');
   commit;
   sp_gather_stats('gth_gmr_treatment_header');
@@ -16840,7 +16835,6 @@ begin
   sp_gather_stats('intc_inv_treatment_charges');
   sp_gather_stats('is_invoice_summary');
   commit;
- -- sp_gather_stats('itm_incoterm_master');
   sp_gather_stats('pad_penalty_attribute_details');
   sp_gather_stats('patd_pa_temp_data');
   sp_gather_stats('pcap_pc_attribute_penalty');
@@ -16865,15 +16859,12 @@ begin
   sp_gather_stats('pqd_penalty_quality_details');
   sp_gather_stats('qat_quality_attributes');
   commit;
- -- sp_gather_stats('qum_quantity_unit_master');
   sp_gather_stats('red_refining_element_details');
   sp_gather_stats('rm_ratio_master');
   sp_gather_stats('rqd_refining_quality_details');
   sp_gather_stats('sac_stock_assay_content');
   sp_gather_stats('sam_stock_assay_mapping');
- -- sp_gather_stats('sm_state_master');
   commit;
---  sp_gather_stats('spq_stock_payable_qty');
   sp_gather_stats('ted_treatment_element_details');
   sp_gather_stats('tsq_temp_stock_quality');
   sp_gather_stats('ucm_unit_conversion_master');
@@ -16886,7 +16877,7 @@ begin
                         pd_trade_date,
                         pc_process_id,
                         gvn_log_counter,
-                        'inside sp_insert_temp_gmr stats ends');
+                        'inside sp_insert_temp_gmr stats ends');*/
 delete from tgi_temp_gmr_invoice t
    where t.corporate_id = pc_corporate_id;
   commit;
@@ -16988,7 +16979,14 @@ insert into tgi_temp_gmr_invoice
              gmr.invoice_cur_id,
              is1.invoice_type_name,
              is1.invoice_issue_date,
-             is1.invoice_ref_no;                        
+             is1.invoice_ref_no;       
+commit;         
+gvn_log_counter := gvn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'Insert tgi_temp_gmr_invoice Conc GMR Over');                     
 -- added suresh
 insert into tgi_temp_gmr_invoice
    (corporate_id,
@@ -17031,7 +17029,7 @@ insert into tgi_temp_gmr_invoice
              is1.invoice_type_name,
              is1.invoice_issue_date,
              is1.invoice_ref_no;
-
+commit;
   gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
                         pd_trade_date,
@@ -17044,6 +17042,12 @@ insert into tgi_temp_gmr_invoice
   --         
   -- Update TC/RC/Penalty Charges from Invoice Per GMR/Element/Invoice      
   --
+  gvn_log_counter := gvn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'Insert 1 TC/RC/Penalty Per GMR..');
   insert into tgc_temp_gmr_charges
   (corporate_id,
    internal_gmr_ref_no,
@@ -17530,7 +17534,12 @@ insert into tgi_temp_gmr_invoice
             t.qty_type,
             t.is_new_invoice;
   commit;
-  
+ gvn_log_counter := gvn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'Insert 2.. TC/RC/Penalty Per GMR ');  
   --- added suresh  
   insert into tgc_temp_gmr_charges
   (corporate_id,
@@ -18017,9 +18026,21 @@ insert into tgi_temp_gmr_invoice
             t.qty_type,
             t.is_new_invoice;
 commit;
+ gvn_log_counter := gvn_log_counter + 1;
+ sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'Insert 2.. TC/RC/Penalty Per GMR ');  
  --- end suresh
   sp_gather_stats('tgi_temp_gmr_invoice');
   sp_gather_stats('tgc_temp_gmr_charges');
+  gvn_log_counter := gvn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'update GMR Charges...');    
   --
   -- Update Provisional Payment % from IS directly
   --
@@ -19391,12 +19412,12 @@ insert into arg_arrival_report_gmr
        cur_arrival_rows.unit_of_measure,
        cur_arrival_rows.ratio_name);
   
-    if vn_counter = 100 then
+    if vn_counter = 1000 then
       commit;
-      sp_write_log(pc_corporate_id,
+     /* sp_write_log(pc_corporate_id,
                    pd_trade_date,
                    'Arrival Assay change Insert',
-                   'finished inserting 100');
+                   'finished inserting 100');*/
       vn_counter := 0;
     end if;
   end loop;
@@ -20117,7 +20138,7 @@ insert into are_arrival_report_element
       from aro_ar_original aro
      where aro.process_id = pc_process_id
        and exists
-     (select *
+     (select gmr.internal_gmr_ref_no
               from process_gmr gmr
              where gmr.process_id = pc_process_id
                and gmr.internal_gmr_ref_no = aro.internal_gmr_ref_no
@@ -20129,6 +20150,12 @@ insert into are_arrival_report_element
                     trunc(pd_trade_date, 'YYYY') and
                     gmr.loading_date is not null then 'TRUE' else 'FALSE' end));
   commit;
+  gvn_log_counter := gvn_log_counter + 1;
+  sp_eodeom_process_log(pc_corporate_id,
+                        pd_trade_date,
+                        pc_process_id,
+                        gvn_log_counter,
+                        'Populate YTD AR Over');
   insert into are_arrival_report_element
     (process_id,
      internal_gmr_ref_no,
@@ -20191,7 +20218,7 @@ insert into are_arrival_report_element
       from areo_ar_element_original areo
      where areo.process_id = pc_process_id
        and exists
-     (select *
+     (select gmr.internal_gmr_ref_no
               from process_gmr gmr
              where gmr.process_id = pc_process_id
                and gmr.internal_gmr_ref_no = areo.internal_gmr_ref_no
@@ -20447,7 +20474,7 @@ insert into are_arrival_report_element
             grd_to_gmr_qty_factor,
             arrival_or_delivery;
 
-
+commit;
 insert into are_arrival_report_element
   (process_id,
    internal_gmr_ref_no,
@@ -27962,7 +27989,7 @@ for cur_price in(
                and ar.mtd_ytd = 'MTD'
                and ar.corporate_id = pc_corporate_id)
      group by cgcp.internal_gmr_ref_no
-    having sum(cgcp.contract_price) <> sum(cgcp_prev.contract_price)) loop
+    having sum(cgcp.contract_price_in_pay_in) <> sum(cgcp_prev.contract_price_in_pay_in)) loop
     update gds_gmr_delta_status gmr
        set gmr.is_assay_updated_mtd_ar = 'Y', gmr.is_price_changed_mtd = 'Y'
      where gmr.process_id = pc_process_id
@@ -28096,7 +28123,7 @@ For cur_price In(
        and cgcp_prev.process_id = vc_previous_year_eom_id
        and cgcp.internal_gmr_ref_no=gmr.internal_gmr_ref_no
        and gmr.corporate_id=pc_corporate_id 
-       and ((gmr.is_final_invoiced='N') or (gmr.is_final_invoiced='Y' and gmr.is_new_final_invoice='Y'))
+       and ((gmr.is_final_invoiced='N') or (gmr.is_final_invoiced='Y' and gmr.is_new_fi_ytd='Y'))
        and exists
      (select *
               from temp_gmr_arrival_ytdmtd ar
@@ -28104,7 +28131,7 @@ For cur_price In(
                and ar.mtd_ytd = 'YTD'
                and ar.corporate_id = pc_corporate_id)
      group by cgcp.internal_gmr_ref_no
-    having sum(cgcp.contract_price) <> sum(cgcp_prev.contract_price)) loop
+    having sum(cgcp.contract_price_in_pay_in) <> sum(cgcp_prev.contract_price_in_pay_in)) loop
 
     update gds_gmr_delta_status gmr
        set gmr.is_assay_updated_ytd_ar = 'Y', gmr.is_price_changed_ytd = 'Y'

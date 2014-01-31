@@ -31,7 +31,8 @@ create or replace package pkg_phy_populate_data is
 
   procedure sp_phy_create_gmr_data(pc_corporate_id varchar2,
                                    pd_trade_date   date,
-                                   pc_user_id      varchar2);
+                                   pc_user_id      varchar2,
+                                   pc_previous_year_eom_id varchar2);
   procedure sp_phy_create_mogrd_data(pc_corporate_id varchar2,
                                      pd_trade_date   date,
                                      pc_user_id      varchar2);
@@ -243,6 +244,7 @@ create or replace package body pkg_phy_populate_data is
   pc_process      varchar2) is
    vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
    vn_eel_error_count number := 1;
+   vc_previous_year_eom_id varchar2(15);
  begin
  
    gvc_dbd_id  := pc_dbd_id;
@@ -253,6 +255,26 @@ create or replace package body pkg_phy_populate_data is
     where tdc.corporate_id = pc_corporate_id
       and tdc.trade_date = pd_trade_date
       and tdc.process = pc_process;
+      
+      -- Added Suresh
+       begin
+    select tdc.process_id
+      into vc_previous_year_eom_id
+      from tdc_trade_date_closure tdc
+     where tdc.corporate_id = pc_corporate_id
+       and tdc.process = pc_process
+       and tdc.trade_date =
+           (select max(tdc_in.trade_date)
+              from tdc_trade_date_closure tdc_in
+             where tdc_in.corporate_id = pc_corporate_id
+               and tdc_in.process = pc_process
+               and tdc_in.trade_date < trunc(pd_trade_date, 'yyyy'));
+  exception
+    when no_data_found then
+      vc_previous_year_eom_id := null;
+  end;
+  
+  
  
    if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
       'Cancel' then
@@ -330,7 +352,7 @@ create or replace package body pkg_phy_populate_data is
                            pc_dbd_id,
                            gvn_log_counter,
                            'sp_phy_create_gmr_data');
-   sp_phy_create_gmr_data(pc_corporate_id, pd_trade_date, pc_user_id);
+   sp_phy_create_gmr_data(pc_corporate_id, pd_trade_date, pc_user_id,vc_previous_year_eom_id);
    commit;
    if pkg_process_status.sp_get(pc_corporate_id, gvc_process, pd_trade_date) =
       'Cancel' then
@@ -2927,7 +2949,8 @@ insert into cs_cost_store
 
   procedure sp_phy_create_gmr_data(pc_corporate_id varchar2,
                                    pd_trade_date   date,
-                                   pc_user_id      varchar2)
+                                   pc_user_id      varchar2,
+                                   pc_previous_year_eom_id varchar2)
   /******************************************************************************************************************************************
     procedure name                                           : sp_create_pcipf_data
     author                                                   : 
@@ -3902,6 +3925,20 @@ update process_gmr gmr   set
  where gmr.dbd_id = gvc_dbd_id
    and gmr.internal_gmr_ref_no = cur_gmr_invoice.internal_gmr_ref_no;
 end loop;
+commit;
+--- Added Suresh
+   for cur_update in (select gmr.internal_gmr_ref_no,
+                            gmr.is_final_invoiced
+                       from gmr_goods_movement_record gmr
+                      where gmr.process_id = pc_previous_year_eom_id
+                        and gmr.is_final_invoiced = 'N')
+  loop
+    update process_gmr gmr
+       set gmr.is_new_fi_ytd = 'Y'
+     where gmr.is_final_invoiced = 'Y'
+       and gmr.internal_gmr_ref_no = cur_update.internal_gmr_ref_no
+       and gmr.corporate_id = pc_corporate_id;
+  end loop;                   
 commit;
   exception
     when others then
@@ -15121,7 +15158,13 @@ sp_gather_stats('process_grd');
    where grd.status = 'Active'
      and grd.tolling_stock_type = 'Clone Stock'
      and grd.dbd_id = pc_dbd_id
-     and grd.corporate_id = pc_corporate_id;  
+     and grd.corporate_id = pc_corporate_id
+      and exists    
+   (select g.internal_gmr_ref_no
+            from process_gmr g
+           where g.internal_gmr_ref_no = grd.internal_gmr_ref_no
+             and g.dbd_id = pc_dbd_id
+             and g.contract_type='Tolling');  
   commit;
 
 gvn_log_counter :=  gvn_log_counter + 1;
@@ -15829,7 +15872,8 @@ insert into gmr_goods_movement_record
    pcdi_id,
    product_name,
    quality_id,
-   is_new_invoice)
+   is_new_invoice,
+   is_new_fi_ytd)
   select internal_gmr_ref_no,
          gmr_ref_no,
          gmr_first_int_action_ref_no,
@@ -15998,7 +16042,8 @@ insert into gmr_goods_movement_record
          pcdi_id,
          product_name,
          quality_id,
-         is_new_invoice
+         is_new_invoice,
+         is_new_fi_ytd
     from process_gmr
     where corporate_id = pc_corporate_id;    
  commit;
