@@ -1,0 +1,59 @@
+Patch No *              	:  EKA_METALS_PATCH_1843
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Kumar Pagada
+
+Created on*        		:  02-Feb-2014
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physicals
+
+Sub-Module  			 :  O/P doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+Revision: 156902
+Author: sishir.pagada
+Date: 2:07:49 PM, Sunday, February 02, 2014
+Message:
+Issue: Error in Generation Document.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETDELIVERYDETAILSWITHCOMFEE.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
