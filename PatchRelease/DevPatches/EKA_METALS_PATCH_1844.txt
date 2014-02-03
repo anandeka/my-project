@@ -1,0 +1,58 @@
+Patch No *              	:  EKA_METALS_PATCH_1844
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+
+Created on*        		:  03-Feb-2014
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  92550
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  APP
+
+Sub-Module  			 :  APP
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 156990
+Author: suresh.gottipati
+Date: 6:24:30 PM, Monday, February 03, 2014
+Message:
+BUG ID-92550
+----
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AccuralReconAmountMTDDetailedReport.rpt
+Modified : /7.3/Engg/Metals/Code/eka-presentation/src/main/resources/reports/AccuralReconAmountMTDSummaryReport.rpt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
