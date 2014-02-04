@@ -69,7 +69,11 @@ select gmr.corporate_id,
        cp.price_allocation_method,
        to_char(vd.eta, 'dd-Mon-yyyy') eta,
        gmr.mode_of_transport,
-       gmr.wns_status wns_status
+       gmr.wns_status wns_status,
+       GMR.SENDERS_REF_NO,
+       GMR.LATEST_ASSAY_TYPE,
+       GMR.LATEST_INVOICE_TYPE,
+       GMR.LATEST_PRICING_STATUS
   from gmr_goods_movement_record gmr,
        gam_gmr_action_mapping gam,
        axs_action_summary axs,
