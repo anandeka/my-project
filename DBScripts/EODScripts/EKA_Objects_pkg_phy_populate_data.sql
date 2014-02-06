@@ -3866,7 +3866,13 @@ SELECT   iid.internal_gmr_ref_no,
                   || is1.is_invoice_new
                  ),
              24
-            ) is_invoice_new            
+            ) is_invoice_new,
+             SUBSTR
+            (MAX (   TO_CHAR (axs.created_date, 'yyyymmddhh24missff9')
+                  || is1.is_invoice_new_ytd
+                 ),
+             24
+            ) is_invoice_new_ytd            
     FROM is_invoice_summary is1,
          iid_invoicable_item_details iid,
          iam_invoice_action_mapping@eka_appdb iam,
@@ -3885,7 +3891,8 @@ update process_gmr gmr
        gmr.latest_internal_invoice_ref_no = cur_gmr_invoice.latest_internal_invoice_ref_no,
        gmr.invoice_ref_no                 = cur_gmr_invoice.invoice_ref_no,
        gmr.is_new_final_invoice           = case when cur_gmr_invoice.fi_done = 'Y' and cur_gmr_invoice.is_invoice_new = 'Y' then 'Y' else 'N' end,
-       gmr.is_new_invoice                 =  cur_gmr_invoice.is_invoice_new
+       gmr.is_new_invoice                 = cur_gmr_invoice.is_invoice_new,
+       gmr.is_invoice_new_ytd             = cur_gmr_invoice.is_invoice_new_ytd
  where gmr.dbd_id = gvc_dbd_id
    and gmr.internal_gmr_ref_no = cur_gmr_invoice.internal_gmr_ref_no;
 end loop;
@@ -15873,7 +15880,8 @@ insert into gmr_goods_movement_record
    product_name,
    quality_id,
    is_new_invoice,
-   is_new_fi_ytd)
+   is_new_fi_ytd,
+   is_invoice_new_ytd)
   select internal_gmr_ref_no,
          gmr_ref_no,
          gmr_first_int_action_ref_no,
@@ -16043,7 +16051,8 @@ insert into gmr_goods_movement_record
          product_name,
          quality_id,
          is_new_invoice,
-         is_new_fi_ytd
+         is_new_fi_ytd,
+         is_invoice_new_ytd
     from process_gmr
     where corporate_id = pc_corporate_id;    
  commit;

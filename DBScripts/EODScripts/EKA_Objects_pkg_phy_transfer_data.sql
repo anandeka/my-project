@@ -5,6 +5,7 @@ create or replace package pkg_phy_transfer_data is
   -- Purpose : 
   gvc_previous_dbd_id varchar2(15);
   gvc_process_id      varchar2(15);
+  gvc_previous_year_eom_id varchar2(15);
 
   procedure sp_phy_transfer_data(pc_corporate_id       in varchar2,
                                  pt_previous_pull_date timestamp,
@@ -109,6 +110,24 @@ create or replace package body pkg_phy_transfer_data is
       when no_data_found then
         gvc_previous_dbd_id := null;
     end;
+    
+      -- Added Suresh
+       begin
+    select dbd.dbd_id
+      into gvc_previous_year_eom_id
+      from dbd_database_dump dbd
+     where dbd.corporate_id = pc_corporate_id
+       and dbd.process = pc_process
+       and dbd.trade_date =
+           (select max(dbd_in.trade_date)
+              from dbd_database_dump dbd_in
+             where dbd_in.corporate_id = pc_corporate_id
+               and dbd_in.process = pc_process
+               and dbd_in.trade_date < trunc(pd_trade_date, 'yyyy'));
+  exception
+    when no_data_found then
+      gvc_previous_year_eom_id := null;
+  end;
     --Get the Latest EOD/EOM Table id from app schema which is used for Transfering AXS data
     begin
       if pc_process = 'EOD' then
@@ -5124,15 +5143,15 @@ create or replace package body pkg_phy_transfer_data is
               from is_invoice_summary is2
              where is2.dbd_id = gvc_previous_dbd_id
                and is2.internal_invoice_ref_no = is1.internal_invoice_ref_no);
-  
-    /*update is_invoice_summary is1
-      set is1.is_invoice_new = 'Y'
+  -- Added Suresh
+    update is_invoice_summary is1
+      set is1.is_invoice_new_ytd = 'Y'
     where is1.is_active = 'Y'
       and is1.dbd_id = pc_dbd_id
       and is1.internal_invoice_ref_no not in
           (select is2.internal_invoice_ref_no
              from is_invoice_summary is2
-            where is2.dbd_id = gvc_previous_dbd_id);*/
+            where is2.dbd_id = gvc_previous_year_eom_id);
     vn_no := 6;
     commit;
    vn_logno := vn_logno + 1;

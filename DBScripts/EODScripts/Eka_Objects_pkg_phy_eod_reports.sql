@@ -2113,7 +2113,8 @@ create or replace package body pkg_phy_eod_reports is
        grd_to_gmr_qty_factor,
        warehouse_profile_id,
        warehouse_name)
-      select gmr.internal_gmr_ref_no,
+      select /*+ ordered */
+        gmr.internal_gmr_ref_no,
              dgrd.internal_dgrd_ref_no,
              gmr.gmr_ref_no,
              dgrd.product_id,
@@ -2265,7 +2266,8 @@ create or replace package body pkg_phy_eod_reports is
        grd_to_gmr_qty_factor,
        warehouse_profile_id,
        warehouse_name)
-      select grd.internal_gmr_ref_no,
+      select /*+ ordered */
+      grd.internal_gmr_ref_no,
              grd.internal_grd_ref_no,
              gmr.gmr_ref_no,
              gepd.product_id,
@@ -3307,7 +3309,7 @@ create or replace package body pkg_phy_eod_reports is
        supp_gmr_ref_no,
        warehouse_profile_id,
        warehouse_name)
-      select grd.internal_gmr_ref_no,
+      select /*+ ordered */grd.internal_gmr_ref_no,
              grd.internal_grd_ref_no,
              gmr.internal_contract_ref_no,
              gmr.gmr_ref_no,
@@ -3392,7 +3394,7 @@ create or replace package body pkg_phy_eod_reports is
        supp_gmr_ref_no,
        warehouse_profile_id,
        warehouse_name)
-      select dgrd.internal_gmr_ref_no,
+      select /*+ ordered */ dgrd.internal_gmr_ref_no,
              dgrd.internal_grd_ref_no,
              gmr.internal_contract_ref_no,
              gmr.gmr_ref_no,
@@ -3476,7 +3478,7 @@ create or replace package body pkg_phy_eod_reports is
        is_pledge,
        warehouse_profile_id,
        warehouse_name)
-      select grd.internal_gmr_ref_no,
+      select /*+ ordered */grd.internal_gmr_ref_no,
              grd.internal_grd_ref_no,
              gmr.internal_contract_ref_no,
              gmr.gmr_ref_no,
@@ -17076,7 +17078,8 @@ commit;
    base_qty_unit,
    qty_type,
    is_new_invoice,
-   payable_amount)
+   payable_amount,
+   is_invoice_new_ytd)
   select pc_corporate_id,
          t.internal_gmr_ref_no,
          t.internal_invoice_ref_no,
@@ -17104,7 +17107,8 @@ commit;
          t.qty_unit,
          t.qty_type,
          t.is_new_invoice,
-         nvl(sum(payable_amount),0)
+         nvl(sum(payable_amount),0),
+         t.is_invoice_new_ytd
     from (select /*+ ordered */
            gmr.internal_gmr_ref_no,
            intc.internal_invoice_ref_no,
@@ -17130,7 +17134,8 @@ commit;
            qum.qty_unit,
            'Payable' qty_type,
            gmr.is_new_invoice,
-           0 payable_amount
+           0 payable_amount,
+           gmr.is_invoice_new_ytd
             from process_gmr                gmr,
                  intc_inv_treatment_charges intc,
                  process_grd                grd,
@@ -17165,7 +17170,8 @@ commit;
                     gmr.invoice_cur_code,
                     pdm.base_quantity_unit,
                     qum.qty_unit,
-                    gmr.is_new_invoice
+                    gmr.is_new_invoice,
+                    gmr.is_invoice_new_ytd
           union all
           select /*+ ordered */
            gmr.internal_gmr_ref_no,
@@ -17192,7 +17198,8 @@ commit;
            qum.qty_unit,
            'Payable' qty_type,
             gmr.is_new_invoice,
-            0 payable_amount
+            0 payable_amount,
+            gmr.is_invoice_new_ytd
             from process_gmr               gmr,
                  inrc_inv_refining_charges inrc,
                  process_grd               grd,
@@ -17227,7 +17234,8 @@ commit;
                     gmr.invoice_cur_code,
                     pdm.base_quantity_unit,
                     qum.qty_unit,
-                    gmr.is_new_invoice
+                    gmr.is_new_invoice,
+                    gmr.is_invoice_new_ytd
           union all
           select /*+ ordered */
            gmr.internal_gmr_ref_no,
@@ -17254,7 +17262,8 @@ commit;
            cpbu.base_qty_unit,
            'Penalty' qty_type,
            gmr.is_new_invoice,
-           0 payable_amount
+           0 payable_amount,
+           gmr.is_invoice_new_ytd
             from process_gmr                  gmr,
                  iepd_inv_epenalty_details    iepd,
                  process_grd                  grd,
@@ -17288,7 +17297,8 @@ commit;
                     gmr.invoice_cur_code,
                     cpbu.base_qty_unit_id,
                     cpbu.base_qty_unit,
-                     gmr.is_new_invoice
+                    gmr.is_new_invoice,
+                    gmr.is_invoice_new_ytd
           union all
           select /*+ ordered */
            gmr.internal_gmr_ref_no,
@@ -17315,7 +17325,8 @@ commit;
            qum.qty_unit,
            'Payable' qty_type,
             gmr.is_new_invoice,
-            sum(iied.element_payable_amount)payable_amount 
+            sum(iied.element_payable_amount)payable_amount ,
+            gmr.is_invoice_new_ytd
             from process_gmr                   gmr,
                  iied_inv_item_element_details iied,
                  process_grd                   grd,
@@ -17353,7 +17364,8 @@ commit;
                     gmr.invoice_cur_code,
                     pdm.base_quantity_unit,
                     qum.qty_unit,
-                    gmr.is_new_invoice
+                    gmr.is_new_invoice,
+                    gmr.is_invoice_new_ytd
           union all          
           select /*+ ordered */
                  gmr.internal_gmr_ref_no,
@@ -17390,7 +17402,8 @@ commit;
                  qum.qty_unit,
                  'Payable' qty_type,
                   gmr.is_new_invoice,
-                 0 payable_amount
+                 0 payable_amount,
+                 gmr.is_invoice_new_ytd
             from process_gmr                 gmr,
                  process_grd                 grd,
                  iied_inv_item_element_details iid,
@@ -17441,7 +17454,8 @@ commit;
                     gmr.invoice_cur_code,
                     pdm.base_quantity_unit,
                     qum.qty_unit,
-                    gmr.is_new_invoice
+                    gmr.is_new_invoice,
+                    gmr.is_invoice_new_ytd
           union all
           select /*+ ordered */
            gepd.pledge_input_gmr,
@@ -17468,7 +17482,8 @@ commit;
            qum.qty_unit,
            'Payable' qty_type,
            gmr.is_new_invoice,
-           sum(invoice_item_amount)payable_amount
+           sum(invoice_item_amount)payable_amount,
+           gmr.is_invoice_new_ytd
             from gepd_gmr_element_pledge_detail gepd,
                  process_gmr                    gmr,
                  process_gmr                    gmr_supp,
@@ -17513,7 +17528,8 @@ commit;
                     gmr.invoice_cur_code,
                     pdm.base_quantity_unit,
                     qum.qty_unit,
-                    gmr.is_new_invoice) t
+                    gmr.is_new_invoice,
+                    gmr.is_invoice_new_ytd) t
    group by t.internal_gmr_ref_no,
             t.internal_invoice_ref_no,
             t.element_id,
@@ -17532,7 +17548,8 @@ commit;
             t.base_quantity_unit,
             t.qty_unit,
             t.qty_type,
-            t.is_new_invoice;
+            t.is_new_invoice,
+            t.is_invoice_new_ytd;
   commit;
  gvn_log_counter := gvn_log_counter + 1;
   sp_eodeom_process_log(pc_corporate_id,
@@ -17569,7 +17586,8 @@ commit;
    base_qty_unit,
    qty_type,
    is_new_invoice,
-   payable_amount)
+   payable_amount,
+   is_invoice_new_ytd)
   select pc_corporate_id,
          t.internal_gmr_ref_no,
          t.internal_invoice_ref_no,
@@ -17597,7 +17615,8 @@ commit;
          t.qty_unit,
          t.qty_type,
          t.is_new_invoice,
-         nvl(sum(payable_amount), 0)
+         nvl(sum(payable_amount), 0),
+         t.is_invoice_new_ytd
     from (select /*+ ordered */
             gmr.internal_gmr_ref_no,
             intc.internal_invoice_ref_no,
@@ -17623,7 +17642,8 @@ commit;
             qum.qty_unit,
             'Payable' qty_type,
             gmr.is_new_invoice,
-            0 payable_amount
+            0 payable_amount,
+            gmr.is_invoice_new_ytd
              from process_gmr                gmr,
                   intc_inv_treatment_charges intc,
                   dgrd_delivered_grd         grd,
@@ -17658,7 +17678,8 @@ commit;
                      gmr.invoice_cur_code,
                      pdm.base_quantity_unit,
                      qum.qty_unit,
-                     gmr.is_new_invoice
+                     gmr.is_new_invoice,
+                     gmr.is_invoice_new_ytd
            union all
            select /*+ ordered */
             gmr.internal_gmr_ref_no,
@@ -17685,7 +17706,8 @@ commit;
             qum.qty_unit,
             'Payable' qty_type,
              gmr.is_new_invoice,
-             0 payable_amount
+             0 payable_amount,
+             gmr.is_invoice_new_ytd
              from process_gmr               gmr,
                   inrc_inv_refining_charges inrc,
                   dgrd_delivered_grd        grd,
@@ -17720,7 +17742,8 @@ commit;
                      gmr.invoice_cur_code,
                      pdm.base_quantity_unit,
                      qum.qty_unit,
-                     gmr.is_new_invoice
+                     gmr.is_new_invoice,
+                     gmr.is_invoice_new_ytd
            union all
            select /*+ ordered */
             gmr.internal_gmr_ref_no,
@@ -17747,7 +17770,8 @@ commit;
             cpbu.base_qty_unit,
             'Penalty' qty_type,
             gmr.is_new_invoice,
-            0 payable_amount
+            0 payable_amount,
+            gmr.is_invoice_new_ytd
              from process_gmr                  gmr,
                   iepd_inv_epenalty_details    iepd,
                   dgrd_delivered_grd           grd,
@@ -17781,7 +17805,8 @@ commit;
                      gmr.invoice_cur_code,
                      cpbu.base_qty_unit_id,
                      cpbu.base_qty_unit,
-                     gmr.is_new_invoice
+                     gmr.is_new_invoice,
+                     gmr.is_invoice_new_ytd
            union all
            select /*+ ordered */
             gmr.internal_gmr_ref_no,
@@ -17808,7 +17833,8 @@ commit;
             qum.qty_unit,
             'Payable' qty_type,
              gmr.is_new_invoice,
-             sum(iied.element_payable_amount) payable_amount
+             sum(iied.element_payable_amount) payable_amount,
+             gmr.is_invoice_new_ytd
              from process_gmr                   gmr,
                   iied_inv_item_element_details iied,
                   dgrd_delivered_grd            grd,
@@ -17846,7 +17872,8 @@ commit;
                      gmr.invoice_cur_code,
                      pdm.base_quantity_unit,
                      qum.qty_unit,
-                     gmr.is_new_invoice
+                     gmr.is_new_invoice,
+                     gmr.is_invoice_new_ytd
            union all
            select /*+ ordered */
             gmr.internal_gmr_ref_no,
@@ -17883,7 +17910,8 @@ commit;
             qum.qty_unit,
             'Payable' qty_type,
              gmr.is_new_invoice,
-             0 payable_amount
+             0 payable_amount,
+             gmr.is_invoice_new_ytd
              from process_gmr                 gmr,
                   dgrd_delivered_grd          grd,
                   iied_inv_item_element_details iid,
@@ -17933,7 +17961,8 @@ commit;
                      gmr.invoice_cur_code,
                      pdm.base_quantity_unit,
                      qum.qty_unit,
-                     gmr.is_new_invoice
+                     gmr.is_new_invoice,
+                     gmr.is_invoice_new_ytd
            union all -- Pledge GMR'S                                        
           select /*+ ordered */
            gepd.pledge_input_gmr,
@@ -17960,7 +17989,8 @@ commit;
            qum.qty_unit,
            'Payable' qty_type,
             gmr.is_new_invoice,
-            sum(iied.invoice_item_amount) payable_amount
+            sum(iied.invoice_item_amount) payable_amount,
+            gmr.is_invoice_new_ytd
             from gepd_gmr_element_pledge_detail gepd,
                  process_gmr                    gmr,
                  process_gmr                    gmr_supp,
@@ -18005,7 +18035,8 @@ commit;
                     gmr.invoice_cur_code,
                     pdm.base_quantity_unit,
                     qum.qty_unit,
-                     gmr.is_new_invoice) t
+                     gmr.is_new_invoice,
+                     gmr.is_invoice_new_ytd) t
    group by t.internal_gmr_ref_no,
             t.internal_invoice_ref_no,
             t.element_id,
@@ -18024,7 +18055,8 @@ commit;
             t.base_quantity_unit,
             t.qty_unit,
             t.qty_type,
-            t.is_new_invoice;
+            t.is_new_invoice,
+            t.is_invoice_new_ytd;
 commit;
  gvn_log_counter := gvn_log_counter + 1;
  sp_eodeom_process_log(pc_corporate_id,
