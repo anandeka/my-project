@@ -84,7 +84,7 @@ FOR price_detail_cur IN cr_price_detail_id
                                    AND apm.is_active = 'Y'
                                    AND apm.is_deleted = 'N')
                        WHEN pcbpd.price_basis = 'Formula'
-                          THEN (SELECT stragg
+                          THEN (SELECT ppfh.formula_name || ': '|| stragg
                                              (   ps.price_source_name
                                               || ' '
                                               || pp.price_point_name
@@ -114,7 +114,8 @@ FOR price_detail_cur IN cr_price_detail_id
                                    and PS.IS_ACTIVE='Y'
                                    and PS.IS_DELETED='N'
                                    and APM.IS_ACTIVE='Y'
-                                   and APM.IS_DELETED='N')
+                                   and APM.IS_DELETED='N'
+                                   group by PPFH.FORMULA_NAME)
                     END
                    )
         END

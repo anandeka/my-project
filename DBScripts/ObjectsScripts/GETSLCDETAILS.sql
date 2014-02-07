@@ -14,7 +14,7 @@ IS
    CURSOR cr_slc_data
    IS
       SELECT (   pcmac.charge_type
-              || ' , '
+              || ', '
               || (CASE
                      WHEN pcmac.POSITION = 'Range Begining'
                         THEN    ' '
@@ -41,9 +41,9 @@ IS
                           || qum.qty_unit
                   END
                  )
-              || ' , '
+              || ', '
               || 'Charge'
-              || ' : '
+              || ': '
               || pcmac.charge
               || ' '
               || cm.cur_code
@@ -65,7 +65,8 @@ IS
          AND qum.qty_unit_id(+) = pcmac.qty_unit_id
          AND pcmac.addn_charge_name = 'Small Lot Charges'
          AND pcmac.is_active = 'Y'
-         AND pcm.internal_contract_ref_no = pContractno;
+         AND pcm.internal_contract_ref_no = pContractno
+         order by NVL(pcmac.range_min_value,0);
 
    SLC_DETAILS   VARCHAR2(4000) :='';  
    begin
