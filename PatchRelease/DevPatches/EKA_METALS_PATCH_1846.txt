@@ -1,0 +1,63 @@
+Patch No *              	:  EKA_METALS_PATCH_1846
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Kumar Pagada
+
+Created on*        		:  07-Feb-2014
+
+Bug / Enhancement*		:  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physicals
+
+Sub-Module  			 :  Output Doc
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+==================================================================
+Revision: 157735
+Author: sishir.pagada
+Date: 6:55:35 PM, Friday, February 07, 2014
+Message:
+Enhancement:
+1. Showing Formula name in Price section
+2. Sorting Small Lot Charge ranges. 
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETPRICINGFORMULADETAILS.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETSLCDETAILS.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
