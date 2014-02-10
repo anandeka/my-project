@@ -1,0 +1,90 @@
+Patch No *              	:  EKA_METALS_PATCH_1847
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Suresh Gottipati
+
+Created on*        		:  07-Feb-2014
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  89539
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  EOD/APP
+
+Sub-Module  			 :  EOD/APP
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : EOD/APP
+=================================================================
+
+
+===================================================================================================
+				EOD
+===================================================================================================
+
+Revision: 157955
+Author: suresh.gottipati
+Date: 3:02:39 PM, Monday, February 10, 2014
+Message:
+89539- Issue Fixed
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/169_DDL_EODDB_ALTER_SCRIPT.sql
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/EODScripts/EKA_Objects_pkg_phy_custom_reports.sql
+
+
+
+Revision: 157954
+Author: suresh.gottipati
+Date: 3:01:37 PM, Monday, February 10, 2014
+Message:
+89539- Issue Fixed
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_67_Tata_EODDB.sql
+
+
+===================================================================================================
+                              APP
+===================================================================================================
+
+Revision: 157958
+Author: suresh.gottipati
+Date: 3:08:21 PM, Monday, February 10, 2014
+Message:
+89539- Issue Fixed
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_506_MVIEWS.SQL
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
