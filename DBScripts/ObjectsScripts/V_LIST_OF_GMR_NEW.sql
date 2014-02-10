@@ -71,12 +71,9 @@ select gmr.corporate_id,
        gmr.mode_of_transport,
        gmr.wns_status wns_status,
        GMR.SENDERS_REF_NO,
-      (case WHEN (   gmr.LATEST_ASSAY_TYPE IS NOT NULL OR gmr.LATEST_ASSAY_TYPE = '' )
-      THEN gmr.LATEST_ASSAY_TYPE  else 'N/A' end) LATEST_ASSAY_TYPE,
-      (case WHEN (   gmr.latest_invoice_type IS NOT NULL OR gmr.latest_invoice_type = '' )
-      THEN gmr.latest_invoice_type  else 'N/A' end) LATEST_INVOICE_TYPE,
-      (case WHEN (   gmr.LATEST_PRICING_STATUS IS NOT NULL OR gmr.LATEST_PRICING_STATUS = '' )
-       THEN gmr.LATEST_PRICING_STATUS  else 'UnPriced' end) LATEST_PRICING_STATUS
+       nvl(gmr.LATEST_ASSAY_TYPE , 'N/A')LATEST_ASSAY_TYPE,
+       nvl(gmr.latest_invoice_type , 'N/A')LATEST_INVOICE_TYPE,
+       nvl(gmr.LATEST_PRICING_STATUS , 'UnPriced')LATEST_PRICING_STATUS
   from gmr_goods_movement_record gmr,
        gam_gmr_action_mapping gam,
        axs_action_summary axs,
@@ -134,3 +131,4 @@ select gmr.corporate_id,
    and vd.status(+) = 'Active'
    and axs_last.internal_action_ref_no = gmr.internal_action_ref_no
    and pdm.product_id = gmr.product_id
+
