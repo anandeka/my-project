@@ -44,6 +44,16 @@ Message:
 Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_680.sql
 Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_GMR_NEW.sql
 
+Revision: 157962
+Author: pradeep.kumar
+Date: 3:23:32 PM, Monday, February 10, 2014
+Message:
+-- Updated
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_GMR_NEW.sql
+
+
+
 
 
 
