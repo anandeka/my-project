@@ -57,5 +57,43 @@ Insert into SEA_SEARCH_ENTITY_ATTRIBUTE
    ('SEA-21', 'SE-9', 'refNoType=contractItemRefNo&refNo={#}', 'Item Ref.No.', NULL, 
     NULL);
  
+Insert into SE_SEARCH_ENTITY
+   (SE_ID, SEARCH_ENTITY_NAME, LINK_URL)
+ Values
+   ('SE-10', 'Delivery Items', '/metals/loadListOfDeliveryItems.action?gridId=LODI&retainFilterValue=Y');
+
+
+Insert into SEA_SEARCH_ENTITY_ATTRIBUTE
+   (SEA_ID, SE_ID, SEA_NAME, DEAULT_DISPLAY_NAME, EXAMPLE_STRING, 
+    TAG_CONFIG)
+ Values
+   ('SEA-22', 'SE-10', 'refNoType=contractRefNo&refNo={#}', 'Contract Ref No.', NULL, 
+    NULL);
+    
+Insert into SEA_SEARCH_ENTITY_ATTRIBUTE
+   (SEA_ID, SE_ID, SEA_NAME, DEAULT_DISPLAY_NAME, EXAMPLE_STRING, 
+    TAG_CONFIG)
+ Values
+   ('SEA-23', 'SE-10', 'refNoType=deliveryItemRefNo&refNo={#}', 'Delivery Item Ref No.', NULL, 
+    NULL);
+    
+Insert into SE_SEARCH_ENTITY
+   (SE_ID, SEARCH_ENTITY_NAME, LINK_URL)
+ Values
+   ('SE-11', 'Tolling Delivery Items', '/metals/loadListOfMiningDeliveryItems.action?gridId=MLODI&retainFilterValue=Y');  
+
+Insert into SEA_SEARCH_ENTITY_ATTRIBUTE
+   (SEA_ID, SE_ID, SEA_NAME, DEAULT_DISPLAY_NAME, EXAMPLE_STRING, 
+    TAG_CONFIG)
+ Values
+   ('SEA-24', 'SE-11', 'refNoType=contractRefNo&refNo={#}', 'Contract Ref No.', NULL, 
+    NULL);
+    
+Insert into SEA_SEARCH_ENTITY_ATTRIBUTE
+   (SEA_ID, SE_ID, SEA_NAME, DEAULT_DISPLAY_NAME, EXAMPLE_STRING, 
+    TAG_CONFIG)
+ Values
+   ('SEA-25', 'SE-11', 'refNoType=deliveryItemRefNo&refNo={#}', 'Delivery Item Ref No.', NULL, 
+    NULL);
     
 COMMIT;
