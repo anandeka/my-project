@@ -1,0 +1,62 @@
+Patch No *              	:  EKA_METALS_PATCH_1848
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar
+
+Created on*        		:  12-Feb-2014
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  93412
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  Logistics
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+=================================================================
+
+Revision: 158255
+Author: pradeep.kumar
+Date: 6:29:28 PM, Wednesday, February 12, 2014
+Message:
+-- Bug Fix # 93412 - Excel export is showing blank for contract status,Is open back to back, in list of GMR's
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/V_LIST_OF_GMR_NEW.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
