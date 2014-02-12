@@ -73,7 +73,9 @@ select gmr.corporate_id,
        GMR.SENDERS_REF_NO,
        nvl(gmr.LATEST_ASSAY_TYPE , 'N/A')LATEST_ASSAY_TYPE,
        nvl(gmr.latest_invoice_type , 'N/A')LATEST_INVOICE_TYPE,
-       nvl(gmr.LATEST_PRICING_STATUS , 'UnPriced')LATEST_PRICING_STATUS
+       nvl(gmr.LATEST_PRICING_STATUS , 'UnPriced')LATEST_PRICING_STATUS,
+       GMR.IS_OPEN_BACK_TO_BACK IS_OPEN_BACK_TO_BACK,
+       cp.contract_status contract_status
   from gmr_goods_movement_record gmr,
        gam_gmr_action_mapping gam,
        axs_action_summary axs,
@@ -90,7 +92,9 @@ select gmr.corporate_id,
                f_string_aggregate(phd.companyname) as cp_name,
                f_string_aggregate(pcm.contract_ref_no || ' ' || 'Item No.' || ' ' ||
                                   pci.del_distribution_item_no) contract_item_ref_no,
-               f_string_aggregate(pcdi.price_allocation_method) as price_allocation_method
+               f_string_aggregate(pcdi.price_allocation_method) as price_allocation_method,
+               f_string_aggregate(pcm.product_group_type) AS product_group_type,
+               f_string_aggregate(PCM.CONTRACT_STATUS) as contract_status
           from pci_physical_contract_item     pci,
                pcm_physical_contract_main     pcm,
                pcdb_pc_delivery_basis         pcdb,
@@ -102,7 +106,7 @@ select gmr.corporate_id,
            and phd.profileid = pcm.cp_id
            and pcm.internal_contract_ref_no = pcdb.internal_contract_ref_no
            and pci.is_active = 'Y'
-           and pcm.contract_status = 'In Position'
+           and pcm.contract_status in ('In Position','Closed')
            and (pci.is_called_off = 'Y' or
                pcdi.is_phy_optionality_present = 'N')
            and pci.internal_contract_item_ref_no =
@@ -131,4 +135,3 @@ select gmr.corporate_id,
    and vd.status(+) = 'Active'
    and axs_last.internal_action_ref_no = gmr.internal_action_ref_no
    and pdm.product_id = gmr.product_id
-
