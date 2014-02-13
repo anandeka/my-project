@@ -1,0 +1,63 @@
+Patch No *              	:  EKA_METALS_PATCH_1850
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Rajeshwar Reddy B
+
+Created on*        		:  13-Feb-2014
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  90152
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Home
+
+Sub-Module  			 :  Home
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+=================================================================
+Revision: 158418
+Author: rajeshwar.reddy
+Date: 18:54:48, 13 February 2014
+Message:
+Bug fix: 90152 Search from Home screen does not work -- Delivery Receipt No. not required
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_682.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
