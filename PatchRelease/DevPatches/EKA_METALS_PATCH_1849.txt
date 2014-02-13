@@ -1,0 +1,62 @@
+Patch No *              	:  EKA_METALS_PATCH_1849
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Varaprasad B
+
+Created on*        		:  13-Feb-2014
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  90004
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+=================================================================
+
+Revision: 158363
+Author: varaprasad.b
+Date: 14:53:46, 13 February 2014
+Message:
+Bug #90004 fix.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_681.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
