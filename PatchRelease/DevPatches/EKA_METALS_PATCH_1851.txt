@@ -1,0 +1,71 @@
+Patch No *              	:  EKA_METALS_PATCH_1851
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Varaprasad B
+
+Created on*        		:  14-Feb-2014
+
+Bug / Enhancement*		:  
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Service Invoice
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+=================================================================
+Revision: 158479
+Author: varaprasad.b
+Date: 14:34:31, 14 February 2014
+Message:
+Updated for Service Invoice output document issue.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_683.sql
+
+Revision: 158480
+Author: varaprasad.b
+Date: 14:36:39, 14 February 2014
+Message:
+Updated for Service Invoice output document issue.
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_68.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
