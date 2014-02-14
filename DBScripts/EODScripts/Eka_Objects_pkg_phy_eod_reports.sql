@@ -15264,16 +15264,16 @@ begin
   sp_gather_stats('ped_penalty_element_details');
                         
   insert into gpq_gmr_payable_qty
-    (process_id, internal_gmr_ref_no, element_id, payable_qty, qty_unit_id)
+    (process_id, internal_gmr_ref_no, element_id, payable_qty, assay_qty,qty_unit_id)
     select pc_process_id,
            spq.internal_gmr_ref_no,
            spq.element_id,
            sum(nvl(spq.payable_qty, 0)) payable_qty,
+           sum(nvl(spq.assay_content, 0)) assay_qty,
            spq.qty_unit_id
       from process_spq spq
      where spq.is_active = 'Y'
        and spq.is_stock_split = 'N'
-       and spq.payable_qty > 0
        and spq.process_id = pc_process_id
      group by spq.process_id,
               spq.internal_gmr_ref_no,
@@ -15492,10 +15492,12 @@ begin
                              and gpq.process_id = pc_process_id
                              and gpq_prev_month.process_id =
                                  vc_previous_eom_id
-                             and (gpq.payable_qty <>
-                                 gpq_prev_month.payable_qty or
-                                 gpq.qty_unit_id <>
+                             and ((gpq.payable_qty <>
+                                 gpq_prev_month.payable_qty) or
+                                 (gpq.qty_unit_id <>
                                  gpq_prev_month.qty_unit_id)
+                                or (gpq.assay_qty <>
+                                 gpq_prev_month.assay_qty))
                            group by gpq.internal_gmr_ref_no)
     loop
       update process_gmr gmr
@@ -15518,10 +15520,12 @@ begin
                              and gpq.process_id = pc_process_id
                              and gpq_prev_year.process_id =
                                  vc_previous_year_eom_id
-                             and (gpq.payable_qty <>
-                                 gpq_prev_year.payable_qty or
-                                 gpq.qty_unit_id <>
+                             and ((gpq.payable_qty <>
+                                 gpq_prev_year.payable_qty) or
+                                 (gpq.qty_unit_id <>
                                  gpq_prev_year.qty_unit_id)
+                                or (gpq.assay_qty <>
+                                 gpq_prev_year.assay_qty))
                            group by gpq.internal_gmr_ref_no)
     loop
       update process_gmr gmr
@@ -15550,10 +15554,12 @@ begin
                              and gpq.process_id = pc_process_id
                              and gpq_prev_month.process_id =
                                  vc_previous_eom_id
-                             and (gpq.payable_qty <>
-                                 gpq_prev_month.payable_qty or
-                                 gpq.qty_unit_id <>
+                             and ((gpq.payable_qty <>
+                                 gpq_prev_month.payable_qty) or
+                                 (gpq.qty_unit_id <>
                                  gpq_prev_month.qty_unit_id)
+                                or (gpq.assay_qty <>
+                                 gpq_prev_month.assay_qty))                             
                              and exists
                            (select *
                                     from ar_arrival_report ar
@@ -15583,10 +15589,12 @@ begin
                              and gpq.process_id = pc_process_id
                              and gpq_prev_month.process_id =
                                  vc_previous_year_eom_id
-                             and (gpq.payable_qty <>
-                                 gpq_prev_month.payable_qty or
-                                 gpq.qty_unit_id <>
+                             and ((gpq.payable_qty <>
+                                 gpq_prev_month.payable_qty) or
+                                 (gpq.qty_unit_id <>
                                  gpq_prev_month.qty_unit_id)
+                                or (gpq.assay_qty <>
+                                 gpq_prev_month.assay_qty))
                              and exists
                            (select *
                                     from ar_arrival_report ar
@@ -20729,7 +20737,9 @@ insert into aro_ar_original_report
    contract_ref_no,
    internal_contract_ref_no,
    cp_id,
-   cp_name)
+   cp_name,
+   gmr_wet_qty,
+   gmr_dry_qty)
   select process_id,
          eod_trade_date,
          corporate_id,
@@ -20756,7 +20766,9 @@ insert into aro_ar_original_report
          contract_ref_no,
          internal_contract_ref_no,
          cp_id,
-         cp_name
+         cp_name,
+         sum(grd_wet_qty),
+         sum(grd_dry_qty)
     from aro_ar_original aro
    where aro.process_id = pc_process_id
    group by process_id,
@@ -20813,7 +20825,9 @@ insert into aro_ar_original_report
    contract_ref_no,
    internal_contract_ref_no,
    cp_id,
-   cp_name)
+   cp_name,
+   gmr_wet_qty,
+   gmr_dry_qty)
   select pc_process_id,
          pd_trade_date,
          aro_prev.corporate_id,
@@ -20840,7 +20854,9 @@ insert into aro_ar_original_report
          contract_ref_no,
          internal_contract_ref_no,
          cp_id,
-         cp_name
+         cp_name,
+         gmr_wet_qty,
+         gmr_dry_qty
     from aro_ar_original_report        aro_prev
    where aro_prev.process_id = vc_previous_process_id
      and not exists
@@ -23745,7 +23761,11 @@ sp_eodeom_process_log(pc_corporate_id,
    parent_internal_gmr_ref_no,
    other_charges_amt,
    gmr_ref_no,
-   internal_gmr_ref_no)
+   internal_gmr_ref_no,
+   gmr_wet_qty,
+   gmr_dry_qty,
+   feeding_point_name,
+   pile_name)
   select process_id,
          eod_trade_date,
          corporate_id,
@@ -23765,7 +23785,11 @@ sp_eodeom_process_log(pc_corporate_id,
          parent_internal_gmr_ref_no,
          sum(other_charges_amt),
          gmr_ref_no,
-         internal_gmr_ref_no
+         internal_gmr_ref_no,
+         sum(grd_wet_qty),
+         sum(grd_dry_qty),
+         feeding_point_name,
+         max(pile_name)
     from fco_feed_consumption_original fco
    where fco.process_id =pc_process_id
    group by process_id,
@@ -23786,7 +23810,8 @@ sp_eodeom_process_log(pc_corporate_id,
             pay_cur_decimal,
             parent_internal_gmr_ref_no,
             gmr_ref_no,
-            internal_gmr_ref_no;
+            internal_gmr_ref_no,
+            feeding_point_name;
 commit;
 insert into for_feed_original_report
   (process_id,
@@ -23808,7 +23833,11 @@ insert into for_feed_original_report
    parent_internal_gmr_ref_no,
    other_charges_amt,
    gmr_ref_no,
-   internal_gmr_ref_no)
+   internal_gmr_ref_no,
+   gmr_wet_qty,
+   gmr_dry_qty,
+   feeding_point_name,
+   pile_name)
   select pc_process_id,
          pd_trade_date,
          corporate_id,
@@ -23828,7 +23857,11 @@ insert into for_feed_original_report
          parent_internal_gmr_ref_no,
          other_charges_amt,
          gmr_ref_no,
-         internal_gmr_ref_no
+         internal_gmr_ref_no,
+         gmr_wet_qty,
+         gmr_dry_qty,
+         feeding_point_name,
+         pile_name 
     from for_feed_original_report  for_prev
    where for_prev.process_id = vc_previous_process_id
      and not exists
