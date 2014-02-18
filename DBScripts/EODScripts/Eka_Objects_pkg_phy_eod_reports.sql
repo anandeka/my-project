@@ -9982,6 +9982,7 @@ sp_eodeom_process_log(pc_corporate_id,
       and axs.corporate_id = pc_corporate_id
       and axs.eff_date <= pd_trade_date
       and axs.process = 'EOM'
+      and fmuh.status='Successful'
       and fmpfh.fmpfh_id = fmpfd.fmpfh_id(+)
       and fmpfd.fmpfd_id = fmpfam.fmpfd_id(+)
       and fmpfam.is_active(+) = 'Y'
@@ -28436,6 +28437,79 @@ commit;
        and t.process_id = pc_process_id
        and t.qty_type<>'Penalty'
        and rownum < 2;
+  if sql%rowcount=0 then  
+ insert into tgc_temp_gmr_charges
+  (corporate_id,
+   internal_gmr_ref_no,
+   element_id,
+   internal_invoice_ref_no,
+   tc_amt,
+   rc_amt,
+   penalty_amt,
+   provisional_pymt_pctg,
+   product_id,
+   product_name,
+   quality_id,
+   quality_name,
+   warehouse_id,
+   warehouse_name,
+   gmr_ref_no,
+   corporate_name,
+   eod_trade_date,
+   element_name,
+   process_id,
+   tolling_stock_type,
+   is_final_invoiced,
+   pay_cur_code,
+   other_charges_amt,
+   qty_type,
+   base_qty_unit_id,
+   base_qty_unit,
+   assay_qty_base,
+   payable_qty_base,
+   is_new_invoice,
+   freight_container_charge_amt,
+   payable_amount,
+   is_invoice_new_ytd)
+  select pc_corporate_id,
+         gmr.internal_gmr_ref_no,
+         null, --element_id,
+         gmr.latest_internal_invoice_ref_no,
+         0,
+         0,
+         0,
+         null,
+         gmr.product_id,
+         gmr.product_name,
+         gmr.quality_id,
+         gmr.quality_name,
+         gmr.warehouse_profile_id,
+         gmr.warehouse_name,
+         gmr.gmr_ref_no,         
+         akc.corporate_name,
+         pd_trade_date,
+         null, --element_name,
+         pc_process_id,
+         'None Tolling', --v_tolling_stock_type,
+         gmr.is_final_invoiced,
+         gmr.invoice_cur_code,
+         cur_update.other_charges,
+         'Payable',
+         null,
+         null,
+         0,
+         0,
+         gmr.is_new_invoice,
+         cur_update.container_fright,
+         0,
+         gmr.is_invoice_new_ytd
+    from process_gmr  gmr,
+         ak_corporate akc
+   where gmr.internal_gmr_ref_no = cur_update.internal_gmr_ref_no
+     and akc.corporate_id = gmr.corporate_id 
+     and gmr.gmr_latest_action_action_id<>'pledgeTransfer' 
+     and gmr.process_id = pc_process_id;  
+  end if; 
   end loop;
   commit;
 
