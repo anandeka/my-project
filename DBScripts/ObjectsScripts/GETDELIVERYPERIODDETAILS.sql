@@ -19,7 +19,7 @@ CREATE OR REPLACE FUNCTION GETDELIVERYPERIODDETAILS(p_contractNo  VARCHAR2,
   maxQtyValue         NUMBER(25, 10);
   itemQtyUnit         VARCHAR2(50);
   packingtype         VARCHAR2 (4000) := '';
-  payableContent      VARCHAR2(4000) := '';
+  payableContent      VARCHAR2(15000) := '';
   pcDetails           VARCHAR2(4000) := '';
   returnableContent   VARCHAR2(4000) := '';
   returnableDetails   VARCHAR2(4000) := '';
