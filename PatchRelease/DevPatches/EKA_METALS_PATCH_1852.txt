@@ -1,0 +1,61 @@
+Patch No *              	:  EKA_METALS_PATCH_1852
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Kumar Pagada
+
+Created on*        		:  24-Feb-2014
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Physicals
+
+Sub-Module  			 :  Physicals
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+=================================================================
+
+Revision: 159341
+Author: sishir.pagada
+Date: 2:56:03 PM, Monday, February 24, 2014
+Message:
+Unable to Save Contract. Error: Can not generate document.
+----
+Modified : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/GETDELIVERYPERIODDETAILS.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
