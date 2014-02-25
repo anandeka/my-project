@@ -1,0 +1,61 @@
+Patch No *              :  EKA_METALS_PATCH_1853
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Anup Kumar Agarwal
+
+Created on*        		:  24-Feb-2014
+
+Bug / Enhancement*		:  Bug
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics
+
+Sub-Module  			 :  Logistics
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+=================================================================
+Revision: 159435
+Author: anupkumar.agarwal
+Date: 12:18:30 PM, Tuesday, February 25, 2014
+Message:
+Latest Pricing Status" search filter (List of GMRs) does not have right values/search does not work on them
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_684.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
