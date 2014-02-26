@@ -1,0 +1,1 @@
+alter table PFD_PRICE_FIXATION_DETAILS add ( price_Fixation_ref_no varchar2(50),INTERNAL_ACTION_REF_NO varchar2(15));
