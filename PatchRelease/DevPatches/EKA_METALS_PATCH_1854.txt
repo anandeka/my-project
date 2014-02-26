@@ -1,0 +1,60 @@
+Patch No *              :  EKA_METALS_PATCH_1854
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sriveena M
+
+Created on*        		:  26-Feb-2014
+
+Bug / Enhancement*		:  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Pricing
+
+Sub-Module  			 :  Pricing
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+=================================================================
+Revision: 159532
+Author: sriveenam
+Date: Wednesday, February 26, 2014 10:51:28 AM
+Message:
+Pricing performance
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_507.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/DataCorrectionScripts/data_correction_script_71.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
