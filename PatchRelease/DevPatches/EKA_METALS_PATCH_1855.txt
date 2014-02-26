@@ -1,0 +1,68 @@
+Patch No *              :  EKA_METALS_PATCH_1855
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Pradeep Kumar
+
+Created on*        		:  26-Feb-2014
+
+Bug / Enhancement*		:  Enhancement/Bugs
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Logistics,FX Allocation/Deallocation
+
+Sub-Module  			 :  Logistics,FX Allocation/Deallocation
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+=================================================================
+Revision: 159581
+Author: pradeep.kumar
+Date: 4:52:51 PM, Wednesday, February 26, 2014
+Message:
+Migrated DB Scripts For:
+Blending Scripts For : 
+
+1: Action Creation, Cancellation, And Assay Creation .
+2: New Table Created For Blending 
+3: Some GRD And Gmr Constraints Changed 
+-- For Fx Exposure Details.( For listing screen, table creation, save and cancellation queries).
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_685.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_508.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
