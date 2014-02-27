@@ -535,7 +535,7 @@ create or replace package body pkg_phy_custom_reports is
         vn_trade_to_base_fx_rate := pkg_general.f_get_converted_currency_amt(pc_corporate_id,
                                                                              vc_trade_main_cur_id,
                                                                              cr_cdc_row.base_cur_id,
-                                                                             pd_trade_date,
+                                                                             cr_cdc_row.close_out_date,
                                                                              1);
       exception
         when others then
@@ -548,7 +548,7 @@ create or replace package body pkg_phy_custom_reports is
                                        pkg_general.f_get_converted_currency_amt(pc_corporate_id,
                                                                                 cr_cdc_row.clearer_comm_cur_id,
                                                                                 cr_cdc_row.base_cur_id,
-                                                                                pd_trade_date,
+                                                                                cr_cdc_row.close_out_date,
                                                                                 1);
       else
         vn_clearer_comm_amt_in_base := vn_clearer_comm_amt;
