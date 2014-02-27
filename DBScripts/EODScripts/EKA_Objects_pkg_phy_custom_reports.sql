@@ -486,7 +486,7 @@ create or replace package body pkg_phy_custom_reports is
              gab_globaladdressbook       gab_akc
        where dcoh.internal_close_out_ref_no =
              dcod.internal_close_out_ref_no
-         and dcoh.process_id = dcod.process_id
+       --  and dcoh.process_id = dcod.process_id
          and dcod.internal_derivative_ref_no = dt.internal_derivative_ref_no
          and dcoh.dbd_id = dcod.dbd_id
          and dcoh.dbd_id = pc_dbd_id
