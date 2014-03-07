@@ -2219,6 +2219,24 @@ create or replace package body pkg_phy_eod_reports is
                           pc_process_id,
                           vn_log_counter,
                           'Insert patd_pa_temp_data  2 over Sales');
+delete from  temp_pledge_qty where corporate_id=pc_corporate_id ;
+commit;                        
+insert into temp_pledge_qty
+  (corporate_id, internal_grd_ref_no, element_id, gepd_id, payable_qty)
+  select pc_corporate_id,
+         spq.pledge_stock_id,
+         spq.gepd_id,
+         spq.element_id,
+         sum(spq.payable_qty)
+    from process_spq spq
+   where spq.gepd_id is not null
+     and spq.process_id = pc_process_id
+     and spq.is_active='Y'
+     and spq.is_stock_split = 'N'
+   group by spq.pledge_stock_id,
+            spq.gepd_id,
+            spq.element_id;
+commit;            
   
     -- Pledge GMR for Purchase
     insert into patd_pa_temp_data
@@ -2273,7 +2291,7 @@ create or replace package body pkg_phy_eod_reports is
              gepd.product_id,
              gepd.element_id,
              null,
-             grd.current_qty payable_qty, -- Base Metal Qty in Base Unit
+             spq.payable_qty payable_qty, -- Base Metal Qty in Base Unit
              grd.qty_unit_id payable_qty_unit_id, -- Base Metal Unit
              0,
              null, -- assay_qty,
@@ -2314,7 +2332,8 @@ create or replace package body pkg_phy_eod_reports is
         from ii_invoicable_item             ii,
              process_grd        grd,
              gepd_gmr_element_pledge_detail gepd,
-             process_gmr      gmr
+             process_gmr      gmr,
+             temp_pledge_qty   spq
        where ii.is_pledge = 'Y'
          and ii.stock_id = grd.internal_grd_ref_no
          and grd.internal_gmr_ref_no = gepd.internal_gmr_ref_no
@@ -2325,7 +2344,10 @@ create or replace package body pkg_phy_eod_reports is
          and grd.process_id = pc_process_id
          and gepd.process_id = pc_process_id
          and gepd.is_active = 'Y'
-         and nvl(gmr.is_final_invoiced, 'N') = 'N';
+         and nvl(gmr.is_final_invoiced, 'N') = 'N'
+         and grd.internal_grd_ref_no=spq.internal_grd_ref_no
+         and gepd.element_id=spq.element_id
+         and gepd.gepd_id=spq.gepd_id;
     commit;
     vn_log_counter := vn_log_counter + 1;
     sp_eodeom_process_log(pc_corporate_id,
