@@ -1,0 +1,58 @@
+Patch No *              :  EKA_METALS_PATCH_1857
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		: Anup Kumar Agarwal
+
+Created on*        		:  14-Mar-2014
+
+Bug / Enhancement*		:  Enhancement
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 : Logistics
+
+Sub-Module  			 :  Logistics
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+=================================================================
+Revision: 161137
+Author: anupkumar.agarwal
+Date: 4:53:50 PM, Friday, March 14, 2014
+Message:
+GMR Linking Scripts
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_686.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/TRG_INSERT_GLDL.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/TRG_INSERT_GLSML.sql
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_510.sql
+
+
+
+
+
+
+
+
+
+
+
+
