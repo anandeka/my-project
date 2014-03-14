@@ -179,3 +179,54 @@ BEGIN
    COMMIT;
 END;
 
+-- List Of Linked  GMR
+
+Insert into GM_GRID_MASTER
+   (GRID_ID, GRID_NAME, DEFAULT_COLUMN_MODEL_STATE, TAB_ID, URL, 
+    DEFAULT_RECORD_MODEL_STATE, OTHER_URL, SCREEN_SPECIFIC_JSP, SCREEN_SPECIFIC_JS)
+ Values
+   ('LOLG', 'List of Linked GMR', '[]', NULL, NULL, 
+    NULL, NULL, '/private/jsp/logistics/gmrLinking/ListOfLinkedGmr.jsp', '/private/js/logistics/gmrLinking/ListOfLinkedGmr.js');
+
+Insert into AMC_APP_MENU_CONFIGURATION
+   (MENU_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, LINK_CALLED, 
+    ICON_CLASS, MENU_PARENT_ID, ACL_ID, TAB_ID, FEATURE_ID, 
+    IS_DELETED)
+ Values
+   ('TOL-LOLG', 'List Of Linked GMRs', 3, 2, '/metals/loadListofGmrLinking.action?gridId=LOLG', 
+    NULL, 'L1', '', 'Logistics', '', 
+    'N');
+
+-- List Of Linked Gmr Operations
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('LOLG_1', 'LOLG', 'Operations', 1, 1, 
+    NULL, 'function(){}', NULL, NULL, NULL);
+    
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('LOLG_2', 'LOLG', 'Delete Gmr Linking', 1, 2, 
+    '', 'function(){deleteGmrLinking();}', NULL, 'LOLG_1', '');
+
+-- Link For Linking Gmr In LOG 
+
+Insert into GMC_GRID_MENU_CONFIGURATION
+   (MENU_ID, GRID_ID, MENU_DISPLAY_NAME, DISPLAY_SEQ_NO, MENU_LEVEL_NO, 
+    FEATURE_ID, LINK_CALLED, ICON_CLASS, MENU_PARENT_ID, ACL_ID)
+ Values
+   ('114', 'LOG', 'Link GMRs', 16, 2, 
+    '', 'function(){loadGMRLink();}', NULL, '102', '');
+
+-- List Of Traget Gmrs
+
+Insert into GM_GRID_MASTER
+   (GRID_ID, GRID_NAME, DEFAULT_COLUMN_MODEL_STATE, TAB_ID, URL, 
+    DEFAULT_RECORD_MODEL_STATE, OTHER_URL, SCREEN_SPECIFIC_JSP, SCREEN_SPECIFIC_JS)
+ Values
+   ('LOTG', 'List of Target GMR', '[]', NULL, NULL, 
+    NULL, '/private/jsp/logistics/gmrLinking/SelectTargetGmrToFulfill.jsp', '/private/jsp/logistics/gmrLinking/ListOfTargetGmr.jsp', '/private/js/logistics/gmrLinking/ListOfTargetGmr.js');
+
