@@ -1,0 +1,65 @@
+Patch No *                      :  EKA_METALS_PATCH_1858
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Varaprasad B
+
+Created on*        		:  17-Mar-2014
+
+Bug / Enhancement*		:  94946 
+
+Bug ID*            		:  
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+=================================================================
+Revision: 161305
+Author: varaprasad.b
+Date: 14:47:50, 17 March 2014
+Message:
+Bug #94946 fix (Updated to add senders ref no).
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_511.sql
+
+--------------------------------------------------------------------------------------
+
+Revision: 161307
+Author: varaprasad.b
+Date: 14:50:51, 17 March 2014
+Message:
+Bug #94946 fix (Updated the dgm entries to populate senders ref no).
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_687.sql
+
+
+
+
+
+
+
+
+
+
+
+
