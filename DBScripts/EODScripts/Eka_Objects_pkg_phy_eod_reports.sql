@@ -2225,8 +2225,8 @@ insert into temp_pledge_qty
   (corporate_id, internal_grd_ref_no, element_id, gepd_id, payable_qty)
   select pc_corporate_id,
          spq.pledge_stock_id,
-         spq.gepd_id,
          spq.element_id,
+         spq.gepd_id,         
          sum(spq.payable_qty)
     from process_spq spq
    where spq.gepd_id is not null
