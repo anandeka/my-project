@@ -1,0 +1,65 @@
+Patch No *                      :  EKA_METALS_PATCH_1859
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Varaprasad B
+
+Created on*        		:  18-Mar-2014
+
+Bug / Enhancement*		:  Bug 
+
+Bug ID*            		:  94946
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  Invoice
+
+Sub-Module  			 :  Invoice
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+=================================================================
+Revision: 161437
+Author: varaprasad.b
+Date: 16:25:04, 18 March 2014
+Message:
+Bug #94946 fix (Updated to add senders ref no in case of separate vat).
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_512.sql
+
+----------------------------------------------------------------------------------------
+
+Revision: 161438
+Author: varaprasad.b
+Date: 16:26:47, 18 March 2014
+Message:
+Bug #94946 fix (Updated the dgm entries to populate senders ref no in case of separate vat).
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/MasterScripts/Master_Scripts_688.sql
+
+
+
+
+
+
+
+
+
+
+
+
