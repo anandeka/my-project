@@ -1,5 +1,5 @@
 create or replace package pkg_phy_physical_process is
-
+----pkg_phy_physical_process for boliden specific
   gvc_previous_process_id varchar2(15);
 
   gvc_dbd_id varchar2(15);
@@ -52,10 +52,10 @@ create or replace package pkg_phy_physical_process is
                                 pc_process_id   varchar2);
   procedure sp_phy_rebuild_stats;
 
-end;
+end; 
 /
 create or replace package body pkg_phy_physical_process is
-
+-- pkg_phy_physical_process for boliden specific.....
   procedure sp_process_run(pc_corporate_id varchar2,
                            pd_trade_date   date,
                            pc_process_id   varchar2,
@@ -1220,7 +1220,18 @@ create or replace package body pkg_phy_physical_process is
                           pc_process_id,
                           vn_logno,
                           'End of EOD/EOM Process From Physical');
-  
+     pkg_execute_process.sp_mark_process_time(pc_corporate_id,
+                                             pd_trade_date,
+                                             pc_user_id,
+                                             pc_process,
+                                             'PROCESS');
+    commit;
+    pkg_execute_process.sp_process_time_display(pc_corporate_id,
+                                                 pd_trade_date,
+                                                 pc_user_id,
+                                                 pc_process,
+                                                 'PROCESS'); 
+    commit;      
     vc_err_msg := 'end of physical sp process run ';
     <<cancel_process>>
     dbms_output.put_line('EOD/EOM Process Cancelled while pnl calculation');
@@ -3838,7 +3849,7 @@ commit;
     delete from isr2_isr_invoice where process_id = pc_process_id;
     delete from pcs_purchase_contract_status
      where process_id = pc_process_id;
-	delete from css_contract_status_summary
+    delete from css_contract_status_summary
     where process_id = pc_process_id;
     delete from csfm_cont_status_free_metal
     where process_id = pc_process_id;
@@ -4044,5 +4055,5 @@ commit;
     sp_gather_stats('rgmr_realized_gmr');
   end;
 
-end pkg_phy_physical_process;
+end pkg_phy_physical_process; 
 /

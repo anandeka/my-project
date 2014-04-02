@@ -1,5 +1,5 @@
 create or replace package pkg_phy_pre_check_process is
-
+  -- precheck for tata
   -- Author  : Janna
   -- Created : 1/11/2009 11:50:17 AM
   -- Purpose : Pre check data for EOD and EOM
@@ -147,10 +147,12 @@ procedure sp_mbv_pre_check(pc_corporate_id varchar2,
                                        pc_user_id      varchar2,
                                        pc_dbd_id       varchar2);                                   
 end; 
+ 
 /
 create or replace package body pkg_phy_pre_check_process is
 
   procedure sp_pre_check
+  -- precheck for tata
   --------------------------------------------------------------------------------------------------------------------------
     --        procedure name                            : sp_pre_check
     --        author                                    : janna
@@ -308,6 +310,18 @@ create or replace package body pkg_phy_pre_check_process is
                             gvc_dbd_id,
                             vn_logno,
                             'Precheck Completed Successfully...!!!!!!');
+    pkg_execute_process.sp_mark_process_time(pc_corporate_id,
+                                             pd_trade_date,
+                                             pc_user_id,
+                                             pc_process,
+                                             'PRECHECK');
+    commit;
+    pkg_execute_process.sp_process_time_display(pc_corporate_id,
+                                                 pd_trade_date,
+                                                 pc_user_id,
+                                                 pc_process,
+                                                 'PRECHECK'); 
+    commit;                           
     <<cancel_process>>
     dbms_output.put_line('EOD/EOM Process Cancelled while pnl calculation');
   exception
@@ -8100,7 +8114,9 @@ create or replace package body pkg_phy_pre_check_process is
                              pc_process_id   varchar2,
                              pc_user_id      varchar2,
                              pc_dbd_id       varchar2) as
-
+  
+    vn_logno     number := 700;
+    vc_error_msg varchar2(200);
     cursor cur_mar_price is
       select pcdi.pcdi_id,
              pcm.contract_ref_no,
@@ -8285,9 +8301,14 @@ create or replace package body pkg_phy_pre_check_process is
     vc_price_unit_weight_unit_id varchar2(15);
     vc_price_unit_weight_unit    varchar2(15);
     vn_price_unit_weight         number;
-    vc_error_msg                 varchar2(100);
     vd_prev_eom_date             date;
+    vn_fixed_price               number;
+    vc_fixed_price_unit_id       varchar2(15);
+    vn_phy_fixed_price           number;
+    vn_der_fixed_price           number;
+  
   begin
+    vc_error_msg := 'Start of MBV Precheck';
     for cur_mar_price_rows in cur_mar_price
     loop
       vn_price         := null;
@@ -8345,19 +8366,19 @@ create or replace package body pkg_phy_pre_check_process is
           if vd_3rd_wed_of_qp is not null then
             vobj_error_log.extend;
             vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                                 'procedure sp_calc_DI_Valuation_price',
+                                                                 'procedure sp_mbv_precheck 1',
                                                                  'PHY-002',
                                                                  'DR_ID missing for ' ||
-                                                                 cur_mar_price_rows.instrument_name ||
-                                                                 ',Price Source:' ||
-                                                                 cur_mar_price_rows.price_source_name ||
---                                                                 ' Contract Ref No: ' ||
---                                                                 cur_mar_price_rows.contract_ref_no ||
-                                                                 ',Price Unit:' ||
-                                                                 cur_mar_price_rows.price_unit_name || ',' ||
-                                                                 cur_mar_price_rows.available_price_name ||
-                                                                 ' Price,Prompt Date:' ||
-                                                                 vd_3rd_wed_of_qp,
+                                                                  cur_mar_price_rows.instrument_name ||
+                                                                  ',Price Source:' ||
+                                                                  cur_mar_price_rows.price_source_name ||
+                                                                 --                                                                 ' Contract Ref No: ' ||
+                                                                 --                                                                 cur_mar_price_rows.contract_ref_no ||
+                                                                  ',Price Unit:' ||
+                                                                  cur_mar_price_rows.price_unit_name || ',' ||
+                                                                  cur_mar_price_rows.available_price_name ||
+                                                                  ' Price,Prompt Date:' ||
+                                                                  vd_3rd_wed_of_qp,
                                                                  cur_mar_price_rows.contract_ref_no,
                                                                  pc_process,
                                                                  pc_user_id,
@@ -8373,15 +8394,16 @@ create or replace package body pkg_phy_pre_check_process is
                dqd.price_unit_id
           into vn_price,
                vc_price_unit_id
-          from dq_temp        dq,
-               dqd_temp dqd,
-               cdim_corporate_dim          cdim
+          from dq_temp            dq,
+               dqd_temp           dqd,
+               cdim_corporate_dim cdim
          where dq.dq_id = dqd.dq_id
            and dqd.dr_id = vc_price_dr_id
            and dq.dbd_id = pc_dbd_id
            and dqd.dbd_id = pc_dbd_id
            and dq.instrument_id = cur_mar_price_rows.instrument_id
-           and dqd.available_price_id = cur_mar_price_rows.available_price_id
+           and dqd.available_price_id =
+               cur_mar_price_rows.available_price_id
            and dq.price_source_id = cur_mar_price_rows.price_source_id
            and dqd.price_unit_id = cur_mar_price_rows.price_unit_id
            and dq.trade_date = cdim.valid_quote_date
@@ -8399,14 +8421,12 @@ create or replace package body pkg_phy_pre_check_process is
              and cdim.instrument_id = cur_mar_price_rows.instrument_id;
           vobj_error_log.extend;
           vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id, --
-                                                               'procedure sp_calc_DI_Valuation_price',
+                                                               'procedure sp_mbv_precheck 2',
                                                                'PHY-002', --
                                                                'Price missing for ' ||
                                                                cur_mar_price_rows.instrument_name ||
                                                                ',Price Source:' ||
                                                                cur_mar_price_rows.price_source_name || --
-                                                           --    ' Contract Ref No: ' ||
-                                                          --     cur_mar_price_rows.contract_ref_no ||
                                                                ',Price Unit:' ||
                                                                cur_mar_price_rows.price_unit_name || ',' ||
                                                                cur_mar_price_rows.available_price_name ||
@@ -8481,6 +8501,13 @@ create or replace package body pkg_phy_pre_check_process is
          vc_price_unit_weight_unit);
     end loop;
     commit;
+    vc_error_msg := 'Start of MBV Precheck 1';
+    vn_logno     := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'MBV Precheck MDI Insertion Over');
     --
     -- MBV Precheck for Missing Price For Active Fixations
     --
@@ -8542,7 +8569,7 @@ create or replace package body pkg_phy_pre_check_process is
          and pfam.internal_action_ref_no = axs.internal_action_ref_no
          and pcm.dbd_id = pc_dbd_id
          and pcdi.dbd_id = pc_dbd_id
-         and pcm.is_active = 'Y'
+         and pcm.contract_status <> 'Cancelled'
          and poch.is_active = 'Y'
          and pocd.is_active = 'Y'
          and pofh.is_active = 'Y'
@@ -8555,57 +8582,67 @@ create or replace package body pkg_phy_pre_check_process is
          and axs.process = 'EOM'
          and pocd.price_type <> 'Fixed'
          and nvl(pfd.user_price, 0) = 0
-         group by pcm.corporate_id,
-          pcm.contract_ref_no,
-          pcdi.delivery_item_no,
-          axs.action_ref_no;
+       group by pcm.corporate_id,
+                pcm.contract_ref_no,
+                pcdi.delivery_item_no,
+                axs.action_ref_no;
     commit;
+    vc_error_msg := 'Start of MBV Precheck 2';
+    vn_logno     := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'MBV Precheck Concentrate  and Base Metal Active Price Fixations');
+  
     --
     -- b) Free Metal Active Price Fixations
     -- 
-    insert into eel_eod_eom_exception_log
-      (corporate_id,
-       submodule_name,
-       exception_code,
-       data_missing_for,
-       trade_ref_no,
-       process,
-       process_run_date,
-       process_run_by,
-       dr_id,
-       trade_date)
-      select fmuh.corporate_id,
-             'pkg_phy_mbv_report.sp_calc_pf_data',
-             'PHY-105',
-             'Free Metal PF Ref No: ' || axs.action_ref_no,
-             null,
-             pc_process,
-             sysdate,
-             pc_user_id,
-             null,
-             pd_trade_date
-        from fmuh_free_metal_utility_header fmuh,
-             fmed_free_metal_elemt_details  fmed,
-             fmpfh_price_fixation_header    fmpfh,
-             fmpfd_price_fixation_details   fmpfd,
-             fmpfam_price_action_mapping    fmpfam,
-             axs_action_summary             axs
-       where fmuh.fmuh_id = fmed.fmuh_id
-         and fmed.fmed_id = fmpfh.fmed_id
-         and fmed.element_id = fmpfh.element_id
-         and fmpfh.fmpfh_id = fmpfd.fmpfh_id
-         and fmpfd.fmpfd_id = fmpfam.fmpfd_id
-         and fmpfam.is_active = 'Y'
-         and fmuh.is_active = 'Y'
-         and fmed.is_active = 'Y'
-         and fmpfh.is_active = 'Y'
-         and fmpfam.internal_action_ref_no = axs.internal_action_ref_no
-         and axs.corporate_id = pc_corporate_id
-         and axs.eff_date > vd_prev_eom_date
-         and axs.eff_date <= pd_trade_date
-         and axs.process = 'EOM'
-         and nvl(fmpfd.user_price, 0) = 0
-         group by fmuh.corporate_id,axs.action_ref_no;
+    -- 17th Pct 2012, Janna, commented as we should not consider No Price records in MBV
+    /*insert into eel_eod_eom_exception_log
+    (corporate_id,
+     submodule_name,
+     exception_code,
+     data_missing_for,
+     trade_ref_no,
+     process,
+     process_run_date,
+     process_run_by,
+     dr_id,
+     trade_date)
+    select fmuh.corporate_id,
+           'pkg_phy_mbv_report.sp_calc_pf_data',
+           'PHY-105',
+           'Free Metal PF Ref No: ' || axs.action_ref_no,
+           null,
+           pc_process,
+           sysdate,
+           pc_user_id,
+           null,
+           pd_trade_date
+      from fmuh_free_metal_utility_header fmuh,
+           fmed_free_metal_elemt_details  fmed,
+           fmpfh_price_fixation_header    fmpfh,
+           fmpfd_price_fixation_details   fmpfd,
+           fmpfam_price_action_mapping    fmpfam,
+           axs_action_summary             axs
+     where fmuh.fmuh_id = fmed.fmuh_id
+       and fmed.fmed_id = fmpfh.fmed_id
+       and fmed.element_id = fmpfh.element_id
+       and fmpfh.fmpfh_id = fmpfd.fmpfh_id
+       and fmpfd.fmpfd_id = fmpfam.fmpfd_id
+       and fmpfam.is_active = 'Y'
+       and fmuh.is_active = 'Y'
+       and fmed.is_active = 'Y'
+       and fmpfh.is_active = 'Y'
+       and fmpfam.internal_action_ref_no = axs.internal_action_ref_no
+       and axs.corporate_id = pc_corporate_id
+       and axs.eff_date > vd_prev_eom_date
+       and axs.eff_date <= pd_trade_date
+       and axs.process = 'EOM'
+       and nvl(fmpfd.user_price, 0) = 0
+     group by fmuh.corporate_id,
+              axs.action_ref_no;*/
     commit;
     insert into eel_eod_eom_exception_log
       (corporate_id,
@@ -8651,13 +8688,822 @@ create or replace package body pkg_phy_pre_check_process is
                where ppu.product_id = pdm.product_id
                  and ppu.price_unit_id = div.price_unit_id
                  and ppu.is_deleted = 'N');
+    vc_error_msg := 'Start of MBV Precheck 3';
+    vn_logno     := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'MBV Precheck M2M-030 Over');
+  
+    -- Added Suresh
+    -- Derivaties
+    delete from temp_instrument_cash_price
+     where corporate_id = pc_corporate_id;
+    delete from ticp_temp_ins_cash_price
+     where corporate_id = pc_corporate_id;
+    commit;
+    vn_logno := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'MBV Precheck Delete Temp Tables Over');
+    insert into temp_instrument_cash_price
+      (corporate_id,
+       instrument_id,
+       price_date,
+       section_name,
+       fixed_price_date)
+      select pc_corporate_id,
+             dt.instrument_id,
+             dt.trade_date,
+             'Derivatives' section,
+             dt.trade_date
+        from dt_temp dt
+       where dt.is_what_if = 'N'
+         and dt.corporate_id = pc_corporate_id
+         and dt.dbd_id = pc_dbd_id
+         and dt.status = 'Verified'
+         and dt.is_new_trade = 'Y'
+       group by dt.trade_date,
+                dt.instrument_id;
+    commit;
+    vc_error_msg := 'Start of MBV Precheck 4';
+    vn_logno     := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'MBV Precheck Insert temp_instrument_cash_price Derivative over ');
+    -- Physicals
+    --  Concentrates Active Records
+    insert into ticp_temp_ins_cash_price
+      (corporate_id,
+       instrument_id,
+       price_date,
+       section_name,
+       fixed_price_date)
+      select pc_corporate_id,
+             vped.instrument_id,
+             pfd.hedge_correction_date,
+             'Physicals',
+             pfd.hedge_correction_date
+        from pcm_physical_contract_main     pcm,
+             pcdi_pc_delivery_item          pcdi,
+             poch_price_opt_call_off_header poch,
+             pocd_price_option_calloff_dtls pocd,
+             pofh_price_opt_fixation_header pofh,
+             pfd_price_fixation_details     pfd,
+             v_pcdi_exchange_detail         vped
+       where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+         and pcdi.pcdi_id = poch.pcdi_id
+         and poch.poch_id = pocd.poch_id
+         and pocd.pocd_id = pofh.pocd_id
+         and pofh.pofh_id = pfd.pofh_id
+         and vped.pcdi_id = pcdi.pcdi_id
+         and vped.element_id = poch.element_id
+         and pcm.process_id = pc_process_id
+         and pcdi.process_id = pc_process_id
+         and pcm.contract_status <> 'Cancelled'
+         and poch.is_active = 'Y'
+         and pocd.is_active = 'Y'
+         and pofh.is_active = 'Y'
+         and pcdi.is_active = 'Y'
+         and pfd.is_active = 'Y'
+         and pcm.contract_type = 'CONCENTRATES'
+         and pfd.hedge_correction_date > vd_prev_eom_date
+         and pfd.hedge_correction_date <= pd_trade_date
+         and pcm.is_pass_through = 'N'
+         and pocd.price_type <> 'Fixed'
+       group by pfd.hedge_correction_date,
+                vped.instrument_id;
+    commit;
+    vc_error_msg := 'Start of MBV Precheck 5';
+    vn_logno     := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'MBV Precheck Insert Concentrates Active records Over');
+    -- Concentrates Cancelled records
+    insert into ticp_temp_ins_cash_price
+      (corporate_id,
+       instrument_id,
+       price_date,
+       section_name,
+       fixed_price_date)
+      select pc_corporate_id,
+             vped.instrument_id,
+             pfd.hedge_correction_date,
+             'Physicals',
+             pfd.hedge_correction_date
+        from pcm_physical_contract_main     pcm,
+             pcdi_pc_delivery_item          pcdi,
+             poch_price_opt_call_off_header poch,
+             pocd_price_option_calloff_dtls pocd,
+             pofh_price_opt_fixation_header pofh,
+             pfd_price_fixation_details     pfd,
+             v_pcdi_exchange_detail         vped
+       where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+         and pcdi.pcdi_id = poch.pcdi_id
+         and poch.poch_id = pocd.poch_id
+         and pocd.pocd_id = pofh.pocd_id
+         and pofh.pofh_id = pfd.pofh_id
+         and vped.pcdi_id = pcdi.pcdi_id
+         and vped.element_id = poch.element_id
+         and pcm.process_id = pc_process_id
+         and pcdi.process_id = pc_process_id
+         and pcm.contract_status <> 'Cancelled'
+         and poch.is_active = 'Y'
+         and pocd.is_active = 'Y'
+         and pofh.is_active = 'Y'
+         and pcdi.is_active = 'Y'
+         and pfd.is_active = 'N'
+         and pfd.cancel_action_ref_no is not null
+         and nvl(pfd.user_price, 0) <> 0
+         and pcm.contract_type = 'CONCENTRATES'
+         and pfd.hedge_correction_date > vd_prev_eom_date
+         and pfd.hedge_correction_date <= pd_trade_date
+         and pcm.is_pass_through = 'N'
+         and pocd.price_type <> 'Fixed'
+       group by pfd.hedge_correction_date,
+                vped.instrument_id;
+    commit;
+    vc_error_msg := 'Start of MBV Precheck 6';
+    vn_logno     := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'MBV Precheck Insert Concentrates Cancelled records Over');
+    -- Base Metal Active records
+    insert into ticp_temp_ins_cash_price
+      (corporate_id,
+       instrument_id,
+       price_date,
+       section_name,
+       fixed_price_date)
+      select pc_corporate_id,
+             vped.instrument_id,
+             pfd.hedge_correction_date,
+             'Physicals',
+             pfd.hedge_correction_date
+        from pcm_physical_contract_main     pcm,
+             pcdi_pc_delivery_item          pcdi,
+             poch_price_opt_call_off_header poch,
+             pocd_price_option_calloff_dtls pocd,
+             pofh_price_opt_fixation_header pofh,
+             pfd_price_fixation_details     pfd,
+             v_pcdi_exchange_detail         vped
+       where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+         and pcdi.pcdi_id = poch.pcdi_id
+         and poch.poch_id = pocd.poch_id
+         and pocd.pocd_id = pofh.pocd_id
+         and pofh.pofh_id = pfd.pofh_id
+         and vped.pcdi_id = pcdi.pcdi_id
+         and pcm.process_id = pc_process_id
+         and pcdi.process_id = pc_process_id
+         and pcm.contract_status <> 'Cancelled'
+         and poch.is_active = 'Y'
+         and pocd.is_active = 'Y'
+         and pofh.is_active = 'Y'
+         and pcdi.is_active = 'Y'
+         and pfd.is_active = 'Y'
+         and pcm.contract_type = 'BASEMETAL'
+         and pfd.hedge_correction_date > vd_prev_eom_date
+         and pfd.hedge_correction_date <= pd_trade_date
+         and pocd.price_type <> 'Fixed'
+       group by pfd.hedge_correction_date,
+                vped.instrument_id;
+    commit;
+    vc_error_msg := 'Start of MBV Precheck 7';
+    vn_logno     := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'MBV Precheck Insert Base Metal Active records Over');
+    -- Base Metal Cancelled records
+    insert into ticp_temp_ins_cash_price
+      (corporate_id,
+       instrument_id,
+       price_date,
+       section_name,
+       fixed_price_date)
+    
+      select pc_corporate_id,
+             vped.instrument_id,
+             pfd.hedge_correction_date,
+             'Physicals',
+             pfd.hedge_correction_date
+        from pcm_physical_contract_main     pcm,
+             pcdi_pc_delivery_item          pcdi,
+             poch_price_opt_call_off_header poch,
+             pocd_price_option_calloff_dtls pocd,
+             pofh_price_opt_fixation_header pofh,
+             pfd_price_fixation_details     pfd,
+             v_pcdi_exchange_detail         vped
+       where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+         and pcdi.pcdi_id = poch.pcdi_id
+         and poch.poch_id = pocd.poch_id
+         and pocd.pocd_id = pofh.pocd_id
+         and pofh.pofh_id = pfd.pofh_id
+         and vped.pcdi_id = pcdi.pcdi_id
+         and pcm.process_id = pc_process_id
+         and pcdi.process_id = pc_process_id
+         and pcm.contract_status <> 'Cancelled'
+         and poch.is_active = 'Y'
+         and pocd.is_active = 'Y'
+         and pofh.is_active = 'Y'
+         and pcdi.is_active = 'Y'
+         and pfd.is_active = 'N'
+         and pfd.cancel_action_ref_no is not null
+         and nvl(pfd.user_price, 0) <> 0
+         and pcm.contract_type = 'BASEMETAL'
+         and pfd.hedge_correction_date > vd_prev_eom_date
+         and pfd.hedge_correction_date <= pd_trade_date
+         and pocd.price_type <> 'Fixed'
+       group by pfd.hedge_correction_date,
+                vped.instrument_id;
+    commit;
+    vc_error_msg := 'Start of MBV Precheck 8';
+    vn_logno     := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'MBV Precheck Insert Base Metal Cancelled records Over');
+    --- free Metal
+    insert into ticp_temp_ins_cash_price
+      (corporate_id,
+       instrument_id,
+       price_date,
+       section_name,
+       fixed_price_date)
+      select pc_corporate_id,
+             fmeifd.instrument_id,
+             axs.eff_date,
+             'Physicals',
+             axs.eff_date
+        from fmuh_free_metal_utility_header fmuh,
+             fmed_free_metal_elemt_details fmed,
+             fmpfh_price_fixation_header fmpfh,
+             fmpfd_price_fixation_details fmpfd,
+             fmpfam_price_action_mapping fmpfam,
+             axs_action_summary axs,
+             (select fmeifd.fmed_id,
+                     fmeifd.instrument_id
+                from fmeifd_index_formula_details fmeifd
+               group by fmeifd.fmed_id,
+                        fmeifd.instrument_id) fmeifd
+       where fmuh.fmuh_id = fmed.fmuh_id
+         and fmed.fmed_id = fmpfh.fmed_id
+         and fmed.element_id = fmpfh.element_id
+         and fmpfh.fmpfh_id = fmpfd.fmpfh_id
+         and fmpfd.fmpfd_id = fmpfam.fmpfd_id
+         and fmuh.is_active = 'Y'
+         and fmed.is_active = 'Y'
+         and fmpfh.is_active = 'Y'
+         and fmpfam.is_active = 'Y'
+         and fmpfam.internal_action_ref_no = axs.internal_action_ref_no
+         and fmed.fmed_id = fmeifd.fmed_id
+         and axs.corporate_id = pc_corporate_id
+         and axs.eff_date > vd_prev_eom_date
+         and axs.eff_date <= pd_trade_date
+         and nvl(fmpfd.user_price, 0) <> 0
+         and axs.process = 'EOM'
+       group by fmeifd.instrument_id,
+                axs.eff_date;
+    commit;
+    vc_error_msg := 'Start of MBV Precheck 9';
+    vn_logno     := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'MBV Precheck Insert FM Over');
+    --concentrate Fixed       
+    insert into ticp_temp_ins_cash_price
+      (corporate_id,
+       instrument_id,
+       price_date,
+       fixed_price_date,
+       section_name,
+       is_fixed_price)
+      select pc_corporate_id,
+             pdm.instrument_id,
+             pcm.issue_date price_date,
+             pcm.issue_date price_fixation_date,
+             'Physicals',
+             'Y'
+        from pcm_physical_contract_main     pcm,
+             pcdi_pc_delivery_item          pcdi,
+             poch_price_opt_call_off_header poch,
+             pocd_price_option_calloff_dtls pocd,
+             aml_attribute_master_list      aml,
+             v_product_instrument           pdm
+       where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+         and pcdi.pcdi_id = poch.pcdi_id
+         and poch.poch_id = pocd.poch_id
+         and pocd.price_type = 'Fixed'
+         and poch.element_id = aml.attribute_id
+         and pcm.corporate_id = pc_corporate_id
+         and aml.underlying_product_id = pdm.product_id
+         and pcm.contract_status <> 'Cancelled'
+         and pcdi.is_active = 'Y'
+         and poch.is_active = 'Y'
+         and pocd.is_active = 'Y'
+         and aml.is_active = 'Y'
+         and pcm.process_id = pc_process_id
+         and pcdi.process_id = pc_process_id
+         and pcm.issue_date > vd_prev_eom_date
+         and pcm.issue_date <= pd_trade_date
+         and pcm.is_pass_through = 'N'
+       group by pdm.instrument_id,
+                pcm.issue_date;
+    commit;
+    vc_error_msg := 'Start of MBV Precheck 10';
+    vn_logno     := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'MBV Precheck Insert Concentrates Fixed Over');
+    --basemetal Fixed
+    insert into ticp_temp_ins_cash_price
+      (corporate_id,
+       instrument_id,
+       price_date,
+       fixed_price_date,
+       section_name,
+       is_fixed_price)
+      select pc_corporate_id,
+             pdm.instrument_id,
+             pcm.issue_date price_date,
+             pcm.issue_date price_date,
+             'Physicals',
+             'Y'
+        from pcm_physical_contract_main     pcm,
+             pcdi_pc_delivery_item          pcdi,
+             poch_price_opt_call_off_header poch,
+             pocd_price_option_calloff_dtls pocd,
+             pcpd_pc_product_definition     pcpd,
+             v_product_instrument           pdm
+       where pcm.internal_contract_ref_no = pcdi.internal_contract_ref_no
+         and pcpd.internal_contract_ref_no = pcm.internal_contract_ref_no
+         and pcdi.pcdi_id = poch.pcdi_id
+         and poch.poch_id = pocd.poch_id
+         and pocd.price_type = 'Fixed'
+         and pcm.corporate_id = pc_corporate_id
+         and pcm.contract_status <> 'Cancelled'
+         and pcdi.is_active = 'Y'
+         and poch.is_active = 'Y'
+         and pocd.is_active = 'Y'
+         and pcm.process_id = pc_process_id
+         and pcdi.process_id = pc_process_id
+         and pcm.is_pass_through = 'N'
+         and pcpd.product_id = pdm.product_id
+         and pcm.contract_type = 'BASEMETAL'
+         and pcm.issue_date > vd_prev_eom_date
+         and pcm.issue_date <= pd_trade_date
+       group by pdm.instrument_id,
+                pcm.issue_date;
+    commit;
+    vc_error_msg := 'Start of MBV Precheck 11';
+    vn_logno     := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'MBV Precheck Insert BM Fixed records Over');
+    --
+    -- If contract is fixed price and if it is holiday, then we have to move back to previous working day
+    -- 
+    for cc in (select *
+                 from ticp_temp_ins_cash_price t
+                where t.corporate_id = pc_corporate_id
+                  and t.is_fixed_price = 'Y')
+    loop
+      workings_days  := 0;
+      vd_quotes_date := cc.price_date;
+      while workings_days <> 1
+      loop
+        if pkg_metals_general.f_is_day_holiday(cc.instrument_id,
+                                               vd_quotes_date) then
+          vd_quotes_date := vd_quotes_date - 1;
+        else
+          workings_days := workings_days + 1;
+          if workings_days <> 1 then
+            vd_quotes_date := vd_quotes_date - 1;
+          end if;
+        end if;
+      end loop;
+      update ticp_temp_ins_cash_price t
+         set t.fixed_price_date = vd_quotes_date
+       where t.corporate_id = pc_corporate_id
+         and t.instrument_id = cc.instrument_id
+         and t.price_date = cc.price_date
+         and t.is_fixed_price = 'Y';
+    end loop;
+    commit;
+    insert into temp_instrument_cash_price
+      (corporate_id,
+       instrument_id,
+       price_date,
+       price,
+       price_unit_id,
+       section_name,
+       fixed_price_date,
+       is_fixed_price)
+      select corporate_id,
+             instrument_id,
+             price_date,
+             price,
+             price_unit_id,
+             section_name,
+             fixed_price_date,
+             is_fixed_price
+        from ticp_temp_ins_cash_price t
+       where t.corporate_id = pc_corporate_id
+       group by corporate_id,
+                instrument_id,
+                price_date,
+                price,
+                price_unit_id,
+                section_name,
+                fixed_price_date,
+                is_fixed_price;
+    vc_error_msg := 'Start of MBV Precheck 12';
+    vn_logno     := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'MBV Precheck Main Temp Table Insert Over');
+    for cc in (select icp.instrument_id,
+                      icp.phy_price_source_id price_source_id,
+                      icp.phy_price_point_id price_point_id,
+                      icp.phy_price_unit_id price_unit_id,
+                      temp.price_date price_date,
+                      temp.fixed_price_date,
+                      temp.section_name,
+                      icp.available_price_id,
+                      temp.is_fixed_price
+                 from temp_instrument_cash_price temp,
+                      icp_instrument_cash_price  icp
+                where temp.instrument_id = icp.instrument_id
+                  and temp.corporate_id = pc_corporate_id
+                  and icp.corporate_id = pc_corporate_id
+                  and temp.section_name = 'Physicals'
+                group by icp.instrument_id,
+                         icp.phy_price_source_id,
+                         icp.phy_price_point_id,
+                         icp.phy_price_unit_id,
+                         temp.price_date,
+                         temp.fixed_price_date,
+                         temp.section_name,
+                         icp.available_price_id,
+                         temp.is_fixed_price
+               union all
+               select icp.instrument_id,
+                      icp.der_price_source_id,
+                      icp.der_price_point_id,
+                      icp.der_price_unit_id,
+                      temp.price_date,
+                      temp.price_date,
+                      temp.section_name,
+                      icp.available_price_id,
+                      'N' is_fixed_price
+                 from temp_instrument_cash_price temp,
+                      icp_instrument_cash_price  icp
+                where temp.instrument_id = icp.instrument_id
+                  and temp.corporate_id = pc_corporate_id
+                  and icp.corporate_id = pc_corporate_id
+                  and temp.section_name <> 'Physicals'
+                group by icp.instrument_id,
+                         icp.der_price_source_id,
+                         icp.der_price_point_id,
+                         icp.der_price_unit_id,
+                         temp.price_date,
+                         temp.section_name,
+                         icp.available_price_id)
+    loop
+      begin
+        if cc.is_fixed_price = 'N' then
+          vd_quotes_date := cc.price_date;
+        else
+          vd_quotes_date := cc.fixed_price_date;
+        end if;
+        select dqd.price,
+               dqd.price_unit_id
+          into vn_fixed_price,
+               vc_fixed_price_unit_id
+          from dq_temp               dq,
+               dqd_temp              dqd,
+               drm_derivative_master drm
+         where dq.dbd_id = pc_dbd_id
+           and dqd.dbd_id = pc_dbd_id
+           and dq.dq_id = dqd.dq_id
+           and dq.trade_date = vd_quotes_date
+           and dqd.dr_id = drm.dr_id
+           and drm.instrument_id = cc.instrument_id
+           and drm.price_point_id = cc.price_point_id
+           and dqd.available_price_id = cc.available_price_id
+           and dqd.price_unit_id = cc.price_unit_id
+           and dq.price_source_id = cc.price_source_id
+           and nvl(dqd.price, 0) <> 0
+           and dq.is_deleted = 'N'
+           and dqd.is_deleted = 'N'
+           and drm.is_deleted = 'N'
+           and rownum < 2;
+      
+        update temp_instrument_cash_price temp
+           set temp.price         = vn_fixed_price,
+               temp.price_unit_id = vc_fixed_price_unit_id
+         where temp.price_date = cc.price_date
+           and temp.fixed_price_date = cc.fixed_price_date
+           and temp.instrument_id = cc.instrument_id
+           and temp.section_name = cc.section_name
+           and temp.corporate_id = pc_corporate_id
+           and temp.is_fixed_price = cc.is_fixed_price;
+      exception
+        when others then
+          null;
+      end;
+    end loop;
+    commit;
+    vc_error_msg := 'Start of MBV Precheck 13';
+    vn_logno     := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'MBV Precheck Quote Into Main Temp Table Over');
+    -- month end price
+    for cc in (select icp.instrument_id,
+                      icp.instrument_name,
+                      icp.phy_price_source_id phy_price_source_id,
+                      ps_phy.price_source_name phy_price_source_name,
+                      icp.phy_price_point_id phy_price_point_id,
+                      pp_phy.price_point_name phy_price_point_name,
+                      icp.phy_price_unit_id phy_price_unit_id,
+                      pum_phy.price_unit_name phy_price_unit_name,
+                      icp.der_price_source_id,
+                      ps_der.price_source_name der_price_source_name,
+                      icp.der_price_point_id,
+                      pp_der.price_point_name der_price_point_name,
+                      icp.der_price_unit_id,
+                      pum_der.price_unit_name der_price_unit_name,
+                      icp.available_price_id,
+                      apm.available_price_name
+                 from icp_instrument_cash_price  icp,
+                      ps_price_source            ps_phy,
+                      pp_price_point             pp_phy,
+                      pum_price_unit_master      pum_phy,
+                      apm_available_price_master apm,
+                      ps_price_source            ps_der,
+                      pp_price_point             pp_der,
+                      pum_price_unit_master      pum_der
+                where icp.corporate_id = pc_corporate_id
+                  and icp.phy_price_source_id = ps_phy.price_source_id
+                  and icp.phy_price_point_id = pp_phy.price_point_id
+                  and icp.phy_price_unit_id = pum_phy.price_unit_id
+                  and icp.der_price_source_id = ps_der.price_source_id
+                  and icp.der_price_point_id = pp_der.price_point_id
+                  and icp.der_price_unit_id = pum_der.price_unit_id
+                  and icp.available_price_id = apm.available_price_id
+                  and exists
+                (select *
+                         from temp_instrument_cash_price t
+                        where t.corporate_id = pc_corporate_id
+                          and t.instrument_id = icp.instrument_id))
+    loop
+      vn_phy_fixed_price := null;
+      vn_der_fixed_price := null;
+      vd_3rd_wed_of_qp   := pd_trade_date;
+      while true
+      loop
+        if pkg_metals_general.f_is_day_holiday(cc.instrument_id,
+                                               vd_3rd_wed_of_qp) then
+          vd_3rd_wed_of_qp := vd_3rd_wed_of_qp - 1;
+        else
+          exit;
+        end if;
+      end loop;
+      begin
+        select dqd.price
+          into vn_phy_fixed_price
+          from dq_temp               dq,
+               dqd_temp              dqd,
+               drm_derivative_master drm
+         where dq.dbd_id = pc_dbd_id
+           and dqd.dbd_id = pc_dbd_id
+           and dq.dq_id = dqd.dq_id
+           and dq.trade_date = vd_3rd_wed_of_qp
+           and dqd.dr_id = drm.dr_id
+           and drm.instrument_id = cc.instrument_id
+           and drm.price_point_id = cc.phy_price_point_id
+           and dqd.available_price_id = cc.available_price_id
+           and dqd.price_unit_id = cc.phy_price_unit_id
+           and dq.price_source_id = cc.phy_price_source_id
+           and nvl(dqd.price, 0) <> 0
+           and dq.is_deleted = 'N'
+           and dqd.is_deleted = 'N'
+           and drm.is_deleted = 'N'
+           and rownum < 2;
+      exception
+        when others then
+          vobj_error_log.extend;
+          vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id, --
+                                                               'procedure Sp_Cash_Price_Precheck 1',
+                                                               'PHY-002', --
+                                                               'Price missing for ' ||
+                                                               cc.instrument_name ||
+                                                               ',Price Source:' ||
+                                                               cc.phy_price_source_name || --
+                                                               'Price Point: ' ||
+                                                               cc.phy_price_point_name ||
+                                                               ',Price Unit:' ||
+                                                               cc.phy_price_unit_name || ',' ||
+                                                               cc.available_price_name ||
+                                                               ' Trade Date :' ||
+                                                               to_char(vd_3rd_wed_of_qp,
+                                                                       'dd-Mon-yyyy'),
+                                                               null,
+                                                               pc_process,
+                                                               pc_user_id,
+                                                               sysdate,
+                                                               pd_trade_date);
+          sp_insert_error_log(vobj_error_log);
+      end;
+      --check for derivative if the price_source_id and price_point_id and price_unit_id  are same 
+    
+      if cc.phy_price_source_id = cc.der_price_source_id and
+         cc.phy_price_point_id = cc.der_price_point_id and
+         cc.phy_price_unit_id = cc.der_price_unit_id then
+        vn_der_fixed_price := vn_phy_fixed_price;
+      
+      else
+        begin
+          select dqd.price
+            into vn_der_fixed_price
+            from dq_temp               dq,
+                 dqd_temp              dqd,
+                 drm_derivative_master drm
+           where dq.dbd_id = pc_dbd_id
+             and dqd.dbd_id = pc_dbd_id
+             and dq.dq_id = dqd.dq_id
+             and dq.trade_date = vd_3rd_wed_of_qp
+             and dqd.dr_id = drm.dr_id
+             and drm.instrument_id = cc.instrument_id
+             and drm.price_point_id = cc.der_price_point_id
+             and dqd.available_price_id = cc.available_price_id
+             and dqd.price_unit_id = cc.der_price_unit_id
+             and dq.price_source_id = cc.der_price_source_id
+             and nvl(dqd.price, 0) <> 0
+             and dq.is_deleted = 'N'
+             and dqd.is_deleted = 'N'
+             and drm.is_deleted = 'N'
+             and rownum < 2;
+        exception
+          when others then
+            vobj_error_log.extend;
+            vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id, --
+                                                                 'procedure Sp_Cash_Price_Precheck 2',
+                                                                 'PHY-002', --
+                                                                 'Price missing for ' ||
+                                                                 cc.instrument_name ||
+                                                                 ',Price Source:' ||
+                                                                 cc.der_price_source_name || --
+                                                                 'Price Point: ' ||
+                                                                 cc.der_price_point_name ||
+                                                                 ',Price Unit:' ||
+                                                                 cc.der_price_unit_name || ',' ||
+                                                                 cc.available_price_name ||
+                                                                 ' Trade Date :' ||
+                                                                 to_char(vd_3rd_wed_of_qp,
+                                                                         'dd-Mon-yyyy'),
+                                                                 null,
+                                                                 pc_process,
+                                                                 pc_user_id,
+                                                                 sysdate,
+                                                                 pd_trade_date);
+            sp_insert_error_log(vobj_error_log);
+        end;
+      end if;
+      update icp_instrument_cash_price icp
+         set icp.phy_month_end_price = vn_phy_fixed_price,
+             icp.der_month_end_price = vn_der_fixed_price
+       where icp.corporate_id = pc_corporate_id
+         and icp.instrument_id = cc.instrument_id;
+    
+    end loop;
+    commit;
+    vc_error_msg := 'Start of MBV Precheck 14';
+    vn_logno     := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'MBV Precheck Month End Price Update Over');
+    insert into eel_eod_eom_exception_log
+      (corporate_id,
+       submodule_name,
+       exception_code,
+       data_missing_for,
+       trade_ref_no,
+       process,
+       process_run_date,
+       process_run_by,
+       dr_id,
+       trade_date)
+      select pc_corporate_id,
+             'Sp_Cash_Price_Precheck 3',
+             'PHY-105',
+             t.available_price_name || ' Price for' || ' ' ||
+             t.instrument_name || ' ' || 'is missing; ' || 'Trade Date :' ||
+             to_char(t.price_date, 'dd-Mon-yyyy') || ' ' ||
+             'Price Source :' || t.price_source_name || ' ' ||
+             'Price Point :' || t. price_point_name || ' ' || 'Price Unit :' || t.price_unit_name,
+             null,
+             pc_process,
+             sysdate,
+             pc_user_id,
+             null,
+             pd_trade_date
+        from (select icp.instrument_id,
+                     icp.instrument_name,
+                     icp.phy_price_source_id price_source_id,
+                     ps.price_source_name,
+                     icp.phy_price_point_id price_point_id,
+                     pp.price_point_name,
+                     icp.phy_price_unit_id price_unit_id,
+                     pum.price_unit_name,
+                     case
+                       when temp.is_fixed_price = 'N' then
+                        temp.price_date
+                       else
+                        temp.fixed_price_date
+                     end price_date,
+                     apm.available_price_name
+                from temp_instrument_cash_price temp,
+                     icp_instrument_cash_price  icp,
+                     ps_price_source            ps,
+                     pp_price_point             pp,
+                     pum_price_unit_master      pum,
+                     apm_available_price_master apm
+               where temp.corporate_id = icp.corporate_id
+                 and temp.instrument_id = icp.instrument_id
+                 and icp.phy_price_source_id = ps.price_source_id
+                 and icp.phy_price_point_id = pp.price_point_id
+                 and icp.phy_price_unit_id = pum.price_unit_id
+                 and icp.available_price_id = apm.available_price_id
+                 and temp.section_name = 'Physicals'
+                 and nvl(temp.price, 0) = 0
+                 and temp.corporate_id = pc_corporate_id
+              union
+              select icp.instrument_id,
+                     icp.instrument_name,
+                     icp.phy_price_source_id,
+                     ps.price_source_name,
+                     icp.phy_price_point_id,
+                     pp.price_point_name,
+                     icp.phy_price_unit_id,
+                     pum.price_unit_name,
+                     temp.price_date,
+                     apm.available_price_name
+                from temp_instrument_cash_price temp,
+                     icp_instrument_cash_price  icp,
+                     ps_price_source            ps,
+                     pp_price_point             pp,
+                     pum_price_unit_master      pum,
+                     apm_available_price_master apm
+               where temp.corporate_id = icp.corporate_id
+                 and temp.instrument_id = icp.instrument_id
+                 and icp.der_price_source_id = ps.price_source_id
+                 and icp.der_price_point_id = pp.price_point_id
+                 and icp.der_price_unit_id = pum.price_unit_id
+                 and icp.available_price_id = apm.available_price_id
+                 and temp.section_name <> 'Physicals'
+                 and nvl(temp.price, 0) = 0
+                 and temp.corporate_id = pc_corporate_id) t;
+    commit;
+    vc_error_msg := 'Start of MBV Precheck 15';
+    vn_logno     := vn_logno + 1;
+    sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          pc_process_id,
+                          vn_logno,
+                          'MBV Precheck Over');
   exception
     when others then
       vobj_error_log.extend;
       vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
-                                                           'procedure pkg_phy_mbv_report.sp_calc_di_valuation_price',
+                                                           'procedure pkg_phy_pre_check_process.sp_mbv_pre_check',
                                                            'M2M-013',
-                                                           'Code:' || sqlcode ||
+                                                           'Code:' ||
+                                                           sqlcode ||
                                                            'Message:' ||
                                                            sqlerrm ||
                                                            '  Error Msg: ' ||

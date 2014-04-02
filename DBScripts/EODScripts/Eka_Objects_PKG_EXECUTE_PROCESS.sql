@@ -8,12 +8,20 @@ create or replace package "PKG_EXECUTE_PROCESS" is
                                pt_current_pull_date  timestamp,
                                pc_user_id            varchar2,
                                pd_trade_date         date);
-
   procedure sp_mark_dumps_status(pc_corporate_id varchar2,
                                  pd_trade_date   date,
                                  pc_user_id      varchar2,
                                  pc_process      varchar2);
-
+  procedure sp_mark_process_time(pc_corporate_id varchar2,
+                                 pd_trade_date   date,
+                                 pc_user_id      varchar2,
+                                 pc_process      varchar2,
+                                 pc_process_type varchar2);
+  procedure sp_process_time_display(pc_corporate_id varchar2,
+                                 pd_trade_date   date,
+                                 pc_user_id      varchar2,
+                                 pc_process      varchar2,
+                                 pc_process_type varchar2);                                 
   procedure sp_clear_process_status(pc_corporate_id varchar2,
                                     pd_trade_date   date,
                                     pc_user_id      varchar2,
@@ -555,7 +563,9 @@ create or replace package body "PKG_EXECUTE_PROCESS" is
       commit;
     end if;
     sp_insert_error_log(vobj_error_log);
-    pc_eod_status := vc_oracle_error;
+    if pc_eod_status is null and vc_oracle_error is not null then
+       pc_eod_status := vc_oracle_error;
+    end if;
   exception
     when others then
       vobj_error_log.extend;
@@ -642,7 +652,185 @@ create or replace package body "PKG_EXECUTE_PROCESS" is
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
   end;
+ procedure sp_mark_process_time(pc_corporate_id varchar2,
+                                pd_trade_date   date,
+                                pc_user_id      varchar2,
+                                pc_process      varchar2,
+                                pc_process_type varchar2) is
+   pragma autonomous_transaction;
+   /******************************************************************************************************************************************
+   Procedure Name                            : sp_mark_process_time 
+   Author                                    : Siva
+   Created Date                              : 13th Feb 2014
+   Purpose                                   : To updated EOD/EOM precheck/process completion time back to app schema
+   Parameters
+   pc_corporate_id                           : Corporate ID
+   pd_trade_date                             : EOD Date ID
+   pc_user_id                                : User ID
+   pc_process                                : Process ('EOD' or 'EOM')
+   pc_process_type                           : 'PRECHECK' or 'PROCESS'
+   Modification History
+   Modified Date                             :
+   Modified By                               :
+   Modify Description                        :
+   ******************************************************************************************************************************************/
+   --vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+   --vn_eel_error_count number := 1;
+   vd_current_time    timestamp;
+ begin
+   vd_current_time := systimestamp;
+   if pc_process = 'EOD' then
+     if pc_process_type = 'PRECHECK' then
+       update eod_end_of_day_details@eka_appdb
+          set prechcek_end_time = vd_current_time,
+              precheck_duration = vd_current_time - db_dump_timestamp
+        where corporate_id = pc_corporate_id
+          and as_of_date = pd_trade_date;
+     end if;
+     if pc_process_type = 'PROCESS' then
+       update eod_end_of_day_details@eka_appdb
+          set process_end_time = vd_current_time,
+              process_duration = vd_current_time - prechcek_end_time,
+              net_duration     = vd_current_time - db_dump_timestamp
+        where corporate_id = pc_corporate_id
+          and as_of_date = pd_trade_date;
+     end if;
+   end if;
+   if pc_process = 'EOM' then
+     if pc_process_type = 'PRECHECK' then
+       update eom_end_of_month_details@eka_appdb
+          set prechcek_end_time = vd_current_time,
+              precheck_duration = vd_current_time - db_dump_timestamp
+        where corporate_id = pc_corporate_id
+          and as_of_date = pd_trade_date;
+     end if;
+     if pc_process_type = 'PROCESS' then
+       update eom_end_of_month_details@eka_appdb
+          set process_end_time = vd_current_time,
+              process_duration = vd_current_time - prechcek_end_time,
+              net_duration     = vd_current_time - db_dump_timestamp
+        where corporate_id = pc_corporate_id
+          and as_of_date = pd_trade_date;
+     end if;
+   end if;
+   commit;
+ exception
+   when others then
+    sp_write_log(pc_corporate_id,
+                 pd_trade_date,
+                 'procedure sp_mark_process_time',
+                 'Error marking time '||'Code:' || sqlcode ||'Message:' ||sqlerrm);
+    /* vobj_error_log.extend;
+     vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                          'procedure sp_mark_process_time',
+                                                          'M2M-013',
+                                                          'Code:' || sqlcode ||
+                                                          'Message:' ||
+                                                          sqlerrm,
+                                                          '',
+                                                          pc_process,
+                                                          pc_user_id,
+                                                          sysdate,
+                                                          pd_trade_date);
+     sp_insert_error_log(vobj_error_log);*/
+     commit;
+ end;
+  procedure sp_process_time_display(pc_corporate_id varchar2,
+                                    pd_trade_date   date,
+                                    pc_user_id      varchar2,
+                                    pc_process      varchar2,
+                                    pc_process_type varchar2) is
+    pragma autonomous_transaction;
+    /******************************************************************************************************************************************
+    Procedure Name                            : sp_mark_process_time 
+    Author                                    : Siva
+    Created Date                              : 13th Feb 2014
+    Purpose                                   : To updated EOD/EOM precheck/process completion time back to app schema
+    Parameters
+    pc_corporate_id                           : Corporate ID
+    pd_trade_date                             : EOD Date ID
+    pc_user_id                                : User ID
+    pc_process                                : Process ('EOD' or 'EOM')
+    pc_process_type                           : 'PRECHECK' or 'PROCESS'
+    Modification History
+    Modified Date                             :
+    Modified By                               :
+    Modify Description                        :
+    ******************************************************************************************************************************************/
+    --vobj_error_log     tableofpelerrorlog := tableofpelerrorlog();
+    --vn_eel_error_count number := 1;
+  begin
+    if pc_process = 'EOD' then
+      if pc_process_type = 'PRECHECK' then
+        update eod_end_of_day_details@eka_appdb
+           set precheck_time = extract(hour from precheck_duration) || ':' ||
+                               extract(minute from precheck_duration) || ':' ||
+                               extract(second from precheck_duration),
+               net_time      = extract(hour from precheck_duration) || ':' ||
+                               extract(minute from precheck_duration) || ':' ||
+                               extract(second from precheck_duration)
+         where corporate_id = pc_corporate_id
+           and as_of_date = pd_trade_date;
+      end if;
+      if pc_process_type = 'PROCESS' then
+        update eod_end_of_day_details@eka_appdb
+           set process_time = extract(hour from process_duration) || ':' ||
+                              extract(minute from process_duration) || ':' ||
+                              extract(second from process_duration),
+               net_time     = extract(hour from net_duration) || ':' ||
+                              extract(minute from net_duration) || ':' ||
+                              extract(second from net_duration)
+         where corporate_id = pc_corporate_id
+           and as_of_date = pd_trade_date;
+      end if;
+    end if;
+    if pc_process = 'EOM' then
+      if pc_process_type = 'PRECHECK' then
+        update eom_end_of_month_details@eka_appdb
+           set precheck_time = extract(hour from precheck_duration) || ':' ||
+                               extract(minute from precheck_duration) || ':' ||
+                               extract(second from precheck_duration),
+               net_time      = extract(hour from precheck_duration) || ':' ||
+                               extract(minute from precheck_duration) || ':' ||
+                               extract(second from precheck_duration)
+         where corporate_id = pc_corporate_id
+           and as_of_date = pd_trade_date;
+      end if;
+      if pc_process_type = 'PROCESS' then
+        update eom_end_of_month_details@eka_appdb
+           set process_time = extract(hour from process_duration) || ':' ||
+                              extract(minute from process_duration) || ':' ||
+                              extract(second from process_duration),
+               net_time     = extract(hour from net_duration) || ':' ||
+                              extract(minute from net_duration) || ':' ||
+                              extract(second from net_duration)
+         where corporate_id = pc_corporate_id
+           and as_of_date = pd_trade_date;
+      end if;
+    end if;
+    commit;    
+  exception
+    when others then
+        sp_write_log(pc_corporate_id,
+                 pd_trade_date,
+                 'procedure sp_process_time_display',
+                 'Error marking time display '||'Code:' || sqlcode ||'Message:' ||sqlerrm);
 
+     /* vobj_error_log.extend;
+      vobj_error_log(vn_eel_error_count) := pelerrorlogobj(pc_corporate_id,
+                                                           'procedure sp_process_time_display',
+                                                           'M2M-013',
+                                                           'Code:' || sqlcode ||
+                                                           'Message:' ||
+                                                           sqlerrm,
+                                                           '',
+                                                           pc_process,
+                                                           pc_user_id,
+                                                           sysdate,
+                                                           pd_trade_date);
+      sp_insert_error_log(vobj_error_log);*/
+      commit;
+  end;
   procedure sp_clear_process_status(pc_corporate_id varchar2,
                                     pd_trade_date   date,
                                     pc_user_id      varchar2,
@@ -1212,11 +1400,6 @@ create or replace package body "PKG_EXECUTE_PROCESS" is
                         pc_process_id || ''')';
     
       execute immediate vc_cdc_execute;
-      /*pkg_cdc_derivatives_process.sp_process_rollback(pc_corporate_id,
-      pc_process,
-      pd_trade_date,
-      pc_dbd_id,
-      pc_process_id);*/
       commit;
     end if;
   
@@ -1226,12 +1409,6 @@ create or replace package body "PKG_EXECUTE_PROCESS" is
                         pd_trade_date || ''',''' || pc_dbd_id || ''',''' ||
                         pc_process_id || ''')';
       execute immediate vc_cdc_execute;
-    
-      /* pkg_phy_physical_process.sp_process_rollback(pc_corporate_id,
-      pc_process,
-      pd_trade_date,
-      pc_dbd_id,
-      pc_process_id);*/
       commit;
     end if;
     pkg_gen_process.sp_process_rollback(pc_corporate_id,
@@ -1302,33 +1479,9 @@ create or replace package body "PKG_EXECUTE_PROCESS" is
                         ''',''' || pc_process || ''',''' || pc_dbd_id ||
                         ''')';
       execute immediate vc_cdc_execute;
-    
-      /*pkg_cdc_derivatives_process.sp_mark_process_id(pc_corporate_id,
-      pc_process_id,
-      pc_user_id,
-      pd_trade_date,
-      pc_process,
-      pc_dbd_id);*/
-    
       commit;
     
     end if;
-    /*pkg_phy_physical_process.sp_mark_process_id(pc_corporate_id,
-                                                pc_process_id,
-                                                pc_user_id,
-                                                pd_trade_date);
-    COMMIT;*/ -- commented by siva as it's enabled in phy process pkg
-    /*sp_write_log(pc_corporate_id,
-                 pd_trade_date,
-                 'sp_mark_process_id',
-                 'Physical Marking Completed.....');
-    pkg_cdc_derivatives_process.sp_process_run(pc_corporate_id,
-                                               pd_trade_date,
-                                               pc_process_id,
-                                               pc_user_id,
-                                               pc_process,
-                                               pc_dbd_id);
-    commit;*/
     sp_write_log(pc_corporate_id,
                  pd_trade_date,
                  'sp_process_run',
@@ -1343,13 +1496,6 @@ create or replace package body "PKG_EXECUTE_PROCESS" is
                         ''',''' || pc_process || ''',''' || pc_dbd_id ||
                         ''')';
       execute immediate vc_cdc_execute;
-    
-      /*pkg_cdc_derivatives_process.sp_process_run(pc_corporate_id,
-      pd_trade_date,
-      pc_process_id,
-      pc_user_id,
-      pc_process,
-      pc_dbd_id);*/
       commit;
     end if;                 
     if vc_phy_process_applicable = 'Y' then
@@ -1360,13 +1506,6 @@ create or replace package body "PKG_EXECUTE_PROCESS" is
                         ''')';
     
       execute immediate vc_cdc_execute;
-    
-      /*pkg_phy_physical_process.sp_process_run(pc_corporate_id,
-      pd_trade_date,
-      pc_process_id,
-      pc_user_id,
-      pc_process,
-      pc_dbd_id);*/
       commit;
     end if;
     sp_write_log(pc_corporate_id,
@@ -1382,12 +1521,6 @@ create or replace package body "PKG_EXECUTE_PROCESS" is
                         ''',''' || pc_user_id || ''',''' || pc_process ||
                         ''',''' || pc_process_id || ''')';
       execute immediate vc_cdc_execute;
-    
-      /*pkg_cdc_pre_check_process.sp_record_expired_derivatives(pc_corporate_id,
-      pd_trade_date,
-      pc_user_id,
-      pc_process,
-      pc_process_id);*/
       commit;
     
       vc_cdc_execute := ' call pkg_cdc_pre_check_process.sp_record_expired_currency(''' ||
@@ -1395,12 +1528,6 @@ create or replace package body "PKG_EXECUTE_PROCESS" is
                         ''',''' || pc_user_id || ''',''' || pc_process ||
                         ''',''' || pc_process_id || ''')';
       execute immediate vc_cdc_execute;
-    
-      /*pkg_cdc_pre_check_process.sp_record_expired_currency(pc_corporate_id,
-      pd_trade_date,
-      pc_user_id,
-      pc_process,
-      pc_process_id);*/
       commit;
     end if;
   exception
@@ -1460,14 +1587,6 @@ create or replace package body "PKG_EXECUTE_PROCESS" is
       dbms_output.put_line('The execute immediate strins is - ' ||
                            vc_cdc_execute);
       execute immediate vc_cdc_execute;
-    
-      /*pkg_cdc_transfer_data.sp_cdc_transfer_data(pc_corporate_id,
-      pt_previous_pull_date,
-      pt_current_pull_date,
-      pd_trade_date,
-      pc_user_id,
-      pc_process,
-      pc_dbd_id);*/
       commit;
     end if;
   
@@ -1481,14 +1600,6 @@ create or replace package body "PKG_EXECUTE_PROCESS" is
       dbms_output.put_line('The execute immediate strins is - ' ||
                            vc_cdc_execute);
       execute immediate vc_cdc_execute;
-    
-      /* pkg_phy_transfer_data.sp_phy_transfer_data(pc_corporate_id,
-      pt_previous_pull_date,
-      pt_current_pull_date,
-      pd_trade_date,
-      pc_user_id,
-      pc_process,
-      pc_dbd_id);*/
       commit;
     
     end if;
@@ -1509,13 +1620,6 @@ create or replace package body "PKG_EXECUTE_PROCESS" is
                         ''',''' || pc_user_id || ''',''' || pc_dbd_id ||
                         ''',''' || pc_process || ''')';
       execute immediate vc_cdc_execute;
-    
-      /* pkg_cdc_populate_data.sp_cdc_populate_table_data(pc_corporate_id,
-      pd_trade_date,
-      pc_user_id,
-      pc_dbd_id,
-      pc_process);*/
-    
       commit;
     end if;
     if vc_phy_process_applicable = 'Y' then
@@ -1525,12 +1629,6 @@ create or replace package body "PKG_EXECUTE_PROCESS" is
                         ''',''' || pc_user_id || ''',''' || pc_dbd_id ||
                         ''',''' || pc_process || ''')';
       execute immediate vc_cdc_execute;
-    
-      /*pkg_phy_populate_data.sp_phy_populate_table_data(pc_corporate_id,
-      pd_trade_date,
-      pc_user_id,
-      pc_dbd_id,
-      pc_process);*/
       commit;
     end if;
   
@@ -1541,12 +1639,6 @@ create or replace package body "PKG_EXECUTE_PROCESS" is
                         ''',''' || pc_user_id || ''',''' || pc_process ||
                         ''')';
       execute immediate vc_cdc_execute;
-    
-      /*  pkg_cdc_pre_check_process.sp_pre_check(pc_corporate_id,
-      pd_trade_date,
-      pc_user_id,
-      pc_process);*/
-    
       commit;
     end if;
     if vc_phy_process_applicable = 'Y' then
@@ -1556,14 +1648,8 @@ create or replace package body "PKG_EXECUTE_PROCESS" is
                         ''',''' || pc_user_id || ''',''' || pc_process ||
                         ''')';
       execute immediate vc_cdc_execute;
-    
-      /* pkg_phy_pre_check_process.sp_pre_check(pc_corporate_id,
-      pd_trade_date,
-      pc_user_id,
-      pc_process);*/
       commit;
-    end if;
-  
+    end if;  
   exception
     when others then
       vobj_error_log.extend;

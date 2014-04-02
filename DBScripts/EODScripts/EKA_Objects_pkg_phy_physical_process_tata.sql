@@ -53,6 +53,7 @@ create or replace package pkg_phy_physical_process is
   procedure sp_phy_rebuild_stats;
 
 end; 
+ 
 /
 create or replace package body pkg_phy_physical_process is
 -- pkg_phy_physical_process for tata specific.....
@@ -163,6 +164,7 @@ create or replace package body pkg_phy_physical_process is
           vc_prev_eom_date := to_date('01-Jan-2000', 'dd-Mon-yyyy');
       end;
     end if;
+    commit;
     if pc_process = 'EOD' then
       gvc_previous_process_id   := vc_prev_eod_id;
       gvc_previous_process_date := vc_prev_eod_date;
@@ -1145,7 +1147,18 @@ create or replace package body pkg_phy_physical_process is
                           pc_process_id,
                           vn_logno,
                           'End of EOD/EOM Process From Physical');
-  
+     pkg_execute_process.sp_mark_process_time(pc_corporate_id,
+                                             pd_trade_date,
+                                             pc_user_id,
+                                             pc_process,
+                                             'PROCESS');
+    commit;
+    pkg_execute_process.sp_process_time_display(pc_corporate_id,
+                                                 pd_trade_date,
+                                                 pc_user_id,
+                                                 pc_process,
+                                                 'PROCESS'); 
+    commit;      
     vc_err_msg := 'end of physical sp process run ';
     <<cancel_process>>
     dbms_output.put_line('EOD/EOM Process Cancelled while pnl calculation');
@@ -1167,6 +1180,7 @@ create or replace package body pkg_phy_physical_process is
                                                            sysdate,
                                                            pd_trade_date);
       sp_insert_error_log(vobj_error_log);
+      commit;
   end;
 
   procedure sp_mark_process_id(pc_corporate_id varchar2,
@@ -1379,6 +1393,45 @@ commit;
            (select sswh.sswh_id
               from sswh_spe_settle_washout_header sswh
              where sswh.process_id = pc_process_id);
+    commit;
+    sp_write_log(pc_corporate_id, pd_trade_date, 'sp_mark_process_id', '6');
+  
+    --- added suresh   
+    update pca_physical_contract_action pca
+       set process_id = pc_process_id
+     where process_id is null
+       and (pca.internal_action_ref_no) in
+           (select axs.internal_action_ref_no
+              from axs_action_summary axs
+             where axs.internal_action_ref_no = pca.internal_action_ref_no
+               and axs.eff_date <= pd_trade_date
+               and axs.corporate_id = pc_corporate_id)
+       and pca.dbd_id in
+           (select dbd.dbd_id
+              from dbd_database_dump dbd
+             where dbd.corporate_id = pc_corporate_id
+               and dbd.process = gvc_process
+               and dbd.trade_date <= pd_trade_date);
+    commit;
+    sp_write_log(pc_corporate_id, pd_trade_date, 'sp_mark_process_id', '7');
+  
+    update cod_call_off_details cod
+       set process_id = pc_process_id
+     where process_id is null
+       and (cod.internal_action_ref_no) in
+           (select axs.internal_action_ref_no
+              from axs_action_summary axs
+             where axs.internal_action_ref_no = cod.internal_action_ref_no
+               and axs.eff_date <= pd_trade_date
+               and axs.corporate_id = pc_corporate_id)
+       and cod.dbd_id in
+           (select dbd.dbd_id
+              from dbd_database_dump dbd
+             where dbd.corporate_id = pc_corporate_id
+               and dbd.process = gvc_process
+               and dbd.trade_date <= pd_trade_date);
+    commit;
+    sp_write_log(pc_corporate_id, pd_trade_date, 'sp_mark_process_id', '8');
   exception
     when others then
       vobj_error_log.extend;
@@ -3840,7 +3893,7 @@ commit;
      where process_id = pc_process_id;
     commit;
     delete from fcg_feed_consumption_gmr fcg
-     where process_id = pc_process_id;
+     where fcg.process_id = pc_process_id;
     delete from arg_arrival_report_gmr arg
      where arg.process_id = pc_process_id;
 
@@ -3909,6 +3962,10 @@ commit;
     delete areor_ar_ele_original_report where process_id = pc_process_id;
     delete for_feed_original_report where process_id = pc_process_id;
     delete feor_feed_ele_original_report where process_id = pc_process_id;
+    delete from gds_gmr_delta_status where process_id = pc_process_id;
+    delete from grhul_gmr_refining_header_ul where dbd_id = vc_dbd_id;
+    delete from gthul_gmr_treatment_header_ul where dbd_id = vc_dbd_id;
+    delete from gphul_gmr_penalty_header_ul where dbd_id = vc_dbd_id;
     commit;
   
     --end Suresh 

@@ -1,5 +1,5 @@
 create or replace package pkg_phy_pre_check_process is
-
+  -- precheck for boliden
   -- Author  : Janna
   -- Created : 1/11/2009 11:50:17 AM
   -- Purpose : Pre check data for EOD and EOM
@@ -152,6 +152,7 @@ create or replace package body pkg_phy_pre_check_process is
 
   procedure sp_pre_check
   --------------------------------------------------------------------------------------------------------------------------
+    -- precheck for boliden
     --        procedure name                            : sp_pre_check
     --        author                                    : janna
     --        created date                              : 20th jan 2009
@@ -308,6 +309,18 @@ create or replace package body pkg_phy_pre_check_process is
                             gvc_dbd_id,
                             vn_logno,
                             'Precheck Completed Successfully...!!!!!!');
+    pkg_execute_process.sp_mark_process_time(pc_corporate_id,
+                                             pd_trade_date,
+                                             pc_user_id,
+                                             pc_process,
+                                             'PRECHECK');
+    commit;
+    pkg_execute_process.sp_process_time_display(pc_corporate_id,
+                                                 pd_trade_date,
+                                                 pc_user_id,
+                                                 pc_process,
+                                                 'PRECHECK'); 
+    commit;                           
     <<cancel_process>>
     dbms_output.put_line('EOD/EOM Process Cancelled while pnl calculation');
   exception
@@ -9502,5 +9515,5 @@ create or replace package body pkg_phy_pre_check_process is
       sp_insert_error_log(vobj_error_log);
     
   end;
-end pkg_phy_pre_check_process;
+end pkg_phy_pre_check_process; 
 /
