@@ -7,21 +7,9 @@ select asm.ash_id,
          else
           (sum(asm.dry_weight * pqca.typical) / sum(asm.dry_weight))
        end) typical,
-       (case when rm.ratio_name = '%' then
-       round((case
-         when sum(asm.dry_weight) = 0 then
-          0
-         else
-          (sum(asm.dry_weight * pqca.typical) / sum(asm.dry_weight))
-       end)/100,8) else
-       round((case
-         when sum(asm.dry_weight) = 0 then
-          0
-         else
-          (sum(asm.dry_weight * pqca.typical) / sum(asm.dry_weight))
-       end),8) end )typical_ratio,
        pqca.unit_of_measure,
-       rm.ratio_name as deductible_content_uom
+       rm.ratio_name as deductible_content_uom,
+       (sum(asm.dry_weight)/sum(asm.net_weight))*100 dry_wet_ratio
   from asm_assay_sublot_mapping    asm,
        rm_ratio_master             rm,
        pqca_pq_chemical_attributes pqca
