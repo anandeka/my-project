@@ -36,7 +36,6 @@ create or replace package "PKG_EXECUTE_EOD" is
 
   procedure sp_refresh_mv;
 end pkg_execute_eod; 
- 
 /
 create or replace package body "PKG_EXECUTE_EOD" is
 
@@ -95,14 +94,14 @@ create or replace package body "PKG_EXECUTE_EOD" is
         vn_error_count            := 0;
         vn_error_only_error_count := 0;
     end;
-    sp_eodeom_process_log(pc_corporate_id,
+   /* sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           'error count check completed ' ||
                           ' vn_error_count =' || vn_error_count ||
                           ' vn_error_only_error_count ' ||
                           vn_error_only_error_count || ' pc_eod_status ' ||
                           pc_eod_status,
-                          3);
+                          3);*/
     if pc_action = 'PRECHECK' then
       if vn_error_count = 0 then
         pc_eod_status := 'Precheck Success, Run the EOD';
@@ -116,7 +115,6 @@ create or replace package body "PKG_EXECUTE_EOD" is
     elsif pc_action = 'PRECHECK_RUN' then
       if vn_error_count = 0 then
         pc_eod_status := 'EOD Process Success,Awaiting Cost Entry';
-        --Everything OK, Let us settle trades in Transaction Schema
         sp_record_expired_drid(pc_corporate_id, pd_trade_date, 'EOD');
       else
         if vn_error_only_error_count > 0 then
@@ -128,7 +126,6 @@ create or replace package body "PKG_EXECUTE_EOD" is
     elsif pc_action = 'RUN' then
       if vn_error_count = 0 then
         pc_eod_status := 'EOD Process Success,Awaiting Cost Entry';
-        --Everything OK, Let us settle trades in Transaction Schema
         sp_record_expired_drid(pc_corporate_id, pd_trade_date, 'EOD');
       else
         pc_eod_status := 'Precheck Completed, User input required';
@@ -261,12 +258,12 @@ create or replace package body "PKG_EXECUTE_EOD" is
     ******************************************************************************************************************************************/
   begin
     -- To update the DB Transfer complited status back to transaction schema
-    sp_eodeom_process_log(pc_corporate_id,
+   /* sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
                           'inside marking eod_dump_status as COMPLETED for pc_corporate_id ' ||
                           pc_corporate_id || '-pd_trade_date ' ||
                           pd_trade_date,
-                          2);
+                          2);*/
     update eod_end_of_day_details
        set eod_dump_status = 'COMPLETED'
      where corporate_id = pc_corporate_id
@@ -308,11 +305,14 @@ create or replace package body "PKG_EXECUTE_EOD" is
     Modified By                               :
     Modify Description                        :
     ******************************************************************************************************************************************/
+   vc_eod_eom_id         varchar2(15);
+   pc_eodeom_status      varchar2(100);
   begin
+  vc_eod_eom_id := 'NA';
     -- To update the DB Transfer complited status back to transaction schema
     sp_eodeom_process_log(pc_corporate_id,
                           pd_trade_date,
-                          'inside marking process_dump_status as COMPLETED for pc_corporate_id ' ||
+                          'marking process_dump_status as COMPLETED for pc_corporate_id ' ||
                           pc_corporate_id || '-pd_trade_date ' ||
                           pd_trade_date,
                           2);
@@ -322,7 +322,6 @@ create or replace package body "PKG_EXECUTE_EOD" is
           'EOD Process Success,Awaiting Cost Entry',
           'EOM Processed Successfully',
           'EOM Process Success,Awaiting Cost Entry') then
-      
         insert into eod_eom_process_count
           (corporate_id,
            trade_date,
@@ -340,13 +339,36 @@ create or replace package body "PKG_EXECUTE_EOD" is
       when others then
         sp_eodeom_process_log(pc_corporate_id,
                               pd_trade_date,
-                              'insert into eod_eom_process_count' ||
+                              'Error while insert into eod_eom_process_count' ||
                               pc_eod_status || ' ' || pc_process || ' ' ||
                               sqlerrm,
                               2);
     end;
+     begin
+       if pc_process = 'EOD' then
+         select max(eod.eod_id)
+           into vc_eod_eom_id
+           from eod_end_of_day_details eod
+          where eod.corporate_id = pc_corporate_id
+            and eod.as_of_date = pd_trade_date;
+       else
+         select max(eom.eom_id)
+           into vc_eod_eom_id
+           from eom_end_of_month_details eom
+          where eom.corporate_id = pc_corporate_id
+            and eom.as_of_date = pd_trade_date;
+       end if;
+     exception
+       when others then
+         vc_eod_eom_id := 'NA';
+     end;
+sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          'vc_eod_eom_id ' || vc_eod_eom_id,2);     
     if pc_action in ('PRECHECK', 'PRECHECK_RUN', 'RUN') then
-    
+     sp_eodeom_process_log(pc_corporate_id,
+                          pd_trade_date,
+                          'pc_action ' || pc_action || ' pc_eod_status '||pc_eod_status,2);     
       if pc_process = 'EOD' then
         update eod_end_of_day_details
            set processing_status = pc_eod_status
@@ -354,11 +376,9 @@ create or replace package body "PKG_EXECUTE_EOD" is
            and as_of_date = pd_trade_date;
         update eodh_end_of_day_history eodh
            set eodh.processing_status = pc_eod_status
-         where eodh.eod_id in
-               (select eod.eod_id
-                  from eod_end_of_day_details eod
-                 where eod.corporate_id = pc_corporate_id
-                   and eod.as_of_date = pd_trade_date);
+         where eodh.eod_id = vc_eod_eom_id
+             and eodh.corporate_id = pc_corporate_id
+             and eodh.as_of_date = pd_trade_date;
       else
         update eom_end_of_month_details
            set processing_status = pc_eod_status
@@ -366,38 +386,40 @@ create or replace package body "PKG_EXECUTE_EOD" is
            and as_of_date = pd_trade_date;
         update eomh_end_of_month_history eomh
            set eomh.processing_status = pc_eod_status
-         where eomh.eom_id in
-               (select eom.eom_id
-                  from eom_end_of_month_details eom
-                 where eom.corporate_id = pc_corporate_id
-                   and eom.as_of_date = pd_trade_date);
+         where eomh.eom_id =vc_eod_eom_id
+              and eomh.corporate_id = pc_corporate_id
+             and eomh.as_of_date = pd_trade_date;
       end if;
     else
       if pc_process = 'EOD' then
+         if pc_eod_status is null then
+            pc_eodeom_status := 'EOD Rolled Back';
+          else
+            pc_eodeom_status := pc_eod_status;
+         end if;
         update eodh_end_of_day_history eodh
-           set eodh.processing_status = pc_eod_status
-         where eodh.eod_id in
-               (select eod.eod_id
-                  from eod_end_of_day_details eod
-                 where eod.corporate_id = pc_corporate_id
-                   and eod.as_of_date = pd_trade_date
-                   and (eod.processing_status like '%Running%' or
-                       eod.processing_status like '%Cancelling%' or
-                       eod.processing_status like '%Rolling%'));
+           set eodh.processing_status = pc_eodeom_status
+         where eodh.corporate_id = pc_corporate_id
+             and eodh.as_of_date = pd_trade_date
+            and (eodh.processing_status like '%Running%' or
+                       eodh.processing_status like '%Cancelling%' or
+                       eodh.processing_status like '%Rolling%' or eodh.processing_status is null );
         delete from eod_end_of_day_details eod
          where corporate_id = pc_corporate_id
            and as_of_date = pd_trade_date;
       else
-        update eomh_end_of_month_history eomh
-           set eomh.processing_status = pc_eod_status
-         where eomh.eom_id in
-               (select eom.eom_id
-                  from eom_end_of_month_details eom
-                 where eom.corporate_id = pc_corporate_id
-                   and eom.as_of_date = pd_trade_date
-                   and (eom.processing_status like '%Running%' or
-                       eom.processing_status like '%Cancelling%' or
-                       eom.processing_status like '%Rolling%'));
+         if pc_eod_status is null then
+            pc_eodeom_status := 'EOM Rolled Back';
+          else
+            pc_eodeom_status := pc_eod_status;
+         end if;        
+         update eomh_end_of_month_history eomh
+           set eomh.processing_status = pc_eodeom_status
+         where eomh.corporate_id = pc_corporate_id
+             and eomh.as_of_date = pd_trade_date
+             and (eomh.processing_status like '%Running%' or
+                       eomh.processing_status like '%Cancelling%' or
+                       eomh.processing_status like '%Rolling%' or  eomh.processing_status is null);
         delete from eom_end_of_month_details eom
          where corporate_id = pc_corporate_id
            and as_of_date = pd_trade_date;
@@ -417,7 +439,9 @@ create or replace package body "PKG_EXECUTE_EOD" is
                (select eod.eod_id
                   from eod_end_of_day_details eod
                  where eod.corporate_id = pc_corporate_id
-                   and eod.as_of_date = pd_trade_date);
+                   and eod.as_of_date = pd_trade_date)
+             and eodh.corporate_id = pc_corporate_id
+             and eodh.as_of_date = pd_trade_date;
       else
         update eom_end_of_month_details
            set processing_status = pc_eod_status
@@ -429,12 +453,14 @@ create or replace package body "PKG_EXECUTE_EOD" is
                (select eom.eom_id
                   from eom_end_of_month_details eom
                  where eom.corporate_id = pc_corporate_id
-                   and eom.as_of_date = pd_trade_date);
+                   and eom.as_of_date = pd_trade_date)
+             and eomh.corporate_id = pc_corporate_id
+             and eomh.as_of_date = pd_trade_date;
       end if;
       commit;
       sp_eodeom_process_log(pc_corporate_id,
                             pd_trade_date,
-                            'Exception when others in sp_mark_process_status as' ||
+                            'Exception while marking processing status in eod/eom table :' ||
                             pc_eod_status || ' ' || sqlerrm,
                             2);
   end;
@@ -521,6 +547,7 @@ create or replace package body "PKG_EXECUTE_EOD" is
     Modify Description                        :
     ******************************************************************************************************************************************/
   begin
+    sp_eodeom_process_log('NA',sysdate,'MV Refresh Started..',0);
     dbms_mview.refresh('mv_dm_phy_open', 'C');
     dbms_mview.refresh('mv_dm_phy_stock', 'C');
     dbms_mview.refresh('mv_dm_phy_derivative', 'c');
@@ -559,6 +586,7 @@ create or replace package body "PKG_EXECUTE_EOD" is
     dbms_mview.refresh('MV_BI_PHY_BOOK_JOURNAL_EOM', 'c');
     dbms_mview.refresh('MV_BI_DER_PNL_EODEOM', 'c');
     commit;
+    sp_eodeom_process_log('NA',sysdate,'MV Refresh Completed..',0);    
   exception
     when others then
       sp_eodeom_process_log('NA',
