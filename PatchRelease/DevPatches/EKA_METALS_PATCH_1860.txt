@@ -1,0 +1,58 @@
+Patch No *                      :  EKA_METALS_PATCH_1860
+
+Project / Product* 		:  METALS
+==================================================================
+Created by*        		:  Sishir Kumar Pagada
+
+Created on*        		:  03-Apr-2014
+
+Bug / Enhancement*		:  Bug 
+
+Bug ID*            		:  94917
+==================================================================
+Branch (DEV / REL)*		:  Dev
+==================================================================
+
+Module / Feature Group:
+==================================================================
+Module  		   	 :  QEP
+
+Sub-Module  			 :  Hedge Correction
+ 
+Section   		   	 :  N/A
+ 
+Screen		           	 :  N/A
+ 
+FS Number and Clause No.	 :  N/A
+ 
+FS Enhancement details 		 :  N/A
+ 
+FS Amendment details   		 :  N/A
+
+Dependent patches:		 :  N/A
+
+==================================================================
+Schema type (Transaction / EOD)* : Transaction
+=================================================================
+Revision: 163108
+Author: sishir.pagada
+Date: 4:07:08 PM, Thursday, April 03, 2014
+Message:
+Bug# 94917
+----
+Added : /7.3/Engg/Metals/Release/Patch/DBScripts/ObjectsScripts/object_script_513.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
